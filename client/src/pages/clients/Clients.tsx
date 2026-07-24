@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Plus } from "lucide-react";
 import DataTable from "../../components/ui/table/DataTable";
 import type { Column } from "../../components/ui/table/DataTable";
 import TableSkeleton from "../../components/ui/table/TableSkeleton";
@@ -11,7 +10,7 @@ import { createClient } from "../../api/client.api";
 import AddClientModal from "./AddClientModal";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-
+import Input from "../../components/ui/Input";
 
 interface Client {
   id: string;
@@ -29,15 +28,24 @@ const Clients = () => {
     const [page, setPage] = useState<number>(1);
     const [limit] = useState<number>(10);
     const [totalPages, setTotalPages] = useState<number>(1);
+    const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
 
     const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
 
     useEffect(() => {
-        
+      const timer = setTimeout(() => {
+        setDebouncedSearch(search);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }, [search]);
+
+    useEffect(() => {
         const getClientsData = async () => {
             try {
                 setLoading(true);
-                const response = await getClients({ page: page, limit: limit})
+                const response = await getClients({ page, limit, search: debouncedSearch})
                 console.log(response);
                 setClients(response.data);
                 setTotalPages(response.pages)
@@ -49,7 +57,7 @@ const Clients = () => {
         }
         
         getClientsData();
-    }, [page, limit]);
+    }, [page, limit, debouncedSearch]);
 
     const handleCreateClient = async (data: {
       name: string;
@@ -63,7 +71,7 @@ const Clients = () => {
         if (page !== 1) {
           setPage(1);
         } else {
-          const response = await getClients({ page, limit });
+          const response = await getClients({ page, limit, search: debouncedSearch });
           setClients(response.data);
           setTotalPages(response.totalPages);
         }
@@ -110,7 +118,6 @@ const Clients = () => {
 
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
         <div>
           <h1 className="text-xl sm:text-2xl font-semibold">
             Clients
@@ -120,13 +127,26 @@ const Clients = () => {
           </p>
         </div>
 
-        <Button
-          className="w-full sm:w-auto"
-          onClick={() => setIsAddOpen(true)}
-        >
-          <Plus size={16} />
-          Add Client
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+
+          <Input
+            placeholder="Search clients..."
+            value={search}
+            onChange={(e) => {
+              setPage(1); // ✅ Reset pagination
+              setSearch(e.target.value);
+            }}
+            className="w-full sm:w-64"
+          />
+
+          <Button
+            className="w-full sm:w-auto"
+            onClick={() => setIsAddOpen(true)}
+          >
+            Add Client
+          </Button>
+
+        </div>
 
       </div>
 
