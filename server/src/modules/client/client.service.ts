@@ -64,63 +64,79 @@ export const getClientByIdService = async (
   id: string,
   userId: mongoose.Types.ObjectId
 ) => {
+  const client = await Client.findOne({
+    _id: id,
+    owner: userId,
+    isDeleted: false,
+  }).lean();
 
-  const [ client, clientProjects ] = await Promise.all(
-    [
-        Client.findOne({
-        _id: id,
-        owner: userId,
-        isDeleted: false,
-      }).lean(),
+  if (!client) {
+    return null;
+  }
 
-      Project.find({
-        client: id,
-        owner: userId,
-        isDeleted: false
-        }).lean()
-        .limit(5)
-        .sort({ createdAt: -1}),
-    ])
+  const now = new Date();
 
-    if (!client) {
-      return { client: null, clientProjects: [], stats: null };
-    }
+  const [recentProjects, allProjectIds] = await Promise.all([
+    Project.find({
+      client: id,
+      owner: userId,
+      isDeleted: false,
+    })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("name status createdAt updatedAt")
+      .lean(),
 
-    const projectIds = clientProjects.map((p) => p._id);
-    const now = new Date();
+    Project.find({
+      client: id,
+      owner: userId,
+      isDeleted: false,
+    }).distinct("_id"),
+  ]);
 
-    const [ totalProjects, activeProjects, totalTask, overdueTask ] = await Promise.all([
-      Project.countDocuments({ owner: userId, client: id, isDeleted: false }),
-      Project.countDocuments({ 
-          owner: userId, 
-          client: id, 
-          isDeleted: false, 
-          status: 'active'
-        }),
-      Task.countDocuments({
-        owner: userId,
-        project: { $in: projectIds },
-        isDeleted: false
-      }),
-      Task.countDocuments({
-        owner: userId,
-        project: { $in: projectIds },
-        isDeleted: false,
-        dueDate: { $lt: now },
-        status: { $ne: 'done' }
-      })
-    ])
+  const [
+    totalProjects,
+    activeProjects,
+    totalTasks,
+    overdueTasks,
+  ] = await Promise.all([
+    Project.countDocuments({
+      client: id,
+      owner: userId,
+      isDeleted: false,
+    }),
 
+    Project.countDocuments({
+      client: id,
+      owner: userId,
+      isDeleted: false,
+      status: "active",
+    }),
+
+    Task.countDocuments({
+      owner: userId,
+      project: { $in: allProjectIds },
+      isDeleted: false,
+    }),
+
+    Task.countDocuments({
+      owner: userId,
+      project: { $in: allProjectIds },
+      isDeleted: false,
+      dueDate: { $lt: now },
+      status: { $ne: "done" },
+    }),
+  ]);
 
   return {
     client,
-    clientProjects,
+    projects: recentProjects,
     stats: {
       totalProjects,
       activeProjects,
-      totalTask,
-      overdueTask
-    }
+      totalTasks,
+      overdueTasks,
+    },
   };
 };
 
