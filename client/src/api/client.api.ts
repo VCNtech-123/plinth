@@ -1,7 +1,15 @@
 import { api } from "./axios";
 
-export const getClients = async (params?: any) => {
-  const response = await api.get("/clients", { params });
+export const getClients = async ({
+  page, 
+  limit,
+  search
+}: {
+  page: number,
+  limit: number,
+  search: string
+}) => {
+  const response = await api.get("/clients", { params: { page, limit, search } });
   return response.data;
 };
 
