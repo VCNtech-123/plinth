@@ -69,7 +69,7 @@ export const getClientById = async (req: Request, res: Response) => {
   const formattedProjects = projects.map((project) =>({
     id: project._id,
     name: project.name,
-    project: project.status,
+    status: project.status,
     createdAt: project.createdAt,
     updatedAt: project.updatedAt
   }))
