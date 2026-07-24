@@ -24,11 +24,11 @@ const router = createBrowserRouter([
         element: <Dashboard />,
       },
       {
-        path: "/clients",
+        path: "clients",
         element: <Clients />
       },
       {
-        path: "/clients/:id"
+        path: "clients/:id"
       }
     ],
   },
@@ -37,7 +37,7 @@ const router = createBrowserRouter([
     element: <AuthLayout />,
     children: [
       {
-        path: "/login",
+        path: "login",
         element: <Login />
       }
     ]
