@@ -1,17 +1,15 @@
 import { useState, useEffect } from "react";
-import DataTable from "../../components/ui/table/DataTable";
 import type { Column } from "../../components/ui/table/DataTable";
-import TableSkeleton from "../../components/ui/table/TableSkeleton";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
-import Pagination from "../../components/ui/table/Pagination";
 import { getClients } from "../../api/client.api";
 import { createClient, deleteClient } from "../../api/client.api";
 import AddClientModal from "./AddClientModal";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import Input from "../../components/ui/Input";
 import DeleteClientModal from "./DeleteClientModal";
+import ClientsHeader from "./ClientsHeader";
+import ClientsTable from "./ClientsTable";
 
 interface Client {
   id: string;
@@ -155,80 +153,41 @@ const Clients = () => {
         },
     ];
 
-  return (
-    <div className="space-y-6">
+    return (
+      <div className="space-y-6">
 
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-semibold">
-            Clients
-          </h1>
-          <p className="text-sm opacity-70 mt-1">
-            Manage your workspace clients.
-          </p>
-        </div>
+        <ClientsHeader
+          search={search}
+          onSearchChange={(value) => {
+            setPage(1);
+            setSearch(value);
+          }}
+          onAddClick={() => setIsAddOpen(true)}
+        />
 
-        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+        <ClientsTable
+          clients={clients}
+          loading={loading}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          columns={columns}
+        />
 
-          <Input
-            placeholder="Search clients..."
-            value={search}
-            onChange={(e) => {
-              setPage(1); // ✅ Reset pagination
-              setSearch(e.target.value);
-            }}
-            className="w-full sm:w-64"
-          />
+        <AddClientModal
+          open={isAddOpen}
+          onClose={() => setIsAddOpen(false)}
+          onCreate={handleCreateClient}
+        />
 
-          <Button
-            className="w-full sm:w-auto"
-            onClick={() => setIsAddOpen(true)}
-          >
-            Add Client
-          </Button>
-
-        </div>
+        <DeleteClientModal
+          open={!!deleteId}
+          onClose={() => setDeleteId(null)}
+          onConfirm={handleDeleteClient}
+        />
 
       </div>
-
-      {/* Table */}
-      {loading ? (
-        <TableSkeleton columns={5} />
-      ) : (
-        <>
-          <div className="overflow-x-auto">
-            <DataTable
-              data={clients}
-              columns={columns}
-              keyField="id"
-              emptyMessage="No clients found."
-            />
-          </div>
-
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-          />
-        </>
-      )}
-
-      <AddClientModal
-        open={isAddOpen}
-        onClose={() => setIsAddOpen(false)}
-        onCreate={handleCreateClient}
-      />
-
-      <DeleteClientModal
-        open={!!deleteId}
-        onClose={() => setDeleteId(null)}
-        onConfirm={handleDeleteClient}
-      />
-
-    </div>
-    
-  );
+    );
 };
 
 export default Clients;
