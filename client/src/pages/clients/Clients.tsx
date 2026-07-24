@@ -32,6 +32,7 @@ const Clients = () => {
 
     const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [editClient, setEditClient] = useState<Client | null>(null);
 
     useEffect(() => {
       const timer = setTimeout(() => {
@@ -138,6 +139,14 @@ const Clients = () => {
                 onClick={() => navigate(`/clients/${row.id}`)}
               >
                 View
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setEditClient(row)}
+              >
+                Edit
               </Button>
 
               <Button
