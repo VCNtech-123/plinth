@@ -49,37 +49,47 @@ export const getClients = async (req: Request, res: Response) => {
     })),
   });
 };
-
 export const getClientById = async (req: Request, res: Response) => {
-  const id  = req.params.id as string;
+  const id = req.params.id as string;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new ApiError(400, "Invalid client ID");
   }
 
-  const client = await getClientByIdService(
+  const result = await getClientByIdService(
     id,
     req.user!._id
   );
 
-  if (!client) {
+  if (!result) {
     throw new ApiError(404, "Client not found");
   }
+
+  const { client, projects, stats } = result;
 
   res.status(200).json({
     status: "success",
     data: {
-      id: client._id,
-      name: client.name,
-      email: client.email,
-      phone: client.phone,
-      company: client.company,
-      status: client.status,
-      createdAt: client.createdAt,
+      client: {
+        id: client._id,
+        name: client.name,
+        email: client.email,
+        phone: client.phone,
+        company: client.company,
+        status: client.status,
+        createdAt: client.createdAt,
+      },
+      projects: projects.map((project) => ({
+        id: project._id,
+        name: project.name,
+        status: project.status,
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt,
+      })),
+      stats,
     },
   });
 };
-
 
 export const updateClient = async (req: Request, res: Response) => {
   const id = req.params.id as string;

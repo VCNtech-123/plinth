@@ -2,6 +2,8 @@ import { Client, IClient } from "./client.model";
 import { ApiError } from "../../utils/ApiError";
 import { getPagination } from "../../utils/pagination";
 import mongoose from "mongoose";
+import { Project } from '../project/project.model'
+import { Task } from "../task/task.model";
 
 export const createClientService = async (
   data: Partial<IClient>,
@@ -66,9 +68,76 @@ export const getClientByIdService = async (
     _id: id,
     owner: userId,
     isDeleted: false,
-  });
+  }).lean();
 
-  return client;
+  if (!client) {
+    return null;
+  }
+
+  const now = new Date();
+
+  const [recentProjects, allProjectIds] = await Promise.all([
+    Project.find({
+      client: id,
+      owner: userId,
+      isDeleted: false,
+    })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("name status createdAt updatedAt")
+      .lean(),
+
+    Project.find({
+      client: id,
+      owner: userId,
+      isDeleted: false,
+    }).distinct("_id"),
+  ]);
+
+  const [
+    totalProjects,
+    activeProjects,
+    totalTasks,
+    overdueTasks,
+  ] = await Promise.all([
+    Project.countDocuments({
+      client: id,
+      owner: userId,
+      isDeleted: false,
+    }),
+
+    Project.countDocuments({
+      client: id,
+      owner: userId,
+      isDeleted: false,
+      status: "active",
+    }),
+
+    Task.countDocuments({
+      owner: userId,
+      project: { $in: allProjectIds },
+      isDeleted: false,
+    }),
+
+    Task.countDocuments({
+      owner: userId,
+      project: { $in: allProjectIds },
+      isDeleted: false,
+      dueDate: { $lt: now },
+      status: { $ne: "done" },
+    }),
+  ]);
+
+  return {
+    client,
+    projects: recentProjects,
+    stats: {
+      totalProjects,
+      activeProjects,
+      totalTasks,
+      overdueTasks,
+    },
+  };
 };
 
 export const updateClientService = async (
