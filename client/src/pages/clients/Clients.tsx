@@ -10,10 +10,11 @@ import { getClients } from "../../api/client.api";
 import { createClient } from "../../api/client.api";
 import AddClientModal from "./AddClientModal";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 
 interface Client {
-  _id: string;
+  id: string;
   name: string;
   email: string;
   createdAt: string;
@@ -21,6 +22,7 @@ interface Client {
 
 const Clients = () => {
 
+    const navigate = useNavigate();
     const [clients, setClients] = useState<Client[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -93,9 +95,9 @@ const Clients = () => {
         },
         {
         header: "",
-        accessor: "_id",
-        render: () => (
-            <Button variant="ghost" size="sm">
+        accessor: "id",
+        render: (row) => (
+            <Button variant="ghost" size="sm" onClick={() => navigate(`/clients/${row.id}`)}>
             View
             </Button>
         ),
@@ -137,7 +139,7 @@ const Clients = () => {
             <DataTable
               data={clients}
               columns={columns}
-              keyField="_id"
+              keyField="id"
               emptyMessage="No clients found. Add your first client."
             />
           </div>
