@@ -2,6 +2,7 @@ import { Client, IClient } from "./client.model";
 import { ApiError } from "../../utils/ApiError";
 import { getPagination } from "../../utils/pagination";
 import mongoose from "mongoose";
+import { Task } from "../task/task.model";
 
 export const createClientService = async (
   data: Partial<IClient>,
@@ -62,13 +63,26 @@ export const getClientByIdService = async (
   id: string,
   userId: mongoose.Types.ObjectId
 ) => {
-  const client = await Client.findOne({
-    _id: id,
-    owner: userId,
-    isDeleted: false,
-  });
 
-  return client;
+  const [ task, client ] = await Promise.all(
+    [
+      Client.findOne({
+      _id: id,
+      owner: userId,
+      isDeleted: false,
+    }),
+
+      Task.find({
+        project: id,
+        owner: userId,
+        isDeleted: false
+      })
+    ])
+
+  return {
+    client,
+    task
+  };
 };
 
 export const updateClientService = async (
