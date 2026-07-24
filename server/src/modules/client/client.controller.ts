@@ -57,7 +57,7 @@ export const getClientById = async (req: Request, res: Response) => {
     throw new ApiError(400, "Invalid client ID");
   }
 
-  const { client , projects } = await getClientByIdService(
+  const { client, clientProjects, stats } = await getClientByIdService(
     id,
     req.user!._id
   );
@@ -66,7 +66,7 @@ export const getClientById = async (req: Request, res: Response) => {
     throw new ApiError(404, "Client not found");
   }
 
-  const formattedProjects = projects.map((project) =>({
+  const formattedProjects = clientProjects.map((project) =>({
     id: project._id,
     name: project.name,
     status: project.status,
@@ -86,7 +86,13 @@ export const getClientById = async (req: Request, res: Response) => {
           status: client.status,
           createdAt: client.createdAt,
         },
-        projects: formattedProjects
+        projects: formattedProjects,
+        stats: {
+          totalProjects: stats.totalProjects,
+          activeProjects: stats.activeProjects,
+          totalTask: stats.totalTask,
+          overdueTask: stats.overdueTask
+        }
     },
   });
 };
