@@ -66,18 +66,28 @@ export const getClientById = async (req: Request, res: Response) => {
     throw new ApiError(404, "Client not found");
   }
 
+  const formattedProjects = projects.map((project) =>({
+    id: project._id,
+    name: project.name,
+    project: project.status,
+    createdAt: project.createdAt,
+    updatedAt: project.updatedAt
+  }))
+
   res.status(200).json({
     status: "success",
     data: {
-      id: client._id,
-      name: client.name,
-      email: client.email,
-      phone: client.phone,
-      company: client.company,
-      status: client.status,
-      createdAt: client.createdAt,
+        client: {
+          id: client._id,
+          name: client.name,
+          email: client.email,
+          phone: client.phone,
+          company: client.company,
+          status: client.status,
+          createdAt: client.createdAt,
+        },
+        projects: formattedProjects
     },
-    projects
   });
 };
 
