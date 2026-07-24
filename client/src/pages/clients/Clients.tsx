@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
-import { Plus } from "lucide-react";
-import DataTable from "../../components/ui/table/DataTable";
 import type { Column } from "../../components/ui/table/DataTable";
-import TableSkeleton from "../../components/ui/table/TableSkeleton";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
-import Pagination from "../../components/ui/table/Pagination";
 import { getClients } from "../../api/client.api";
-import { createClient } from "../../api/client.api";
+import { createClient, deleteClient, updateClient } from "../../api/client.api";
 import AddClientModal from "./AddClientModal";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-
+import DeleteClientModal from "./DeleteClientModal";
+import ClientsHeader from "./ClientsHeader";
+import ClientsTable from "./ClientsTable";
+import EditClientModal from "./EditClientModal";
 
 interface Client {
   id: string;
@@ -29,15 +28,26 @@ const Clients = () => {
     const [page, setPage] = useState<number>(1);
     const [limit] = useState<number>(10);
     const [totalPages, setTotalPages] = useState<number>(1);
+    const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
 
     const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [editClient, setEditClient] = useState<Client | null>(null);
 
     useEffect(() => {
-        
+      const timer = setTimeout(() => {
+        setDebouncedSearch(search);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }, [search]);
+
+    useEffect(() => {
         const getClientsData = async () => {
             try {
                 setLoading(true);
-                const response = await getClients({ page: page, limit: limit})
+                const response = await getClients({ page, limit, search: debouncedSearch})
                 console.log(response);
                 setClients(response.data);
                 setTotalPages(response.pages)
@@ -49,7 +59,7 @@ const Clients = () => {
         }
         
         getClientsData();
-    }, [page, limit]);
+    }, [page, limit, debouncedSearch]);
 
     const handleCreateClient = async (data: {
       name: string;
@@ -63,7 +73,7 @@ const Clients = () => {
         if (page !== 1) {
           setPage(1);
         } else {
-          const response = await getClients({ page, limit });
+          const response = await getClients({ page, limit, search: debouncedSearch });
           setClients(response.data);
           setTotalPages(response.totalPages);
         }
@@ -72,6 +82,54 @@ const Clients = () => {
         console.error(err?.message || "Failed to create client");
       }
     }
+
+    const handleDeleteClient = async () => {
+      if (!deleteId) return;
+
+      try {
+        await deleteClient(deleteId);
+        toast.success("Client deleted successfully");
+
+        setDeleteId(null);
+        if (clients.length === 1 && page > 1) {
+          setPage(page - 1);
+        } else {
+          const response = await getClients({
+            page,
+            limit,
+            search: debouncedSearch,
+          });
+
+          setClients(response.data);
+          setTotalPages(response.pages);
+        }
+
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to delete client");
+      }
+    };
+
+    const handleUpdateClient = async (
+      id: string,
+      data: { name: string; email: string }
+    ) => {
+      try {
+        await updateClient(id, data);
+        toast.success("Client updated successfully");
+
+        const response = await getClients({
+          page,
+          limit,
+          search: debouncedSearch,
+        });
+
+        setClients(response.data);
+        setTotalPages(response.pages);
+
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to update client");
+      }
+    };
 
     const columns: Column<Client>[] = [
         {
@@ -97,70 +155,78 @@ const Clients = () => {
         header: "",
         accessor: "id",
         render: (row) => (
-            <Button variant="ghost" size="sm" onClick={() => navigate(`/clients/${row.id}`)}>
-            View
-            </Button>
+             <div className="flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(`/clients/${row.id}`)}
+              >
+                View
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setEditClient(row)}
+              >
+                Edit
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDeleteId(row.id)}
+              >
+                Delete
+              </Button>
+            </div>
         ),
         className: "text-right",
         },
     ];
 
-  return (
-    <div className="space-y-6">
+    return (
+      <div className="space-y-6">
 
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <ClientsHeader
+          search={search}
+          onSearchChange={(value) => {
+            setPage(1);
+            setSearch(value);
+          }}
+          onAddClick={() => setIsAddOpen(true)}
+        />
 
-        <div>
-          <h1 className="text-xl sm:text-2xl font-semibold">
-            Clients
-          </h1>
-          <p className="text-sm opacity-70 mt-1">
-            Manage your workspace clients.
-          </p>
-        </div>
+        <ClientsTable
+          clients={clients}
+          loading={loading}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          columns={columns}
+        />
 
-        <Button
-          className="w-full sm:w-auto"
-          onClick={() => setIsAddOpen(true)}
-        >
-          <Plus size={16} />
-          Add Client
-        </Button>
+        <AddClientModal
+          open={isAddOpen}
+          onClose={() => setIsAddOpen(false)}
+          onCreate={handleCreateClient}
+        />
+
+        <DeleteClientModal
+          open={!!deleteId}
+          onClose={() => setDeleteId(null)}
+          onConfirm={handleDeleteClient}
+        />
+
+        <EditClientModal
+          open={!!editClient}
+          onClose={() => setEditClient(null)}
+          client={editClient}
+          onUpdate={handleUpdateClient}
+        />
 
       </div>
-
-      {/* Table */}
-      {loading ? (
-        <TableSkeleton columns={5} />
-      ) : (
-        <>
-          <div className="overflow-x-auto">
-            <DataTable
-              data={clients}
-              columns={columns}
-              keyField="id"
-              emptyMessage="No clients found. Add your first client."
-            />
-          </div>
-
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-          />
-        </>
-      )}
-
-      <AddClientModal
-        open={isAddOpen}
-        onClose={() => setIsAddOpen(false)}
-        onCreate={handleCreateClient}
-      />
-
-    </div>
-    
-  );
+    );
 };
 
 export default Clients;

@@ -39,14 +39,18 @@ export const getClientsService = async (
       owner: userId,
       isDeleted: false,
     };
+    const search = query.search as string | undefined
+
+    if (search) {
+      filter.name = { $regex: search, $options: "i" };
+    }
 
     if (status) {
       filter.status = status;
     }
-    const clients = await Client.find({
-      owner: userId,
-      isDeleted: false,
-    }).sort({ createdAt: -1 })
+    const clients = await Client.find(filter)
+    .lean()
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
 
