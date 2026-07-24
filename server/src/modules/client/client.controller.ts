@@ -57,7 +57,7 @@ export const getClientById = async (req: Request, res: Response) => {
     throw new ApiError(400, "Invalid client ID");
   }
 
-  const client = await getClientByIdService(
+  const { client , projects } = await getClientByIdService(
     id,
     req.user!._id
   );
@@ -77,6 +77,7 @@ export const getClientById = async (req: Request, res: Response) => {
       status: client.status,
       createdAt: client.createdAt,
     },
+    projects
   });
 };
 
