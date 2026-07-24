@@ -70,13 +70,13 @@ export const getClientByIdService = async (
       _id: id,
       owner: userId,
       isDeleted: false,
-    }),
+    }).lean(),
 
       Project.find({
         client: id,
         owner: userId,
         isDeleted: false
-      })
+      }).lean()
     ])
 
   return {
