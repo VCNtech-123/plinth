@@ -3,13 +3,14 @@ import type { Column } from "../../components/ui/table/DataTable";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
 import { getClients } from "../../api/client.api";
-import { createClient, deleteClient } from "../../api/client.api";
+import { createClient, deleteClient, updateClient } from "../../api/client.api";
 import AddClientModal from "./AddClientModal";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import DeleteClientModal from "./DeleteClientModal";
 import ClientsHeader from "./ClientsHeader";
 import ClientsTable from "./ClientsTable";
+import EditClientModal from "./EditClientModal";
 
 interface Client {
   id: string;
@@ -108,6 +109,28 @@ const Clients = () => {
       }
     };
 
+    const handleUpdateClient = async (
+      id: string,
+      data: { name: string; email: string }
+    ) => {
+      try {
+        await updateClient(id, data);
+        toast.success("Client updated successfully");
+
+        const response = await getClients({
+          page,
+          limit,
+          search: debouncedSearch,
+        });
+
+        setClients(response.data);
+        setTotalPages(response.pages);
+
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to update client");
+      }
+    };
+
     const columns: Column<Client>[] = [
         {
         header: "Name",
@@ -193,6 +216,13 @@ const Clients = () => {
           open={!!deleteId}
           onClose={() => setDeleteId(null)}
           onConfirm={handleDeleteClient}
+        />
+
+        <EditClientModal
+          open={!!editClient}
+          onClose={() => setEditClient(null)}
+          client={editClient}
+          onUpdate={handleUpdateClient}
         />
 
       </div>
