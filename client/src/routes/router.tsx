@@ -9,6 +9,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import AuthLayout from "../layouts/AuthLayout";
 import Login from "../pages/auth/Login";
 import Clients from "../pages/clients/Clients";
+import ClientDetails from "../pages/clients/ClientDetails";
 
 const router = createBrowserRouter([
   {
@@ -28,7 +29,8 @@ const router = createBrowserRouter([
         element: <Clients />
       },
       {
-        path: "clients/:id"
+        path: "clients/:id",
+        element: <ClientDetails />
       }
     ],
   },
