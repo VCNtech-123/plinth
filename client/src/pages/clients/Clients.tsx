@@ -6,11 +6,12 @@ import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
 import Pagination from "../../components/ui/table/Pagination";
 import { getClients } from "../../api/client.api";
-import { createClient } from "../../api/client.api";
+import { createClient, deleteClient } from "../../api/client.api";
 import AddClientModal from "./AddClientModal";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Input from "../../components/ui/Input";
+import DeleteClientModal from "./DeleteClientModal";
 
 interface Client {
   id: string;
@@ -32,6 +33,7 @@ const Clients = () => {
     const [debouncedSearch, setDebouncedSearch] = useState("");
 
     const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
 
     useEffect(() => {
       const timer = setTimeout(() => {
@@ -81,6 +83,32 @@ const Clients = () => {
       }
     }
 
+    const handleDeleteClient = async () => {
+      if (!deleteId) return;
+
+      try {
+        await deleteClient(deleteId);
+        toast.success("Client deleted successfully");
+
+        setDeleteId(null);
+        if (clients.length === 1 && page > 1) {
+          setPage(page - 1);
+        } else {
+          const response = await getClients({
+            page,
+            limit,
+            search: debouncedSearch,
+          });
+
+          setClients(response.data);
+          setTotalPages(response.pages);
+        }
+
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to delete client");
+      }
+    };
+
     const columns: Column<Client>[] = [
         {
         header: "Name",
@@ -105,9 +133,23 @@ const Clients = () => {
         header: "",
         accessor: "id",
         render: (row) => (
-            <Button variant="ghost" size="sm" onClick={() => navigate(`/clients/${row.id}`)}>
-            View
-            </Button>
+             <div className="flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(`/clients/${row.id}`)}
+              >
+                View
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDeleteId(row.id)}
+              >
+                Delete
+              </Button>
+            </div>
         ),
         className: "text-right",
         },
@@ -176,6 +218,12 @@ const Clients = () => {
         open={isAddOpen}
         onClose={() => setIsAddOpen(false)}
         onCreate={handleCreateClient}
+      />
+
+      <DeleteClientModal
+        open={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDeleteClient}
       />
 
     </div>
