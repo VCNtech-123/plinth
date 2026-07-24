@@ -5,6 +5,11 @@ export const getClients = async (params?: any) => {
   return response.data;
 };
 
+export const getClientById = async (id: string) => {
+  const response = await api.get(`clients/${id}`);
+  return response.data.data;
+}
+
 export const createClient = async (data: any) => {
   const response = await api.post("/clients", data);
   return response.data;
