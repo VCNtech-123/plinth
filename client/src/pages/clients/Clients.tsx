@@ -160,7 +160,7 @@ const Clients = () => {
               data={clients}
               columns={columns}
               keyField="id"
-              emptyMessage="No clients found. Add your first client."
+              emptyMessage="No clients found."
             />
           </div>
 
