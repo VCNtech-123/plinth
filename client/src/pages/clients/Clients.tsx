@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import type { Column } from "../../components/ui/table/DataTable";
-import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
 import { getClients } from "../../api/client.api";
 import { createClient, deleteClient, updateClient } from "../../api/client.api";
