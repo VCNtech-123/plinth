@@ -49,6 +49,8 @@ export const getProjectsService = async (
 
   const { page, limit, skip } = getPagination(query);
   const status = query.status;
+  const search = query.search;
+  const clientId = query.client;
 
   const filter: Record<string, unknown> = {
     owner: userId,
@@ -59,12 +61,23 @@ export const getProjectsService = async (
     filter.status = status;
   }
 
-  const projects = await Project.find(filter)
+  if (search) {
+    filter.name = { $regex: search, $options: "i" };
+  }
+
+  if (clientId) {
+    filter.client = clientId;
+  }
+
+  const [ projects, total ] = await Promise.all([
+    Project.find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(limit);
-
-  const total = await Project.countDocuments(filter);
+    .limit(limit)
+    .populate("client", "name")
+    .lean(),
+    Project.countDocuments(filter)
+  ])
 
   return {
     projects,
