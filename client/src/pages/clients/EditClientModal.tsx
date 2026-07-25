@@ -45,7 +45,7 @@ const EditClientModal = ({
 
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fadeIn">
 
         <div>
           <h2 className="text-lg font-semibold">
