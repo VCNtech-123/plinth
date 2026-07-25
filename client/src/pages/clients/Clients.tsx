@@ -11,6 +11,7 @@ import DeleteClientModal from "./DeleteClientModal";
 import ClientsHeader from "./ClientsHeader";
 import ClientsTable from "./ClientsTable";
 import EditClientModal from "./EditClientModal";
+import Dropdown from "../../components/ui/Dropdown";
 
 interface Client {
   id: string;
@@ -155,31 +156,24 @@ const Clients = () => {
         header: "",
         accessor: "id",
         render: (row) => (
-             <div className="flex justify-end gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(`/clients/${row.id}`)}
-              >
-                View
-              </Button>
+                 <Dropdown
+                  items={[
+                    {
+                      label: "View",
+                      onClick: () => navigate(`/clients/${row.id}`),
+                    },
+                    {
+                      label: "Edit",
+                      onClick: () => setEditClient(row),
+                    },
+                    {
+                      label: "Delete",
+                      onClick: () => setDeleteId(row.id),
+                      danger: true,
+                    },
+                  ]}
+                />
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setEditClient(row)}
-              >
-                Edit
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setDeleteId(row.id)}
-              >
-                Delete
-              </Button>
-            </div>
         ),
         className: "text-right",
         },
