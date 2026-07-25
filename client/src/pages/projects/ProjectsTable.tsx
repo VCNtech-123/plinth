@@ -2,17 +2,8 @@ import DataTable from "../../components/ui/table/DataTable";
 import TableSkeleton from "../../components/ui/table/TableSkeleton";
 import Pagination from "../../components/ui/table/Pagination";
 import type { Column } from "../../components/ui/table/DataTable";
+import type { Project } from "../../types/project.types";
 
-interface Project {
-  id: string;
-  name: string;
-  status: string;
-  client: {
-    id: string;
-    name: string;
-  };
-  createdAt: string;
-}
 
 interface ProjectsTableProps {
   projects: Project[];
