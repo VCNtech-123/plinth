@@ -60,7 +60,7 @@ function DataTable<T>({
               data.map((row) => (
                 <tr
                   key={String(row[keyField])}
-                  className="border-b border-app last:border-none hover:bg-app transition-all"
+                  className="border-b border-app last:border-none hover:bg-app transition-colors duration-150 ease-out"
                 >
                   {columns.map((col, index) => (
                     <td
