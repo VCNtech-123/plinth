@@ -4,7 +4,15 @@ import { Client } from '../client/client.model';
 import { Task } from '../task/task.model';
 import { ApiError } from '../../utils/ApiError';
 import { getPagination } from '../../utils/pagination';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
+
+export type PopulatedProject = Omit<IProject, "client"> & {
+  _id: Types.ObjectId;
+  client: {
+    _id: Types.ObjectId;
+    name: string;
+  };
+};
 
 export const createProjectService = async (
   data: Partial<IProject>,
@@ -49,6 +57,8 @@ export const getProjectsService = async (
 
   const { page, limit, skip } = getPagination(query);
   const status = query.status;
+  const search = query.search;
+  const clientId = query.client;
 
   const filter: Record<string, unknown> = {
     owner: userId,
@@ -59,12 +69,23 @@ export const getProjectsService = async (
     filter.status = status;
   }
 
-  const projects = await Project.find(filter)
+  if (search) {
+    filter.name = { $regex: search, $options: "i" };
+  }
+
+  if (clientId) {
+    filter.client = clientId;
+  }
+
+  const [ projects, total ] = await Promise.all([
+    Project.find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(limit);
-
-  const total = await Project.countDocuments(filter);
+    .limit(limit)
+    .populate("client", "name")
+    .lean<PopulatedProject[]>(),
+    Project.countDocuments(filter)
+  ])
 
   return {
     projects,

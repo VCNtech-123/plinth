@@ -10,6 +10,7 @@ import AuthLayout from "../layouts/AuthLayout";
 import Login from "../pages/auth/Login";
 import Clients from "../pages/clients/Clients";
 import ClientDetails from "../pages/clients/ClientDetails";
+import Projects from "../pages/projects/Projects";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "clients/:id",
         element: <ClientDetails />
+      },
+      {
+        path: "projects",
+        element: <Projects />
       }
     ],
   },

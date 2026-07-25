@@ -1,0 +1,183 @@
+
+import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom'
+import { getProjects, deleteProject } from "../../api/project.api";
+import { toast } from "sonner";
+import Badge from "../../components/ui/Badge";
+import Dropdown from "../../components/ui/Dropdown";
+import ProjectsHeader from "./ProjectsHeader";
+import ProjectsTable from "./ProjectsTable";
+import type { Column } from "../../components/ui/table/DataTable";
+import type { Project } from "../../types/project.types";
+
+const Projects = () => {
+
+    const [projects, setProjects] = useState<Project[]>([]);
+    const navigate = useNavigate();
+    const [page, setPage] = useState(1);
+    const [limit] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
+    const [loading, setLoading] = useState(false);
+
+    const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+
+    const [clientFilter, setClientFilter] = useState<string | undefined>();
+    const [statusFilter, setStatusFilter] = useState<string | undefined>();
+    const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search)
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [ search ]);
+
+    useEffect(() => {
+        try {
+            const fetchProjects = async () => {
+                setLoading(true)
+                
+                const response = await getProjects({
+                    page, 
+                    limit,
+                    search: debouncedSearch,
+                    client: clientFilter, 
+                    status: statusFilter
+                });
+
+                setProjects(response.data);
+                setTotalPages(response.pages);
+            }
+                fetchProjects();
+        } catch (err: any) {
+            toast.error(err?.message || "Failed to load projects");
+        } finally {
+            setLoading(false)
+        }
+
+        
+    }, [page, limit, debouncedSearch, clientFilter, statusFilter]);
+
+    const handleDeleteProject = async (id: string) => {
+        try {
+        await deleteProject(id);
+        toast.success("Project deleted successfully");
+
+        const response = await getProjects({
+            page,
+            limit,
+            search: debouncedSearch,
+            client: clientFilter,
+            status: statusFilter,
+        });
+
+        setProjects(response.data);
+        setTotalPages(response.pages);
+
+        } catch (err: any) {
+        toast.error(err?.message || "Failed to delete project");
+        }
+    };
+
+     const columns: Column<Project>[] = [
+    {
+      header: "Project",
+      accessor: "name",
+    },
+    {
+      header: "Client",
+      accessor: "client",
+      render: (row) => (
+        <span className="text-sm opacity-80">
+          {row.client.name}
+        </span>
+      ),
+    },
+    {
+      header: "Status",
+      accessor: "status",
+      render: (row) => (
+        <Badge
+          variant={
+            row.status === "active"
+              ? "success"
+              : row.status === "paused"
+              ? "warning"
+              : "default"
+          }
+        >
+          {row.status}
+        </Badge>
+      ),
+    },
+    {
+      header: "Created",
+      accessor: "createdAt",
+      render: (row) =>
+        new Date(row.createdAt).toLocaleDateString(),
+    },
+    {
+      header: "",
+      accessor: "id",
+      render: (row) => (
+        <Dropdown
+          items={[
+            {
+              label: "View",
+              onClick: () => navigate(`/projects/${row.id}`),
+            },
+            {
+              label: "Edit",
+              onClick: () => console.log("Edit", row.id),
+            },
+            {
+              label: "Delete",
+              onClick: () => handleDeleteProject(row.id),
+              danger: true,
+            },
+          ]}
+        />
+      ),
+      className: "text-right",
+    },
+  ];
+
+  return (
+    <div className="space-y-6 animate-fadeIn">
+
+      <ProjectsHeader
+        search={search}
+        onSearchChange={(value) => {
+          setPage(1);
+          setSearch(value);
+        }}
+        clientFilter={clientFilter}
+        onClientChange={(value) => {
+          setPage(1);
+          setClientFilter(value || undefined);
+        }}
+        statusFilter={statusFilter}
+        onStatusChange={(value) => {
+          setPage(1);
+          setStatusFilter(value || undefined);
+        }}
+        onAddClick={() => console.log("Open Add Project Modal")}
+        clients={clients}
+      />
+
+      <ProjectsTable
+        projects={projects}
+        loading={loading}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        columns={columns}
+      />
+
+    </div>
+  );
+}
+
+export default Projects;

@@ -78,6 +78,10 @@ export const getProjects = async (
       id: project._id,
       name: project.name,
       status: project.status,
+      client: {
+        name: project.client.name,
+        id: project.client._id
+      },
       deadline: project.deadline,
       budget: project.budget,
       createdAt: project.createdAt,
