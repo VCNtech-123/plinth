@@ -23,6 +23,14 @@ export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     const user = await loginUser(email, password);
     const token = generateToken(user._id.toString());
+
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax", // use "strict" in production if same domain
+        maxAge: 1000 * 60 * 60, // 1 hour
+        });
+
      res.status(200).json({
         status: "success",
         token,
@@ -34,3 +42,16 @@ export const login = async (req: Request, res: Response) => {
         },
     });
 }
+
+export const logout = async (req: Request, res: Response) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+
+  res.status(200).json({
+    status: "success",
+    message: "Logged out successfully",
+  });
+};

@@ -1,19 +1,29 @@
 import { Navigate } from "react-router-dom";
-import { useAuthStore } from "../store/auth.store";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
-interface ProtectedRouteProps {
-    children: React.ReactNode;
-}
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-    const token = useAuthStore((state) => state.token);
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        await axios.get("/auth/me");
+        setAuthenticated(true);
+      } catch {
+        setAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    console.log(token, typeof token)
-    if (!token) {
-        return <Navigate to="/login" replace />
-    }
+    checkAuth();
+  }, []);
 
-    return <>{ children }</>
-}
+  if (loading) return null;
+
+  return authenticated ? children : <Navigate to="/login" />;
+};
 
 export default ProtectedRoute;

@@ -1,18 +1,22 @@
 import axios from "axios";
+import type { AxiosInstance } from 'axios'
 
-export const api = axios.create({
-    baseURL: "http://localhost:5000/api",
-    withCredentials: false
+export const api: AxiosInstance = axios.create({
+  baseURL: "http://localhost:5000/api",
+  withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
-
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error.response?.status === 401) {
+      const isAlreadyOnLogin = window.location.pathname === "/login";
+      
+      if (!isAlreadyOnLogin) {
+        window.location.href = "/login";
+      }
     }
 
-    return config;
-})
-
-
+    return Promise.reject(error);
+  }
+);
