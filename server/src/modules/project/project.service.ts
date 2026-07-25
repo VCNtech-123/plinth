@@ -4,7 +4,15 @@ import { Client } from '../client/client.model';
 import { Task } from '../task/task.model';
 import { ApiError } from '../../utils/ApiError';
 import { getPagination } from '../../utils/pagination';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
+
+export type PopulatedProject = Omit<IProject, "client"> & {
+  _id: Types.ObjectId;
+  client: {
+    _id: Types.ObjectId;
+    name: string;
+  };
+};
 
 export const createProjectService = async (
   data: Partial<IProject>,
@@ -75,7 +83,7 @@ export const getProjectsService = async (
     .skip(skip)
     .limit(limit)
     .populate("client", "name")
-    .lean(),
+    .lean<PopulatedProject[]>(),
     Project.countDocuments(filter)
   ])
 
