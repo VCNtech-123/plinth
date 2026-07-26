@@ -6,14 +6,7 @@ import { CardContent, CardHeader } from "../../components/ui/Card";
 import Skeleton from "../../components/ui/Skeleton";
 import { Users, FolderKanban, CheckSquare, AlertTriangle } from "lucide-react";
 import StatCard from "../../components/ui/StatCard";
-
-interface DashboardStats {
-  totalClients: number;
-  totalProjects: number;
-  activeProjects: number;
-  totalTasks: number;
-  overdueTasks: number;
-}
+import type { DashboardStats } from "../../types/dashboard.types";
 
 const Dashboard = () => {
   
