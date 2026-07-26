@@ -1,16 +1,20 @@
+import { ITask } from "../modules/task/task.model";
+import { Types } from 'mongoose'
+
 export type TaskStatus = "todo" | "in-progress" | "done";
 
 export type TaskPriority = "low" | "medium" | "high";
 
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  status: TaskStatus;
-  priority?: TaskPriority;
-  dueDate?: string;
+export interface GetTaskResponse {
+  tasks: PopulatedTask[],
+  total: number,
+  page: number,
+  pages: number
+}
+
+export type PopulatedTask = Omit<ITask, "project"> & {
   project: {
-    id: string;
+    _id: Types.ObjectId;
     name: string;
-  };
+  }
 }
