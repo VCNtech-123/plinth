@@ -1,3 +1,6 @@
+import { IProject } from "../modules/project/project.model";
+import { ITask } from "../modules/task/task.model";
+
 export type ProjectStatus =
   | "active"
   | "completed"
@@ -10,3 +13,14 @@ export type UpdatableProjectFields =
   | "deadline"
   | "budget"
   | "client";
+
+interface ProjectDetailsResult {
+  project: IProject;
+  stats: {
+    totalTasks: number;
+    completedTasks: number;
+    overdueTasks: number;
+    completionRate: number;
+  };
+  tasks: ITask[];
+}
