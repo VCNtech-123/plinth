@@ -23,7 +23,6 @@ const TaskCard = ({
   dueDate,
   projectName,
   overdue,
-  status,
   onEdit,
   onDelete,
   onMove,
