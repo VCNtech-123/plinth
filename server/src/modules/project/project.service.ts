@@ -4,16 +4,9 @@ import { Client } from '../client/client.model';
 import { Task } from '../task/task.model';
 import { ApiError } from '../../utils/ApiError';
 import { getPagination } from '../../utils/pagination';
-import type { ProjectDetailsResult } from '../../types/project.types';
-import mongoose, { Types } from 'mongoose';
+import type { ProjectDetailsResult, PopulatedProject } from '../../types/project.types';
+import mongoose from 'mongoose';
 
-export type PopulatedProject = Omit<IProject, "client"> & {
-  _id: Types.ObjectId;
-  client: {
-    _id: Types.ObjectId;
-    name: string;
-  };
-};
 
 export const createProjectService = async (
   data: Partial<IProject>,
@@ -50,7 +43,7 @@ export const getProjectByIdService = async (
     isDeleted: false
   })
   .populate("client", "name")
-  .lean();
+  .lean<PopulatedProject>();
 
   if (!project) {
     return null
@@ -105,7 +98,6 @@ export const getProjectByIdService = async (
       },
       tasks
     }
-
 }
 
 export const getProjectsService = async (
