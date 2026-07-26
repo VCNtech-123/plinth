@@ -4,6 +4,7 @@ import { Client } from '../client/client.model';
 import { Task } from '../task/task.model';
 import { ApiError } from '../../utils/ApiError';
 import { getPagination } from '../../utils/pagination';
+import type { ProjectDetailsResult } from '../../types/project.types';
 import mongoose, { Types } from 'mongoose';
 
 export type PopulatedProject = Omit<IProject, "client"> & {
@@ -37,17 +38,74 @@ export const createProjectService = async (
   return project;
 };
 
+
 export const getProjectByIdService = async (
   id: string,
   userId: mongoose.Types.ObjectId
-) => {
+): Promise<ProjectDetailsResult | null> => {
+  
   const project = await Project.findOne({
     _id: id,
     owner: userId,
     isDeleted: false
-  });
+  })
+  .populate("client", "name")
+  .lean();
 
-  return project;
+  if (!project) {
+    return null
+  }
+
+  const
+    [ 
+    tasks,
+    totalTasks,
+    completedTasks,
+    overdueTasks,
+     ] = await Promise.all([
+      Task.find({
+        client: id,
+        owner: userId,
+        isDeleted: false,
+      })
+        .sort({ createdAt: -1 })
+        .select("id title status dueDate")
+        .lean(),
+
+      Task.countDocuments({
+        project: id,
+        owner: userId,
+        isDeleted: false,
+      }),
+
+      Task.countDocuments({
+        project: id,
+        owner: userId,
+        isDeleted: false,
+        status: "done",
+      }),
+
+      Task.countDocuments({
+        project: id,
+        owner: userId,
+        isDeleted: false,
+        dueDate: { $lt: new Date() },
+      }),
+    ]);
+
+    const completionRate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
+    return {
+      project,
+      stats: {
+        totalTasks,
+        completedTasks,
+        overdueTasks,
+        completionRate
+      },
+      tasks
+    }
+
 }
 
 export const getProjectsService = async (
