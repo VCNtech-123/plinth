@@ -14,7 +14,7 @@ export type UpdatableProjectFields =
   | "budget"
   | "client";
 
-interface ProjectDetailsResult {
+export interface ProjectDetailsResult {
   project: IProject;
   stats: {
     totalTasks: number;
