@@ -1,6 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 
 export interface ITask {
+    _id: mongoose.Types.ObjectId;
     title: string;
     description?: string;
     status: "todo" | "in-progress" | "done";

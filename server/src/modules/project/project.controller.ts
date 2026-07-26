@@ -35,26 +35,45 @@ export const getProjectById = async (
         throw new ApiError(400, 'Invalid project ID');
     }
 
-    const project = await getProjectByIdService(
+    const result = await getProjectByIdService(
         id,
         req.user!._id
     );
 
-    if (!project) {
+    if (!result) {
         throw new ApiError(400, 'Project not found')
     }
+
+    const { project, tasks, stats } = result
 
     res.status(200).json({
     status: "success",
     data: {
-      id: project._id,
-      name: project.name,
-      description: project.description,
-      status: project.status,
-      deadline: project.deadline,
-      budget: project.budget,
-      client: project.client,
-      createdAt: project.createdAt
+      project: {
+        id: project._id,
+        name: project.name,
+        description: project.description,
+        status: project.status,
+        deadline: project.deadline,
+        budget: project.budget,
+        client: {
+          name: project.client.name,
+          id: project.client._id
+        },
+        createdAt: project.createdAt
+      },
+      stats: {
+        totalTasks: stats.totalTasks,
+        completedTasks: stats.completedTasks,
+        overdueTasks: stats.overdueTasks,
+        completionRate: stats.completionRate
+      },
+      tasks: tasks.map((task) => ({
+        id: task._id,
+        title: task.title,
+        status: task.status,
+        dueDate: task.createdAt,
+      }))  
     }
   });
 }
