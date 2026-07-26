@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom'
-import { getProjects, deleteProject, createProject } from "../../api/project.api";
+import { getProjects, deleteProject, createProject, updateProject } from "../../api/project.api";
 import { toast } from "sonner";
 import Badge from "../../components/ui/Badge";
 import Dropdown from "../../components/ui/Dropdown";
@@ -11,6 +11,7 @@ import type { Column } from "../../components/ui/table/DataTable";
 import type { Project } from "../../types/project.types";
 import AddProjectModal from "./AddProjectModal";
 import { getClients } from "../../api/client.api";
+import EditProjectModal from "./EditProjectModal";
 
 const Projects = () => {
 
@@ -21,6 +22,7 @@ const Projects = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(false);
     const [isAddOpen, setIsAddOpen] = useState(false);
+    const [editProject, setEditProject] = useState<Project | null>(null);
 
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -128,6 +130,27 @@ const Projects = () => {
         }
     };
 
+    const handleUpdateProject = async (id: string, data: any) => {
+      try {
+        await updateProject(id, data);
+        toast.success("Project updated");
+
+        const response = await getProjects({
+          page,
+          limit,
+          search: debouncedSearch,
+          client: clientFilter,
+          status: statusFilter,
+        });
+
+        setProjects(response.data);
+        setTotalPages(response.pages);
+
+      } catch (err: any) {
+        toast.error("Failed to update project");
+      }
+    };
+
      const columns: Column<Project>[] = [
     {
       header: "Project",
@@ -177,7 +200,7 @@ const Projects = () => {
             },
             {
               label: "Edit",
-              onClick: () => console.log("Edit", row.id),
+              onClick: () => setEditProject(row),
             },
             {
               label: "Delete",
@@ -228,6 +251,13 @@ const Projects = () => {
         onClose={() => setIsAddOpen(false)}
         onCreate={handleCreateProject}
         clients={clients}
+      />
+
+      <EditProjectModal
+        open={!!editProject}
+        onClose={() => setEditProject(null)}
+        project={editProject}
+        onUpdate={handleUpdateProject}
       />
 
     </div>
