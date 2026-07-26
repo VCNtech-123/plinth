@@ -10,3 +10,23 @@ export interface Project {
   };
   createdAt: string;
 }
+
+export interface IProjectDetails {
+  project: Project;
+  stats: ProjectStats;
+  tasks: ProjectTaskPreview[];
+}
+
+export interface ProjectStats {
+  totalTasks: number;
+  completedTasks: number;
+  overdueTasks: number;
+  completionRate: number;
+}
+
+export interface ProjectTaskPreview {
+  id: string;
+  title: string;
+  status: string;
+  dueDate?: string;
+}

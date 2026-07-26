@@ -5,9 +5,9 @@ export const getClients = async ({
   limit,
   search
 }: {
-  page: number,
-  limit: number,
-  search: string
+  page?: number,
+  limit?: number,
+  search?: string
 }) => {
   const response = await api.get("/clients", { params: { page, limit, search } });
   return response.data;

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom'
-import { getProjects, deleteProject } from "../../api/project.api";
+import { getProjects, deleteProject, createProject, updateProject } from "../../api/project.api";
 import { toast } from "sonner";
 import Badge from "../../components/ui/Badge";
 import Dropdown from "../../components/ui/Dropdown";
@@ -9,6 +9,10 @@ import ProjectsHeader from "./ProjectsHeader";
 import ProjectsTable from "./ProjectsTable";
 import type { Column } from "../../components/ui/table/DataTable";
 import type { Project } from "../../types/project.types";
+import AddProjectModal from "./AddProjectModal";
+import { getClients } from "../../api/client.api";
+import EditProjectModal from "./EditProjectModal";
+import DeleteProjectModal from "./DeleteProjectModal";
 
 const Projects = () => {
 
@@ -18,6 +22,11 @@ const Projects = () => {
     const [limit] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [isAddOpen, setIsAddOpen] = useState(false);
+    const [editProject, setEditProject] = useState<Project | null>(null);
+    const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
+    const [deleteProjectName, setDeleteProjectName] = useState<string>("");
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -60,9 +69,62 @@ const Projects = () => {
         
     }, [page, limit, debouncedSearch, clientFilter, statusFilter]);
 
-    const handleDeleteProject = async (id: string) => {
+    useEffect(() => {
+      const fetchClients = async () => {
         try {
-        await deleteProject(id);
+          const response = await getClients({
+            page: 1,
+            limit: 100, 
+          });
+
+          setClients(response.data);
+        } catch (err) {
+          console.error("Failed to load clients");
+        }
+      };
+
+      fetchClients();
+    }, []);
+
+    const handleDeleteProject = async () => {
+      if (!deleteProjectId) return;
+
+      try {
+        setDeleteLoading(true);
+
+        await deleteProject(deleteProjectId);
+
+        toast.success("Project deleted successfully");
+
+        setDeleteProjectId(null);
+
+        const response = await getProjects({
+          page,
+          limit,
+          search: debouncedSearch,
+          client: clientFilter,
+          status: statusFilter,
+        });
+
+        setProjects(response.data);
+        setTotalPages(response.pages);
+
+      } catch (err: any) {
+        toast.error("Failed to delete project");
+      } finally {
+        setDeleteLoading(false);
+      }
+    };
+
+    const handleCreateProject = async (data: {
+      name: string;
+      description?: string;
+      deadline?: string;
+      budget?: number;
+      client: string;
+    }) => {
+     try {
+        await createProject(data);
         toast.success("Project deleted successfully");
 
         const response = await getProjects({
@@ -77,8 +139,29 @@ const Projects = () => {
         setTotalPages(response.pages);
 
         } catch (err: any) {
-        toast.error(err?.message || "Failed to delete project");
+          toast.error(err?.message || "Failed to delete project");
         }
+    };
+
+    const handleUpdateProject = async (id: string, data: any) => {
+      try {
+        await updateProject(id, data);
+        toast.success("Project updated");
+
+        const response = await getProjects({
+          page,
+          limit,
+          search: debouncedSearch,
+          client: clientFilter,
+          status: statusFilter,
+        });
+
+        setProjects(response.data);
+        setTotalPages(response.pages);
+
+      } catch (err: any) {
+        toast.error("Failed to update project");
+      }
     };
 
      const columns: Column<Project>[] = [
@@ -130,13 +213,16 @@ const Projects = () => {
             },
             {
               label: "Edit",
-              onClick: () => console.log("Edit", row.id),
+              onClick: () => setEditProject(row),
             },
             {
               label: "Delete",
-              onClick: () => handleDeleteProject(row.id),
+              onClick: () => {
+                setDeleteProjectId(row.id);
+                setDeleteProjectName(row.name);
+              },
               danger: true,
-            },
+            }
           ]}
         />
       ),
@@ -163,7 +249,7 @@ const Projects = () => {
           setPage(1);
           setStatusFilter(value || undefined);
         }}
-        onAddClick={() => console.log("Open Add Project Modal")}
+        onAddClick={() => console.log(setIsAddOpen(true))}
         clients={clients}
       />
 
@@ -174,6 +260,28 @@ const Projects = () => {
         totalPages={totalPages}
         onPageChange={setPage}
         columns={columns}
+      />
+
+      <AddProjectModal
+        open={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onCreate={handleCreateProject}
+        clients={clients}
+      />
+
+      <EditProjectModal
+        open={!!editProject}
+        onClose={() => setEditProject(null)}
+        project={editProject}
+        onUpdate={handleUpdateProject}
+      />
+
+      <DeleteProjectModal
+        open={!!deleteProjectId}
+        onClose={() => setDeleteProjectId(null)}
+        onConfirm={handleDeleteProject}
+        projectName={deleteProjectName}
+        loading={deleteLoading}
       />
 
     </div>
