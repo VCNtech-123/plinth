@@ -33,25 +33,28 @@ export const getTasks = async (
     res: Response
 ) => {
 
-    const result = await getTaskService(
+    const { tasks, page, pages, total } =  await getTaskService(
         req.user!._id,
         req.query
     )
 
     res.status(200).json({
     status: "success",
-    results: result.tasks.length,
-    total: result.total,
-    page: result.page,
-    pages: result.pages,
-    data: result.tasks.map(task => ({
+    results: tasks.length,
+    total: total,
+    page: page,
+    pages: pages,
+    data: tasks.map(task => ({
       id: task._id,
       title: task.title,
       description: task.description,
       status: task.status,
       priority: task.priority,
       dueDate: task.dueDate,
-      project: task.project,
+      project: {
+        id: task.project._id,
+        name: task.project.name
+      },
       createdAt: task.createdAt
     }))
   });

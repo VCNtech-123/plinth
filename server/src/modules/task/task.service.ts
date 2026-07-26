@@ -3,8 +3,8 @@ import { Task, ITask } from "./task.model";
 import { Project } from "../project/project.model";
 import { ApiError } from "../../utils/ApiError";
 import { getPagination } from "../../utils/pagination";
-
 import mongoose from 'mongoose'
+import { GetTaskResponse, PopulatedTask } from "../../types/task.types";
 
 export const createTaskService = async (
     data: Partial<ITask>,
@@ -32,7 +32,7 @@ export const createTaskService = async (
 export const getTaskService = async (
     userId: mongoose.Types.ObjectId,
     query: Record<string, unknown>
-) => {
+): Promise<GetTaskResponse> => {
 
     const { page, limit, skip } = getPagination(query);
 
@@ -54,6 +54,8 @@ export const getTaskService = async (
     } 
 
     const tasks = await Task.find(filter)
+    .populate("project", "name")
+    .lean<PopulatedTask[]>()
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
