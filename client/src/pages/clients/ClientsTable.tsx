@@ -2,13 +2,7 @@ import DataTable from "../../components/ui/table/DataTable";
 import type { Column } from "../../components/ui/table/DataTable";
 import TableSkeleton from "../../components/ui/table/TableSkeleton";
 import Pagination from "../../components/ui/table/Pagination";
-
-interface Client {
-  id: string;
-  name: string;
-  email: string;
-  createdAt: string;
-}
+import type { Client } from "../../types/client.types";
 
 interface ClientsTableProps {
   clients: Client[];
