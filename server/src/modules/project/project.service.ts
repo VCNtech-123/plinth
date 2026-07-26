@@ -57,12 +57,12 @@ export const getProjectByIdService = async (
     overdueTasks,
      ] = await Promise.all([
       Task.find({
-        client: id,
+        project: id,
         owner: userId,
         isDeleted: false,
       })
         .sort({ createdAt: -1 })
-        .select("id title status dueDate")
+        .select("_id title status dueDate")
         .lean(),
 
       Task.countDocuments({
