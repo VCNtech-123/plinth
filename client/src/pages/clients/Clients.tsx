@@ -11,13 +11,7 @@ import ClientsHeader from "./ClientsHeader";
 import ClientsTable from "./ClientsTable";
 import EditClientModal from "./EditClientModal";
 import Dropdown from "../../components/ui/Dropdown";
-
-interface Client {
-  id: string;
-  name: string;
-  email: string;
-  createdAt: string;
-}
+import type { Client } from "../../types/client.types";
 
 const Clients = () => {
 
