@@ -1,5 +1,6 @@
 import { IProject } from "../modules/project/project.model";
 import { ITask } from "../modules/task/task.model";
+import { Types } from 'mongoose'
 
 export type ProjectStatus =
   | "active"
@@ -15,7 +16,7 @@ export type UpdatableProjectFields =
   | "client";
 
 export interface ProjectDetailsResult {
-  project: IProject;
+  project: PopulatedProject;
   stats: {
     totalTasks: number;
     completedTasks: number;
@@ -24,3 +25,12 @@ export interface ProjectDetailsResult {
   };
   tasks: ITask[];
 }
+
+export type PopulatedProject = Omit<IProject, "client"> & {
+  _id: Types.ObjectId;
+  client: {
+    _id: Types.ObjectId;
+    name: string;
+  };
+};
+
