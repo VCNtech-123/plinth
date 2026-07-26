@@ -12,6 +12,7 @@ import type { Project } from "../../types/project.types";
 import AddProjectModal from "./AddProjectModal";
 import { getClients } from "../../api/client.api";
 import EditProjectModal from "./EditProjectModal";
+import DeleteProjectModal from "./DeleteProjectModal";
 
 const Projects = () => {
 
@@ -273,6 +274,14 @@ const Projects = () => {
         onClose={() => setEditProject(null)}
         project={editProject}
         onUpdate={handleUpdateProject}
+      />
+
+      <DeleteProjectModal
+        open={!!deleteProjectId}
+        onClose={() => setDeleteProjectId(null)}
+        onConfirm={handleDeleteProject}
+        projectName={deleteProjectName}
+        loading={deleteLoading}
       />
 
     </div>
