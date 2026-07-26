@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom'
-import { getProjects, deleteProject } from "../../api/project.api";
+import { getProjects, deleteProject, createProject } from "../../api/project.api";
 import { toast } from "sonner";
 import Badge from "../../components/ui/Badge";
 import Dropdown from "../../components/ui/Dropdown";
@@ -9,6 +9,7 @@ import ProjectsHeader from "./ProjectsHeader";
 import ProjectsTable from "./ProjectsTable";
 import type { Column } from "../../components/ui/table/DataTable";
 import type { Project } from "../../types/project.types";
+import AddProjectModal from "./AddProjectModal";
 
 const Projects = () => {
 
@@ -18,13 +19,14 @@ const Projects = () => {
     const [limit] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [isAddOpen, setIsAddOpen] = useState(false);
 
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
 
     const [clientFilter, setClientFilter] = useState<string | undefined>();
     const [statusFilter, setStatusFilter] = useState<string | undefined>();
-    const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
+    const [clients] = useState<{ id: string; name: string }[]>([]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -78,6 +80,33 @@ const Projects = () => {
 
         } catch (err: any) {
         toast.error(err?.message || "Failed to delete project");
+        }
+    };
+
+    const handleCreateProject = async (data: {
+      name: string;
+      description?: string;
+      deadline?: string;
+      budget?: number;
+      client: string;
+    }) => {
+     try {
+        await createProject(data);
+        toast.success("Project deleted successfully");
+
+        const response = await getProjects({
+            page,
+            limit,
+            search: debouncedSearch,
+            client: clientFilter,
+            status: statusFilter,
+        });
+
+        setProjects(response.data);
+        setTotalPages(response.pages);
+
+        } catch (err: any) {
+          toast.error(err?.message || "Failed to delete project");
         }
     };
 
@@ -174,6 +203,13 @@ const Projects = () => {
         totalPages={totalPages}
         onPageChange={setPage}
         columns={columns}
+      />
+
+      <AddProjectModal
+        open={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onCreate={handleCreateProject}
+        clients={clients}
       />
 
     </div>
