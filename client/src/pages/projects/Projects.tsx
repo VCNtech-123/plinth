@@ -10,6 +10,7 @@ import ProjectsTable from "./ProjectsTable";
 import type { Column } from "../../components/ui/table/DataTable";
 import type { Project } from "../../types/project.types";
 import AddProjectModal from "./AddProjectModal";
+import { getClients } from "../../api/client.api";
 
 const Projects = () => {
 
@@ -26,7 +27,7 @@ const Projects = () => {
 
     const [clientFilter, setClientFilter] = useState<string | undefined>();
     const [statusFilter, setStatusFilter] = useState<string | undefined>();
-    const [clients] = useState<{ id: string; name: string }[]>([]);
+    const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -61,6 +62,23 @@ const Projects = () => {
 
         
     }, [page, limit, debouncedSearch, clientFilter, statusFilter]);
+
+    useEffect(() => {
+      const fetchClients = async () => {
+        try {
+          const response = await getClients({
+            page: 1,
+            limit: 100, 
+          });
+
+          setClients(response.data);
+        } catch (err) {
+          console.error("Failed to load clients");
+        }
+      };
+
+      fetchClients();
+    }, []);
 
     const handleDeleteProject = async (id: string) => {
         try {
@@ -192,7 +210,7 @@ const Projects = () => {
           setPage(1);
           setStatusFilter(value || undefined);
         }}
-        onAddClick={() => console.log("Open Add Project Modal")}
+        onAddClick={() => console.log(setIsAddOpen(true))}
         clients={clients}
       />
 
