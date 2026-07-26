@@ -23,6 +23,9 @@ const Projects = () => {
     const [loading, setLoading] = useState(false);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [editProject, setEditProject] = useState<Project | null>(null);
+    const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
+    const [deleteProjectName, setDeleteProjectName] = useState<string>("");
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -82,25 +85,34 @@ const Projects = () => {
       fetchClients();
     }, []);
 
-    const handleDeleteProject = async (id: string) => {
-        try {
-        await deleteProject(id);
+    const handleDeleteProject = async () => {
+      if (!deleteProjectId) return;
+
+      try {
+        setDeleteLoading(true);
+
+        await deleteProject(deleteProjectId);
+
         toast.success("Project deleted successfully");
 
+        setDeleteProjectId(null);
+
         const response = await getProjects({
-            page,
-            limit,
-            search: debouncedSearch,
-            client: clientFilter,
-            status: statusFilter,
+          page,
+          limit,
+          search: debouncedSearch,
+          client: clientFilter,
+          status: statusFilter,
         });
 
         setProjects(response.data);
         setTotalPages(response.pages);
 
-        } catch (err: any) {
-        toast.error(err?.message || "Failed to delete project");
-        }
+      } catch (err: any) {
+        toast.error("Failed to delete project");
+      } finally {
+        setDeleteLoading(false);
+      }
     };
 
     const handleCreateProject = async (data: {
@@ -204,9 +216,12 @@ const Projects = () => {
             },
             {
               label: "Delete",
-              onClick: () => handleDeleteProject(row.id),
+              onClick: () => {
+                setDeleteProjectId(row.id);
+                setDeleteProjectName(row.name);
+              },
               danger: true,
-            },
+            }
           ]}
         />
       ),
