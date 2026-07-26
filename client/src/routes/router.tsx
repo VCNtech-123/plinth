@@ -11,6 +11,7 @@ import Login from "../pages/auth/Login";
 import Clients from "../pages/clients/Clients";
 import ClientDetails from "../pages/clients/ClientDetails";
 import Projects from "../pages/projects/Projects";
+import ProjectDetails from "../pages/projects/ProjectDetails";
 
 const router = createBrowserRouter([
   {
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
       {
         path: "projects",
         element: <Projects />
+      },
+      {
+        path: "projects/:id",
+        element: <ProjectDetails />
       }
     ],
   },
