@@ -12,6 +12,7 @@ import Clients from "../pages/clients/Clients";
 import ClientDetails from "../pages/clients/ClientDetails";
 import Projects from "../pages/projects/Projects";
 import ProjectDetails from "../pages/projects/ProjectDetails";
+import Tasks from "../pages/tasks/Tasks";
 
 const router = createBrowserRouter([
   {
@@ -41,6 +42,10 @@ const router = createBrowserRouter([
       {
         path: "projects/:id",
         element: <ProjectDetails />
+      },
+      {
+        path: "tasks",
+        element: <Tasks />
       }
     ],
   },
