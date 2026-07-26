@@ -3,9 +3,9 @@ import { toast } from "sonner";
 import TaskBoard from "./TaskBoard";
 import type { Task } from "../../types/task.types";
 import type { Project } from "../../types/project.types";
-import Input from "../../components/ui/Input";
 import { getTasks, updateTask, deleteTask } from "../../api/task.api";
 import { getProjects } from "../../api/project.api";
+import TasksHeader from "./TasksHeader";
 
 const Tasks = () => {
 
@@ -63,6 +63,7 @@ const Tasks = () => {
 
     fetchProjects();
   }, []);
+  
   const handleMoveTask = async (
     taskId: string,
     status: Task["status"]
@@ -70,7 +71,6 @@ const Tasks = () => {
 
     const previous = [...tasks];
 
-    // optimistic update
     setTasks((prev) =>
       prev.map((t) =>
         t.id === taskId ? { ...t, status } : t
@@ -85,7 +85,6 @@ const Tasks = () => {
     }
   };
 
-  // ✅ Delete
   const handleDeleteTask = async (taskId: string) => {
     try {
       await deleteTask(taskId);
@@ -102,46 +101,18 @@ const Tasks = () => {
     <div className="space-y-6 animate-fadeIn">
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+      <TasksHeader
+        search={search}
+        onSearchChange={(value) => {
+          setSearch(value);
+        }}
+        projectFilter={projectFilter}
+        onProjectChange={(value) => {
+          setProjectFilter(value || undefined);
+        }}
+        projects={projects}
+      />
 
-        <div>
-          <h1 className="text-xl sm:text-2xl font-semibold">
-            Tasks
-          </h1>
-          <p className="text-sm opacity-70 mt-1">
-            Manage and track your workflow.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3">
-
-          <Input
-            placeholder="Search tasks..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:w-64"
-          />
-
-          <select
-            value={projectFilter || ""}
-            onChange={(e) =>
-              setProjectFilter(e.target.value || undefined)
-            }
-            className="px-3 py-2 rounded-lg border border-app bg-card text-sm"
-          >
-            <option value="">All Projects</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-
-        </div>
-
-      </div>
-
-      {/* Board */}
       {loading ? (
         <p className="text-sm opacity-60">Loading tasks...</p>
       ) : (
