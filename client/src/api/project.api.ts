@@ -1,11 +1,11 @@
 import { api } from "./axios";
 
 interface ProjectsParam {
-  page: number,
-  limit: number,
-  search: string,
-  client: string | undefined,
-  status: string| undefined
+  page?: number,
+  limit?: number,
+  search?: string,
+  client?: string | undefined,
+  status?: string| undefined
 }
 export const getProjects = async ({
   page, 
