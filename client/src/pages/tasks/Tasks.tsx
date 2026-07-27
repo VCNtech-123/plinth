@@ -130,6 +130,13 @@ const Tasks = () => {
             taskId={activeTaskId}
             open={!!activeTaskId}
             onClose={() => setActiveTaskId(null)}
+            onUpdate={(updatedTask) => {
+              setTasks(prev =>
+                prev.map(t =>
+                  t.id === updatedTask.id ? updatedTask : t
+                )
+              );
+            }}
           />
         </>
         
