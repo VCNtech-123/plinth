@@ -118,10 +118,8 @@ const Tasks = () => {
   const handleCreateTask = async (data: any) => {
     try {
       const created = await createTask(data);
-
-      // optimistic add to board
       setTasks((prev) => [created, ...prev]);
-
+      setIsAddOpen(false);
       toast.success("Task created");
     } catch {
       toast.error("Failed to create task");
@@ -186,6 +184,7 @@ const Tasks = () => {
             onClose={() => setIsAddOpen(false)}
             onCreate={handleCreateTask}
             projects={projects}
+            defaultProjectId={projectFilter}
           />
           
         </>
