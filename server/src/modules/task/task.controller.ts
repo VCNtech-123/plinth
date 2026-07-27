@@ -127,6 +127,10 @@ export const updateTaskById = async (
         description: updatedTask.description,
         status: updatedTask.status,
         priority: updatedTask.priority,
+         project: {
+            id: updatedTask.project._id,
+            name: updatedTask.project.name,
+        },
         dueDate: updatedTask.dueDate,
         updatedAt: updatedTask.updatedAt
         }

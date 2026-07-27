@@ -5,13 +5,19 @@ import type { Task } from "../../types/task.types";
 import type { Project } from "../../types/project.types";
 import { getTasks, updateTask, deleteTask } from "../../api/task.api";
 import { getProjects } from "../../api/project.api";
+import TaskDrawer from "./TaskDrawer";
 import TasksHeader from "./TasksHeader";
+import DeleteTaskModal from "./DeleteModalTask";
 
 const Tasks = () => {
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
+  const [deleteTaskTitle, setDeleteTaskTitle] = useState<string>("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -85,15 +91,25 @@ const Tasks = () => {
     }
   };
 
-  const handleDeleteTask = async (taskId: string) => {
+  const handleConfirmDelete = async () => {
+    if (!deleteTaskId) return;
+
     try {
-      await deleteTask(taskId);
-      setTasks((prev) =>
-        prev.filter((t) => t.id !== taskId)
+      setDeleteLoading(true);
+
+      await deleteTask(deleteTaskId);
+
+      setTasks(prev =>
+        prev.filter(t => t.id !== deleteTaskId)
       );
+
       toast.success("Task deleted");
+
+      setDeleteTaskId(null);
     } catch {
       toast.error("Failed to delete task");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -116,12 +132,40 @@ const Tasks = () => {
       {loading ? (
         <p className="text-sm opacity-60">Loading tasks...</p>
       ) : (
-        <TaskBoard
-          tasks={tasks}
-          onEdit={(task) => console.log("edit", task)}
-          onDelete={handleDeleteTask}
-          onMove={handleMoveTask}
-        />
+        <>
+          <TaskBoard
+            tasks={tasks}
+            onEdit={(task) => setActiveTaskId(task.id)}
+            onDelete={(taskId) => {
+              const task = tasks.find(t => t.id === taskId);
+              setDeleteTaskId(taskId);
+              setDeleteTaskTitle(task?.title || "");
+            }}
+            onMove={handleMoveTask}
+          />
+
+          <TaskDrawer
+            taskId={activeTaskId}
+            open={!!activeTaskId}
+            onClose={() => setActiveTaskId(null)}
+            onUpdate={(updatedTask) => {
+              setTasks(prev =>
+                prev.map(t =>
+                  t.id === updatedTask.id ? updatedTask : t
+                )
+              );
+            }}
+          />
+
+          <DeleteTaskModal
+            open={!!deleteTaskId}
+            onClose={() => setDeleteTaskId(null)}
+            onConfirm={handleConfirmDelete}
+            taskTitle={deleteTaskTitle}
+            loading={deleteLoading}
+          />
+        </>
+        
       )}
 
     </div>

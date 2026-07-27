@@ -90,7 +90,7 @@ export const updateTaskByIdService = async (
     id: string,
     userId: mongoose.Types.ObjectId,
     data: Partial<ITask>
-) => {
+): Promise<PopulatedTask | null> => {
 
     const updateData: Partial<
         Pick<ITask, "title" | "description" | "status" | "priority" | "dueDate">
@@ -110,7 +110,9 @@ export const updateTaskByIdService = async (
   },
     updateData,
     { new: true }
-    );
+    )
+    .populate("project", "name")
+    .lean<PopulatedTask>();
 
     return updatedTask;
 }

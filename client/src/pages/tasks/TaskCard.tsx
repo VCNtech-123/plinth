@@ -11,6 +11,7 @@ interface TaskCardProps {
   dueDate?: string;
   projectName: string;
   overdue?: boolean;
+  onOpen: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onMove: (status: "todo" | "in-progress" | "done") => void;
@@ -23,12 +24,14 @@ const TaskCard = ({
   dueDate,
   projectName,
   overdue,
+  onOpen,
   onEdit,
   onDelete,
   onMove,
 }: TaskCardProps) => {
   return (
     <Card
+      onClick={onOpen}
       className={`
         p-4 space-y-3 cursor-pointer transition-all
         ${overdue ? "border-l-4 border-(--color-danger)" : ""}
