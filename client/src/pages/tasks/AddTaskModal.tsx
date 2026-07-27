@@ -17,6 +17,7 @@ interface AddTaskModalProps {
     id: string;
     name: string;
   }[];
+   defaultProjectId?: string;
 }
 
 const AddTaskModal = ({
@@ -24,12 +25,13 @@ const AddTaskModal = ({
   onClose,
   onCreate,
   projects,
+  defaultProjectId
 }: AddTaskModalProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [project, setProject] = useState("");
+  const [project, setProject] = useState(defaultProjectId || "");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
