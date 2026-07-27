@@ -1,7 +1,7 @@
 import clsx from "clsx";
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
-interface CardProps {
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   className?: string;
   variant?: "default" | "elevated" | "outline" | "ghost";
@@ -25,6 +25,7 @@ const Card = ({
   variant = "default",
   hover = false,
   padding = true,
+  ...props
 }: CardProps) => {
   return (
     <div
@@ -35,6 +36,7 @@ const Card = ({
         padding && "p-6",
         className
       )}
+      { ...props }
     >
       {children}
     </div>
