@@ -7,6 +7,7 @@ import { getTasks, updateTask, deleteTask } from "../../api/task.api";
 import { getProjects } from "../../api/project.api";
 import TaskDrawer from "./TaskDrawer";
 import TasksHeader from "./TasksHeader";
+import DeleteTaskModal from "./DeleteModalTask";
 
 const Tasks = () => {
 
@@ -14,6 +15,9 @@ const Tasks = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
+  const [deleteTaskTitle, setDeleteTaskTitle] = useState<string>("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -87,15 +91,25 @@ const Tasks = () => {
     }
   };
 
-  const handleDeleteTask = async (taskId: string) => {
+  const handleConfirmDelete = async () => {
+    if (!deleteTaskId) return;
+
     try {
-      await deleteTask(taskId);
-      setTasks((prev) =>
-        prev.filter((t) => t.id !== taskId)
+      setDeleteLoading(true);
+
+      await deleteTask(deleteTaskId);
+
+      setTasks(prev =>
+        prev.filter(t => t.id !== deleteTaskId)
       );
+
       toast.success("Task deleted");
+
+      setDeleteTaskId(null);
     } catch {
       toast.error("Failed to delete task");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -122,7 +136,11 @@ const Tasks = () => {
           <TaskBoard
             tasks={tasks}
             onEdit={(task) => setActiveTaskId(task.id)}
-            onDelete={handleDeleteTask}
+            onDelete={(taskId) => {
+              const task = tasks.find(t => t.id === taskId);
+              setDeleteTaskId(taskId);
+              setDeleteTaskTitle(task?.title || "");
+            }}
             onMove={handleMoveTask}
           />
 
@@ -137,6 +155,14 @@ const Tasks = () => {
                 )
               );
             }}
+          />
+
+          <DeleteTaskModal
+            open={!!deleteTaskId}
+            onClose={() => setDeleteTaskId(null)}
+            onConfirm={handleConfirmDelete}
+            taskTitle={deleteTaskTitle}
+            loading={deleteLoading}
           />
         </>
         
