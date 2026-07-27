@@ -5,6 +5,7 @@ import type { Task } from "../../types/task.types";
 import type { Project } from "../../types/project.types";
 import { getTasks, updateTask, deleteTask } from "../../api/task.api";
 import { getProjects } from "../../api/project.api";
+import TaskDrawer from "./TaskDrawer";
 import TasksHeader from "./TasksHeader";
 
 const Tasks = () => {
@@ -12,6 +13,7 @@ const Tasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -116,12 +118,21 @@ const Tasks = () => {
       {loading ? (
         <p className="text-sm opacity-60">Loading tasks...</p>
       ) : (
-        <TaskBoard
-          tasks={tasks}
-          onEdit={(task) => console.log("edit", task)}
-          onDelete={handleDeleteTask}
-          onMove={handleMoveTask}
-        />
+        <>
+          <TaskBoard
+            tasks={tasks}
+            onEdit={(task) => setActiveTaskId(task.id)}
+            onDelete={handleDeleteTask}
+            onMove={handleMoveTask}
+          />
+
+          <TaskDrawer
+            taskId={activeTaskId}
+            open={!!activeTaskId}
+            onClose={() => setActiveTaskId(null)}
+          />
+        </>
+        
       )}
 
     </div>
