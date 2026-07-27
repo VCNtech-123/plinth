@@ -13,7 +13,7 @@ const TaskColumn = ({
   title,
   tasks,
   onEdit,
-  onDelete,
+    onDelete,
   onMove,
 }: TaskColumnProps) => {
   return (
