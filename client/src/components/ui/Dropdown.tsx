@@ -33,7 +33,10 @@ const Dropdown = ({ items }: DropdownProps) => {
 
       {/* Trigger */}
       <button
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((prev) => !prev)
+        }}
         className="p-2 rounded-md hover:bg-app transition-colors"
       >
         <MoreVertical size={18} />
@@ -52,7 +55,8 @@ const Dropdown = ({ items }: DropdownProps) => {
           {items.map((item, index) => (
             <button
               key={index}
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 item.onClick();
                 setOpen(false);
               }}

@@ -3,11 +3,12 @@ import { toast } from "sonner";
 import TaskBoard from "./TaskBoard";
 import type { Task } from "../../types/task.types";
 import type { Project } from "../../types/project.types";
-import { getTasks, updateTask, deleteTask } from "../../api/task.api";
+import { getTasks, updateTask, deleteTask, createTask } from "../../api/task.api";
 import { getProjects } from "../../api/project.api";
 import TaskDrawer from "./TaskDrawer";
 import TasksHeader from "./TasksHeader";
 import DeleteTaskModal from "./DeleteModalTask";
+import AddTaskModal from "./AddTaskModal";
 
 const Tasks = () => {
 
@@ -18,6 +19,7 @@ const Tasks = () => {
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
   const [deleteTaskTitle, setDeleteTaskTitle] = useState<string>("");
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -113,6 +115,17 @@ const Tasks = () => {
     }
   };
 
+  const handleCreateTask = async (data: any) => {
+    try {
+      const created = await createTask(data);
+      setTasks((prev) => [created, ...prev]);
+      setIsAddOpen(false);
+      toast.success("Task created");
+    } catch {
+      toast.error("Failed to create task");
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn">
 
@@ -127,6 +140,7 @@ const Tasks = () => {
           setProjectFilter(value || undefined);
         }}
         projects={projects}
+        onAddClick={() => setIsAddOpen(true)}
       />
 
       {loading ? (
@@ -164,6 +178,15 @@ const Tasks = () => {
             taskTitle={deleteTaskTitle}
             loading={deleteLoading}
           />
+
+          <AddTaskModal
+            open={isAddOpen}
+            onClose={() => setIsAddOpen(false)}
+            onCreate={handleCreateTask}
+            projects={projects}
+            defaultProjectId={projectFilter}
+          />
+          
         </>
         
       )}
