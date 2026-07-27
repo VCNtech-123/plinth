@@ -1,11 +1,16 @@
 import Input from "../../components/ui/Input";
+import Button from "../../components/ui/Button";
 
 interface TasksHeaderProps {
   search: string;
   onSearchChange: (value: string) => void;
   projectFilter?: string;
   onProjectChange: (value: string) => void;
-  projects: { id: string; name: string }[];
+  projects: {
+    id: string;
+    name: string;
+  }[];
+  onAddClick: () => void;
 }
 
 const TasksHeader = ({
@@ -14,6 +19,7 @@ const TasksHeader = ({
   projectFilter,
   onProjectChange,
   projects,
+  onAddClick,
 }: TasksHeaderProps) => {
   return (
     <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
@@ -27,7 +33,7 @@ const TasksHeader = ({
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
 
         <Input
           placeholder="Search tasks..."
@@ -42,12 +48,19 @@ const TasksHeader = ({
           className="px-3 py-2 rounded-lg border border-app bg-card text-sm"
         >
           <option value="">All Projects</option>
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
             </option>
           ))}
         </select>
+
+        <Button
+          onClick={onAddClick}
+          className="w-full sm:w-auto"
+        >
+          Add Task
+        </Button>
 
       </div>
 
