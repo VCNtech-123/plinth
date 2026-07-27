@@ -13,7 +13,7 @@ const TaskColumn = ({
   title,
   tasks,
   onEdit,
-    onDelete,
+  onDelete,
   onMove,
 }: TaskColumnProps) => {
   return (
@@ -39,6 +39,7 @@ const TaskColumn = ({
         ) : (
           tasks.map((task) => (
             <TaskCard
+              onOpen={() => onEdit(task)}
               key={task.id}
               {...task}
               projectName={task.project.name}
