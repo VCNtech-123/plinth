@@ -73,13 +73,15 @@ export const getTaskService = async (
 export const getTaskByIdService = async (
     id: string,
     userId: mongoose.Types.ObjectId
-) => {
+): Promise<PopulatedTask | null> => {
     
-    const task = Task.findOne({
+    const task = await Task.findOne({
         _id: id,
         owner: userId,
         isDeleted: false
-    });
+    })
+    .populate("project", "name")
+    .lean<PopulatedTask>();
 
     return task;
 }

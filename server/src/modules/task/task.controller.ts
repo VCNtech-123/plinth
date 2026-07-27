@@ -89,7 +89,10 @@ export const getTaskById = async (
         status: task.status,
         priority: task.priority,
         dueDate: task.dueDate,
-        project: task.project,
+        project: {
+            id: task.project._id,
+            name: task.project.name,
+        },
         createdAt: task.createdAt
         }
     })
