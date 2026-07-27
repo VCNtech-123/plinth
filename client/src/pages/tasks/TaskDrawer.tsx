@@ -8,9 +8,10 @@ interface TaskDrawerProps {
   taskId: string | null;
   open: boolean;
   onClose: () => void;
+  onUpdate: (updatedTask: any) => void;
 }
 
-const TaskDrawer = ({ taskId, open, onClose }: TaskDrawerProps) => {
+const TaskDrawer = ({ taskId, open, onClose, onUpdate }: TaskDrawerProps) => {
   const [task, setTask] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +22,7 @@ const TaskDrawer = ({ taskId, open, onClose }: TaskDrawerProps) => {
       try {
         setLoading(true);
         const result = await getTaskById(taskId);
-        setTask(result.data);
+        setTask(result);
       } finally {
         setLoading(false);
       }
@@ -146,8 +147,14 @@ const TaskDrawer = ({ taskId, open, onClose }: TaskDrawerProps) => {
 
               <Button
                 onClick={async () => {
-                  await updateTask(task.id, task);
-                  onClose();
+                    const updated = await updateTask(task.id,  {
+                        title: task.title,
+                        description: task.description,
+                        status: task.status,
+                        priority: task.priority,
+                        dueDate: task.dueDate,});
+                    onUpdate(updated.data);
+                    onClose();
                 }}
               >
                 Save Changes
