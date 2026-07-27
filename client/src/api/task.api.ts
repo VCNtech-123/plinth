@@ -7,7 +7,7 @@ export const getTasks = async (params?: any) => {
 
 export const getTaskById = async (id: string) => {
   const response = await api.get(`/tasks/${id}`);
-  return response.data
+  return response.data.data
 }
 
 export const createTask = async (data: any) => {
