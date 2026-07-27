@@ -13,6 +13,7 @@ import ClientDetails from "../pages/clients/ClientDetails";
 import Projects from "../pages/projects/Projects";
 import ProjectDetails from "../pages/projects/ProjectDetails";
 import Tasks from "../pages/tasks/Tasks";
+import Register from "../pages/auth/Register";
 
 const router = createBrowserRouter([
   {
@@ -55,6 +56,10 @@ const router = createBrowserRouter([
       {
         path: "login",
         element: <Login />
+      },
+      {
+        path: "register",
+        element: <Register />
       }
     ]
   }
