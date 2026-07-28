@@ -4,7 +4,7 @@ import { Project } from '../project/project.model';
 import { Task } from '../task/task.model';
 import mongoose from 'mongoose';
 
-export const getDashboardService = async (
+const getSummaryStats = async (
     userId: mongoose.Types.ObjectId
 ) => {
 
@@ -73,6 +73,151 @@ export const getDashboardService = async (
             totalTasks,
             tasksDueToday,
             weeklyCompletionRate
-        }  
+        }
     };
 }
+
+const get7DayTrends = async ( userId: mongoose.Types.ObjectId ) => {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const dateKeys: string[] = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(sevenDaysAgo);
+        d.setDate(d.getDate() + i);
+        dateKeys.push(d.toISOString().split("T")[0]);
+    }
+
+    const [completedRaw, createdRaw] = await Promise.all([
+        Task.aggregate([
+        {
+            $match: {
+            owner: userId,
+            isDeleted: false,
+            status: "done",
+            updatedAt: { $gte: sevenDaysAgo },
+            },
+        },
+        {
+            $group: {
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$updatedAt" } },
+            count: { $sum: 1 },
+            },
+        },
+        ]),
+        Task.aggregate([
+        {
+            $match: {
+            owner: userId,
+            isDeleted: false,
+            createdAt: { $gte: sevenDaysAgo },
+            },
+        },
+        {
+            $group: {
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+            count: { $sum: 1 },
+            },
+        },
+        ]),
+    ]);
+
+    const completedMap = new Map(completedRaw.map((r) => [r._id, r.count]));
+    const createdMap = new Map(createdRaw.map((r) => [r._id, r.count]));
+
+    return {
+        tasksCompletedLast7Days: dateKeys.map((date) => completedMap.get(date) || 0),
+        tasksCreatedLast7Days: dateKeys.map((date) => createdMap.get(date) || 0),
+    };
+}
+
+const getAtRiskProjects = async (userId: mongoose.Types.ObjectId) => {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  return Task.aggregate<{ id: string; name: string; overdueTasks: number }>([
+    {
+      $match: {
+        owner: userId,
+        isDeleted: false,
+        status: { $ne: "done" },
+        dueDate: { $lt: startOfToday },
+        project: { $exists: true, $ne: null },
+      },
+    },
+    {
+      $group: {
+        _id: "$project",
+        overdueTasks: { $sum: 1 },
+      },
+    },
+    {
+      $lookup: {
+        from: "projects", // Collection name in MongoDB
+        localField: "_id",
+        foreignField: "_id",
+        as: "projectInfo",
+      },
+    },
+    { $unwind: "$projectInfo" },
+    {
+      $match: {
+        "projectInfo.isDeleted": false,
+        "projectInfo.status": "active",
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        id: { $toString: "$_id" },
+        name: "$projectInfo.name",
+        overdueTasks: 1,
+      },
+    },
+    { $sort: { overdueTasks: -1 } },
+    { $limit: 5 },
+  ]);
+};
+
+const getRecentActivity = async (userId: mongoose.Types.ObjectId) => {
+  interface PopulatedProject {
+    _id: mongoose.Types.ObjectId;
+    name: string;
+  }
+
+  const [completedTasks, createdTasks] = await Promise.all([
+    Task.find({ owner: userId, isDeleted: false, status: "done" })
+      .sort({ updatedAt: -1 })
+      .limit(5)
+      .populate<{ project?: PopulatedProject }>("project", "name")
+      .lean(),
+
+    Task.find({ owner: userId, isDeleted: false })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate<{ project?: PopulatedProject }>("project", "name")
+      .lean(),
+  ]);
+
+  return {
+    completed: completedTasks.map((task) => ({
+      id: task._id.toString(),
+      title: task.title,
+      project: task.project
+        ? { id: task.project._id.toString(), name: task.project.name }
+        : { id: "", name: "No Project" },
+      completedAt: task.updatedAt.toISOString(),
+    })),
+    created: createdTasks.map((task) => ({
+      id: task._id.toString(),
+      title: task.title,
+      project: task.project
+        ? { id: task.project._id.toString(), name: task.project.name }
+        : { id: "", name: "No Project" },
+      createdAt: task.createdAt.toISOString(),
+    })),
+  };
+};
+
+
