@@ -1,11 +1,8 @@
 import axios from "axios";
 import type { AxiosInstance } from 'axios'
-import dotenv from 'dotenv'
-
-dotenv.config()
 
 export const api: AxiosInstance = axios.create({
-  baseURL: process.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
