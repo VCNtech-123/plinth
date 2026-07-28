@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import { useAuthStore } from "../../store/auth.store";
 
 interface TopbarProps {
   user?: {
@@ -16,10 +17,11 @@ interface TopbarProps {
   onToggleSidebar?: () => void;
 }
 
-const Topbar = ({ user, onToggleSidebar }: TopbarProps) => {
+const Topbar = ({ onToggleSidebar }: TopbarProps) => {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -30,7 +32,6 @@ const Topbar = ({ user, onToggleSidebar }: TopbarProps) => {
         setOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () =>
       document.removeEventListener("mousedown", handleClickOutside);
