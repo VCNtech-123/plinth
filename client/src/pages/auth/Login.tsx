@@ -4,6 +4,7 @@ import Input from "../../components/ui/Input";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../../api/auth.api";
+import { useAuthStore } from "../../store/auth.store";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,14 +14,16 @@ const Login = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const setUser = useAuthStore((s) => s.setUser);
 
   const handleSubmit = async () => {
     setError(null);
     setLoading(true);
 
     try {
-      await login({ email, password });
+      const res = await login({ email, password });
       navigate("/");
+      setUser(res.data)
     } catch (err: any) {
       setError(
         err?.response?.data?.message ||
