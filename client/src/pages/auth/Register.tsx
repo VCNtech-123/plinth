@@ -66,6 +66,7 @@ const Register = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="border-slate-300 focus:border-primary focus:ring-1 focus:ring-primary/30"
+              variant="light"
             />
           </div>
 
@@ -79,6 +80,7 @@ const Register = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="border-slate-300 focus:border-primary focus:ring-1 focus:ring-primary/30"
+              variant="light"
             />
           </div>
 
@@ -92,6 +94,7 @@ const Register = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="border-slate-300 focus:border-primary focus:ring-1 focus:ring-primary/30"
+              variant="light"
             />
           </div>
 
