@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { registerUser, loginUser, getCurrentUserService } from './auth.service';
 import { generateToken } from '../../utils/generateToken';
+import { CookieOptions } from "express";
 
 export const register = async (req: Request, res: Response) => {
 
@@ -24,12 +25,17 @@ export const login = async (req: Request, res: Response) => {
     const user = await loginUser(email, password);
     const token = generateToken(user._id.toString());
 
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax", // use "strict" in production if same domain
-        maxAge: 1000 * 60 * 60, // 1 hour
-        });
+    const isProd = process.env.NODE_ENV === "production";
+
+    const cookieOptions: CookieOptions = {
+      httpOnly: true,
+      secure: isProd,                    // ✅ only secure in production
+      sameSite: isProd ? "none" : "lax", // ✅ none for cross-domain prod, lax for dev
+      path: "/",
+      maxAge: 1000 * 60 * 60,
+    };
+
+    res.cookie("token", token, cookieOptions)
 
      res.status(200).json({
         status: "success",
@@ -44,10 +50,13 @@ export const login = async (req: Request, res: Response) => {
 }
 
 export const logout = async (req: Request, res: Response) => {
+  const isProd = process.env.NODE_ENV === "production";
+
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    path: "/",
   });
 
   res.status(200).json({

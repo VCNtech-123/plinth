@@ -5,9 +5,11 @@ import {
   LogOut,
   Settings
 } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "../../store/auth.store";
+import { logout } from "../../api/auth.api";
+import { toast } from "sonner";
 
 interface TopbarProps {
   user?: {
@@ -22,6 +24,8 @@ const Topbar = ({ onToggleSidebar }: TopbarProps) => {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((s) => s.user);
+  const clearUser = useAuthStore((s) => s.clearUser)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -36,6 +40,16 @@ const Topbar = ({ onToggleSidebar }: TopbarProps) => {
     return () =>
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      clearUser();
+      navigate("/login")
+    } catch (error) {
+      toast.error("Failed to logout")
+    }
+  }
 
   const toggleTheme = () => {
     const isDark = document.documentElement.classList.contains("dark");
@@ -120,6 +134,7 @@ const Topbar = ({ onToggleSidebar }: TopbarProps) => {
 
             <button
               className="w-full text-left px-4 py-2 text-sm hover:bg-app transition flex items-center gap-2 text-(--color-danger)"
+              onClick={handleLogout}
             >
               <LogOut size={16} />
               Logout
