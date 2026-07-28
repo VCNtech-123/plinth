@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerUser, loginUser } from './auth.service';
+import { registerUser, loginUser, getCurrentUserService } from './auth.service';
 import { generateToken } from '../../utils/generateToken';
 
 export const register = async (req: Request, res: Response) => {
@@ -55,3 +55,16 @@ export const logout = async (req: Request, res: Response) => {
     message: "Logged out successfully",
   });
 };
+
+export const getCurrentUser = async (
+  req: Request,
+  res: Response
+) => {
+  
+  const user = await getCurrentUserService(req.user!._id)
+
+  res.status(200).json({
+    status: "success",
+    data: { user }
+  })
+}
