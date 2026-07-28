@@ -10,7 +10,6 @@ import { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "../../store/auth.store";
 import { logout } from "../../api/auth.api";
 import { toast } from "sonner";
-import { Navigate } from "react-router-dom";
 
 interface TopbarProps {
   user?: {
