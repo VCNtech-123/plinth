@@ -5,6 +5,7 @@ import { Outlet } from "react-router-dom";
 import { Toaster } from "sonner";
 
 const DashboardLayout = () => {
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
