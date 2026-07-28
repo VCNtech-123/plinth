@@ -1,5 +1,27 @@
-import { Types } from 'mongoose'
-import { ITask } from '../modules/task/task.model';
+import { Types } from 'mongoose';
+
+export interface AtRiskProject {
+  id: string;
+  name: string;
+  overdueTasks: number;
+}
+
+export interface ActivityItem {
+  id: string;
+  title: string;
+  project: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface CompletedActivityItem extends ActivityItem {
+  completedAt: string;
+}
+
+export interface CreatedActivityItem extends ActivityItem {
+  createdAt: string;
+}
 
 export interface DashboardResponse {
   summary: {
@@ -9,37 +31,17 @@ export interface DashboardResponse {
     overdueTasks: number;
     tasksDueToday: number;
     weeklyCompletionRate: number; // %
-  },
+  };
 
   trends: {
     tasksCompletedLast7Days: number[];
     tasksCreatedLast7Days: number[];
-  },
+  };
 
-  atRiskProjects: [
-    {
-      id: string;
-      name: string;
-      overdueTasks: number;
-    }
-  ],
+  atRiskProjects: AtRiskProject[];
 
   recentActivity: {
-    completed: [
-      {
-        id: string;
-        title: string;
-        project: { id: string; name: string };
-        completedAt: string;
-      }
-    ],
-    created: [
-      {
-        id: string;
-        title: string;
-        project: { id: string; name: string };
-        createdAt: string;
-      }
-    ]
-  }
+    completed: CompletedActivityItem[];
+    created: CreatedActivityItem[];
+  };
 }
