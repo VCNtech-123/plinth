@@ -1,6 +1,7 @@
 import Card from "../../components/ui/Card";
 import { CardContent, CardHeader } from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   projects: {
@@ -11,6 +12,8 @@ interface Props {
 }
 
 const DashboardRisk = ({ projects }: Props) => {
+  const navigate = useNavigate();
+
   return (
     <Card variant="elevated">
       <CardHeader>
@@ -27,8 +30,9 @@ const DashboardRisk = ({ projects }: Props) => {
         ) : (
           projects.map((project) => (
             <div
+              onClick={() => navigate(`projects/${project.id}`)}
               key={project.id}
-              className="flex justify-between items-center border-b border-app pb-2"
+              className="flex justify-between items-center border-b border-app pb-2 cursor-pointer"
             >
               <span>{project.name}</span>
               <Badge variant="danger">
