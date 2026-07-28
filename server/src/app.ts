@@ -13,7 +13,6 @@ import { env } from './config/env'
 
 const app = express();
 
-app.use(securityMiddleware);
 app.use(cors({
     origin: [
         env.clientUrl,
@@ -21,6 +20,7 @@ app.use(cors({
     ],
     credentials: true,
 }));
+app.use(securityMiddleware);
 app.use(globalRateLimiter)
 app.use(express.json());
 app.use(cookieParser());
