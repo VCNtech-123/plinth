@@ -16,31 +16,31 @@ const DashboardSummary = ({ summary }: Props) => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
 
-      <StatCard
-        title="Active Projects"
-        value={summary.activeProjects}
-        icon={FolderKanban}
-        accent="success"
-      />
+     <StatCard
+      title="Active Projects"
+      value={summary.activeProjects}
+      icon={FolderKanban}
+      accent="success"
+    />
 
-      <StatCard
-        title="Total Tasks"
-        value={summary.totalTasks}
-        icon={CheckSquare}
-      />
+    <StatCard
+      title="Overdue Tasks"
+      value={summary.overdueTasks}
+      icon={AlertTriangle}
+      accent={summary.overdueTasks > 0 ? "danger" : "success"}
+    />
 
-      <StatCard
-        title="Overdue Tasks"
-        value={summary.overdueTasks}
-        icon={AlertTriangle}
-        accent="danger"
-      />
+    <StatCard
+      title="Weekly Completion"
+      value={summary.weeklyCompletionRate}
+      icon={CheckSquare}
+    />
 
-      <StatCard
-        title="Weekly Completion %"
-        value={summary.weeklyCompletionRate}
-        icon={Users}
-      />
+    <StatCard
+      title="Tasks Due Today"
+      value={summary.tasksDueToday}
+      icon={Users}
+    />
 
     </div>
   );
