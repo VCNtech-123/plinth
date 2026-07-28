@@ -18,6 +18,6 @@ export const register  = async (data: {
 }
 
 export const getUser = async () => {
-    const response = await api.get("auth/me");
+    const response = await api.get("/auth/me");
     return response.data
 }
