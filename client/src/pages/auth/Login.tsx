@@ -64,6 +64,7 @@ const Login = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="border-slate-300 focus:border-primary focus:ring-1 focus:ring-primary/30"
+            variant="light"
           />
         </div>
 
@@ -77,6 +78,7 @@ const Login = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="border-slate-300 focus:border-primary focus:ring-1 focus:ring-primary/30"
+            variant="light"
           />
         </div>
 
@@ -97,7 +99,7 @@ const Login = () => {
       </form>
 
       <p className="text-sm text-center text-slate-500">
-        Don’t have an account?{" "}
+        Don't have an account?{" "}
         <Link
           to="/register"
           className="text-primary font-medium hover:underline"
