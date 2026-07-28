@@ -1,46 +1,132 @@
-import { Menu, Sun, Moon } from "lucide-react";
+import {
+  Menu,
+  Sun,
+  Moon,
+  LogOut,
+  Settings
+} from "lucide-react";
+import { useLocation } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 
-const Topbar = () => {
+interface TopbarProps {
+  user?: {
+    name: string;
+    email: string;
+  };
+  onToggleSidebar?: () => void;
+}
+
+const Topbar = ({ user, onToggleSidebar }: TopbarProps) => {
+  const location = useLocation();
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const toggleTheme = () => {
+    const isDark = document.documentElement.classList.contains("dark");
+
+    if (isDark) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    }
+  };
+
+  const pageTitle =
+    location.pathname === "/"
+      ? "Dashboard"
+      : location.pathname.split("/")[1]?.charAt(0).toUpperCase() +
+        location.pathname.split("/")[1]?.slice(1);
+
+  const userInitial =
+    user?.name?.charAt(0).toUpperCase() || "?";
+
   return (
-    <header
-      className="
-        h-16 
-        flex 
-        items-center 
-        justify-between 
-        px-4 
-        md:px-6 
-        bg-card 
-        border-b 
-        border-app
-      "
-    >
- 
-      <div className="flex items-center gap-3">
-        {/* Optional future sidebar toggle */}
-        <button className="md:hidden">
+    <header className="h-16 flex items-center justify-between px-4 sm:px-6 bg-card border-b border-app">
+
+      {/* Left Section */}
+      <div className="flex items-center gap-4">
+
+        {/* Mobile Sidebar Toggle */}
+        <button
+          onClick={onToggleSidebar}
+          className="md:hidden p-2 rounded-md hover:bg-app transition"
+        >
           <Menu size={20} />
         </button>
 
-        <h1 className="text-base md:text-lg font-semibold">
-          Dashboard
+        <h1 className="text-base sm:text-lg font-semibold tracking-tight">
+          {pageTitle}
         </h1>
+
       </div>
 
-      <div className="flex items-center gap-4">
+      {/* Right Section */}
+      <div className="flex items-center gap-3 sm:gap-4 relative" ref={dropdownRef}>
+
+        {/* Theme Toggle */}
         <button
-          className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition"
-          onClick={() => {
-            document.documentElement.classList.toggle("dark");
-          }}
+          onClick={toggleTheme}
+          className="p-2 rounded-md hover:bg-app transition"
         >
           <Sun size={18} className="hidden dark:block" />
           <Moon size={18} className="block dark:hidden" />
         </button>
 
-        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold">
-          N
-        </div>
+        {/* Avatar */}
+        <button
+          onClick={() => setOpen((prev) => !prev)}
+          className="w-9 h-9 rounded-full bg-primary/90 text-white flex items-center justify-center text-sm font-semibold hover:opacity-90 transition"
+        >
+          {userInitial}
+        </button>
+
+        {/* Dropdown */}
+        {open && (
+          <div className="absolute right-0 top-12 w-52 bg-card border border-app rounded-xl shadow-xl py-2 animate-fadeIn">
+
+            <div className="px-4 py-3 border-b border-app">
+              <p className="text-sm font-medium">
+                {user?.name || "User"}
+              </p>
+              <p className="text-xs opacity-60">
+                {user?.email}
+              </p>
+            </div>
+
+            <button
+              className="w-full text-left px-4 py-2 text-sm hover:bg-app transition flex items-center gap-2"
+            >
+              <Settings size={16} />
+              Settings
+            </button>
+
+            <button
+              className="w-full text-left px-4 py-2 text-sm hover:bg-app transition flex items-center gap-2 text-(--color-danger)"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+
+          </div>
+        )}
+
       </div>
     </header>
   );
