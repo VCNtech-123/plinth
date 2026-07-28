@@ -26,7 +26,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       <aside
         className={`
           fixed top-0 left-0 z-40
-          h-full w-full
+          h-full w-64
           bg-card border-r border-border
           transform transition-transform duration-300 ease-out
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
