@@ -5,11 +5,12 @@ import {
   LogOut,
   Settings
 } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "../../store/auth.store";
 import { logout } from "../../api/auth.api";
 import { toast } from "sonner";
+import { Navigate } from "react-router-dom";
 
 interface TopbarProps {
   user?: {
@@ -25,6 +26,7 @@ const Topbar = ({ onToggleSidebar }: TopbarProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((s) => s.user);
   const clearUser = useAuthStore((s) => s.clearUser)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -44,6 +46,7 @@ const Topbar = ({ onToggleSidebar }: TopbarProps) => {
     try {
       await logout()
       clearUser();
+      navigate("/login")
     } catch (error) {
       toast.error("Failed to logout")
     }
