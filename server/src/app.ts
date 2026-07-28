@@ -9,12 +9,16 @@ import dashboardRoutes from './modules/dashboard/dashboard.routes';
 import { globalRateLimiter } from "./middleware/rateLimit.middleware";
 import { securityMiddleware } from "./middleware/security.middleware";
 import cookieParser from "cookie-parser";
+import { env } from './config/env'
 
 const app = express();
 
 app.use(securityMiddleware);
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: [
+        env.clientUrl,
+        'http://localhost:5173'
+    ],
     credentials: true,
 }));
 app.use(globalRateLimiter)
