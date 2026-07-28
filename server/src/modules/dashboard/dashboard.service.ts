@@ -220,4 +220,20 @@ const getRecentActivity = async (userId: mongoose.Types.ObjectId) => {
   };
 };
 
+export const getDashboardService = async (userId: mongoose.Types.ObjectId) => {
+  const [summary, trends, atRiskProjects, recentActivity] = await Promise.all([
+    getSummaryStats(userId),
+    get7DayTrends(userId),
+    getAtRiskProjects(userId),
+    getRecentActivity(userId),
+  ]);
+
+  return {
+    summary,
+    trends,
+    atRiskProjects,
+    recentActivity,
+  };
+};
+
 
