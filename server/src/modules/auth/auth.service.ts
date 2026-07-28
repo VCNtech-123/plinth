@@ -1,5 +1,6 @@
 import { User } from "../user/user.model";
 import { ApiError } from '../../utils/ApiError';
+import { Types } from 'mongoose'
 
 export const registerUser = async ( 
     name: string,
@@ -38,4 +39,16 @@ export const loginUser = async (
     }
 
     return user;
+}
+
+export const getCurrentUserService = async (userId: Types.ObjectId ) => {
+    const user = await User.findById(userId)
+                .select("_id name email")
+                .lean();
+
+    if (!user) {
+        throw new ApiError(401, 'No user found')
+    }
+
+    return user
 }
