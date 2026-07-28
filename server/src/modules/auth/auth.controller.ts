@@ -27,8 +27,9 @@ export const login = async (req: Request, res: Response) => {
     res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax", // use "strict" in production if same domain
-        maxAge: 1000 * 60 * 60, // 1 hour
+        sameSite: "lax", 
+        maxAge: 1000 * 60 * 60, 
+        path: "/"
         });
 
      res.status(200).json({
@@ -48,6 +49,7 @@ export const logout = async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
+    path: "/"
   });
 
   res.status(200).json({
