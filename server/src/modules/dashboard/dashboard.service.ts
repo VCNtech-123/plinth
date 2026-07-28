@@ -8,20 +8,22 @@ export const getDashboardService = async (
     userId: mongoose.Types.ObjectId
 ) => {
 
-    const now = new Date();
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const [ 
-        totalClients,
-        totalProjects,
-        activeProjects,
-        completedProjects,
+        totalProjects, 
+        activeProjects, 
+        overdueTasks,
         totalTasks,
-        todoTasks,
-        inProgressTasks,
-        doneTasks,
-        overdueTasks
+        tasksDueToday,
+        completedThisWeek,
+        createdThisWeek 
      ] = await Promise.all([
-        Client.countDocuments({ owner: userId, isDeleted: false }),
         Project.countDocuments({ owner: userId, isDeleted: false }),
         Project.countDocuments(
             {
@@ -29,49 +31,48 @@ export const getDashboardService = async (
                 status: 'active',
                 isDeleted: false
             }),
-        Project.countDocuments(
-            { 
+        Task.countDocuments(
+            {
                 owner: userId,
-                status: 'completed',
-                isDeleted: false
+                isDeleted: false,
+                dueDate: { $lt: startOfToday },
+                status: { $ne: "done" } 
             }),
         Task.countDocuments({ owner: userId, isDeleted: false }),
-        Task.countDocuments(
-            { 
-                owner: userId, 
-                isDeleted: false,
-                status: 'todo' 
-            }),
-        Task.countDocuments(
-            {
-                owner: userId,
-                isDeleted: false,
-                status: 'in-progress'
-            }),
-        Task.countDocuments(
-            {
-                owner: userId,
-                isDeleted: false,
-                status: 'done'
-            }),
-        Task.countDocuments(
-            {
-                owner: userId,
-                isDeleted: false,
-                dueDate: { $lt: now },
-                status: { $ne: "done" } 
-            })
+        Task.countDocuments({
+            owner: userId,
+            status: { $ne: "done" }, 
+            dueDate: {
+            $gte: startOfToday,
+            $lte: endOfToday,
+            },
+            isDeleted: false
+        }),
+        Task.countDocuments({
+            owner: userId,
+            status: "done",
+            updatedAt: { $gte: sevenDaysAgo },
+            isDeleted: false
+        }),
+        Task.countDocuments({
+            owner: userId,
+            createdAt: { $gte: sevenDaysAgo },
+            isDeleted: false
+        })
     ]);
+    const weeklyCompletionRate =
+        createdThisWeek > 0
+        ? Math.min(Math.round((completedThisWeek / createdThisWeek) * 100), 100)
+        : 0;
 
     return {
-        totalClients,
-        totalProjects,
-        activeProjects,
-        completedProjects,
-        totalTasks,
-        todoTasks,
-        inProgressTasks,
-        doneTasks,
-        overdueTasks
+        summary: {
+            totalProjects,
+            activeProjects,
+            overdueTasks,
+            totalTasks,
+            tasksDueToday,
+            weeklyCompletionRate
+        }  
     };
 }
