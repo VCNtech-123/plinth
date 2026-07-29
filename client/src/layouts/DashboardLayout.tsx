@@ -9,7 +9,7 @@ const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-app text-app transition-colors">
+    <div className="min-h-full bg-app text-app transition-colors">
 
       <div className="flex">
 
