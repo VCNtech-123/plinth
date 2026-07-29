@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ApiError } from "../../utils/ApiError";
+import { z } from "zod";
+import { objectIdSchema } from "../../utils/objectId";
 
 export const validateCreateClient = (
   req: Request,
@@ -14,3 +16,9 @@ export const validateCreateClient = (
 
   next();
 };
+
+export const getClientByIdSchema = z.object({
+  params: z.object({
+    id: objectIdSchema,
+  }),
+});
