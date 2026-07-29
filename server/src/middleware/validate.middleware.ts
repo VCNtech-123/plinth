@@ -2,8 +2,14 @@ import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { ApiError } from "../utils/ApiError";
 
+type RequestSchema = z.ZodObject<{
+  body?: z.ZodTypeAny;
+  params?: z.ZodTypeAny;
+  query?: z.ZodTypeAny;
+}>;
+
 export const validate =
-  (schema: z.ZodTypeAny) =>
+  (schema: RequestSchema) =>
   (req: Request, _res: Response, next: NextFunction): void => {
     const result = schema.safeParse({
       body: req.body,
@@ -12,25 +18,27 @@ export const validate =
     });
 
     if (!result.success) {
-      const formatted = result.error.issues.map((issue) => ({
-        path: issue.path.join("."),
-        message: issue.message,
-      }));
+      const firstError = result.error.issues[0];
 
       return next(
         new ApiError(
           400,
-          formatted[0]?.message || "Invalid request data"
+          firstError?.message ?? "Invalid request data"
         )
       );
     }
 
-    // Explicitly type result.data so TypeScript knows body/params/query exist
-    const data = result.data as Record<string, any>;
+    if (result.data.body) {
+      req.body = result.data.body;
+    }
 
-    req.body = data.body ?? req.body;
-    req.params = data.params ?? req.params;
-    req.query = data.query ?? req.query;
+    if (result.data.params) {
+      req.params = result.data.params as Request["params"];
+    }
+
+    if (result.data.query) {
+      req.query = result.data.query as Request["query"];
+    }
 
     next();
   };
