@@ -95,10 +95,6 @@ export const getClientById = async (req: Request, res: Response) => {
 export const updateClient = async (req: Request, res: Response) => {
   const id = req.params.id as string;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid client ID");
-  }
-
   const updatedClient = await updateClientService(
     id,
     req.user!._id,
@@ -128,14 +124,10 @@ export const updateClient = async (req: Request, res: Response) => {
 export const deleteClient = async (req: Request, res: Response) => {
   const id = req.params.id as string;
 
-  const deletedClient = await deleteClientService(
+   await deleteClientService(
     id, 
     req.user!._id
   );
-
-  if (!deletedClient) {
-    throw new ApiError(404, 'Client Not Found!')
-  }
 
   res.status(200).json({
     status: "success",
