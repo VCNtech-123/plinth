@@ -1,9 +1,9 @@
 import { Client, IClient } from "./client.model";
 import { ApiError } from "../../utils/ApiError";
-import { getPagination } from "../../utils/pagination";
 import mongoose from "mongoose";
 import { Project } from '../project/project.model'
 import { Task } from "../task/task.model";
+import { GetClientsQuery, GetClientsFilter } from '../../types/clients.types'
 
 export const createClientService = async (
   data: Partial<IClient>,
@@ -29,16 +29,18 @@ export const createClientService = async (
 
 export const getClientsService = async (
   userId: mongoose.Types.ObjectId,
-  query: Record<string, unknown>
+  query: GetClientsQuery
 ) => {
 
-    const { page, limit, skip } = getPagination(query);
+    const { page, limit } = query;
     const status = query.status;
+    const skip = Math.max(0, (page - 1) * limit);
 
-    const filter: Record<string, unknown> = {
+    const filter: GetClientsFilter = {
       owner: userId,
       isDeleted: false,
     };
+
     const search = query.search as string | undefined
 
     if (search) {
@@ -48,13 +50,15 @@ export const getClientsService = async (
     if (status) {
       filter.status = status;
     }
-    const clients = await Client.find(filter)
-    .lean()
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit);
 
-    const total = await Client.countDocuments(filter);
+    const [clients, total] = await Promise.all([
+      Client.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Client.countDocuments(filter)
+    ]);
   
     return {
       clients,
