@@ -4,7 +4,8 @@ import { getClientsService } from "./client.service";
 import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError";
 import { getClientByIdService, updateClientService, deleteClientService } from "./client.service";
-import { GetClientsQuery, getClientsQuerySchema } from "./client.validation";
+import { GetClientsQuery } from "./client.validation";
+
 
 export const createClient = async (req: Request, res: Response) => {
   const client = await createClientService(
@@ -60,18 +61,10 @@ export const getClients = async (req: Request, res: Response) => {
 export const getClientById = async (req: Request, res: Response) => {
   const id = req.params.id as string;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid client ID");
-  }
-
   const result = await getClientByIdService(
     id,
     req.user!._id
   );
-
-  if (!result) {
-    throw new ApiError(404, "Client not found");
-  }
 
   const { client, projects, stats } = result;
 
@@ -102,10 +95,6 @@ export const getClientById = async (req: Request, res: Response) => {
 export const updateClient = async (req: Request, res: Response) => {
   const id = req.params.id as string;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid client ID");
-  }
-
   const updatedClient = await updateClientService(
     id,
     req.user!._id,
@@ -135,14 +124,10 @@ export const updateClient = async (req: Request, res: Response) => {
 export const deleteClient = async (req: Request, res: Response) => {
   const id = req.params.id as string;
 
-  const deletedClient = await deleteClientService(
+   await deleteClientService(
     id, 
     req.user!._id
   );
-
-  if (!deletedClient) {
-    throw new ApiError(404, 'Client Not Found!')
-  }
 
   res.status(200).json({
     status: "success",

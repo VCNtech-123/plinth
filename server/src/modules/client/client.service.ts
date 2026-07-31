@@ -3,7 +3,7 @@ import { ApiError } from "../../utils/ApiError";
 import mongoose from "mongoose";
 import { Project } from '../project/project.model'
 import { Task } from "../task/task.model";
-import { GetClientsQuery, GetClientsFilter } from '../../types/clients.types'
+import { GetClientsQuery, GetClientsFilter, GetClientByIdResponse } from '../../types/clients.types'
 
 export const createClientService = async (
   data: Partial<IClient>,
@@ -32,8 +32,7 @@ export const getClientsService = async (
   query: GetClientsQuery
 ) => {
 
-    const { page, limit } = query;
-    const status = query.status;
+    const { page, limit, status } = query;
     const skip = Math.max(0, (page - 1) * limit);
 
     const filter: GetClientsFilter = {
@@ -71,7 +70,7 @@ export const getClientsService = async (
 export const getClientByIdService = async (
   id: string,
   userId: mongoose.Types.ObjectId
-) => {
+): Promise<GetClientByIdResponse> => {
   const client = await Client.findOne({
     _id: id,
     owner: userId,
@@ -79,7 +78,7 @@ export const getClientByIdService = async (
   }).lean();
 
   if (!client) {
-    return null;
+    throw new ApiError(400, "No client found")
   }
 
   const now = new Date();
