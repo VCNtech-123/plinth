@@ -12,7 +12,7 @@ router.get("/", protect, validate(getProjectsSchema), getProjects);
 router.get("/:id", protect, validate(getProjectByIdSchema), getProjectById);
 router.put("/:id", protect, validate(updateProjectSchema), updateProject);
 router.delete("/:id", protect, validate(deleteProjectSchema), deleteProject);
-router.patch("/:id/restore", protect, validate(restoreProjectSchema), restoreProject)
+router.patch("/:id/restore", protect, validate(restoreProjectSchema), restoreProject);
 
 export default router;
 
