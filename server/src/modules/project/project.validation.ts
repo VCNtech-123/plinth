@@ -40,6 +40,7 @@ const projectBodySchema = z.object({
 }).strict();
 
 export type GetProjectsQuery = z.infer<typeof getProjectsQuerySchema>;
+export type UpdateProjectData = z.infer<typeof projectBodySchema>
 
 export const createProjectSchema = z.object({
   body: projectBodySchema,
