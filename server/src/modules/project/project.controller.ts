@@ -36,10 +36,6 @@ export const getProjectById = async (
         req.user!._id
     );
 
-    if (!result) {
-        throw new ApiError(400, 'Project not found')
-    }
-
     const { project, tasks, stats } = result
 
     res.status(200).json({
