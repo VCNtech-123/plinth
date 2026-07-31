@@ -4,6 +4,7 @@ import { getClientsService } from "./client.service";
 import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError";
 import { getClientByIdService, updateClientService, deleteClientService } from "./client.service";
+import { GetClientsQuery, getClientsQuerySchema } from "./client.validation";
 
 export const createClient = async (req: Request, res: Response) => {
   const client = await createClientService(
@@ -27,9 +28,14 @@ export const createClient = async (req: Request, res: Response) => {
 };
 
 export const getClients = async (req: Request, res: Response) => {
+
+  const { query } = res.locals.validated as {
+    query: GetClientsQuery;
+  };
+
   const result = await getClientsService(
     req.user!._id,
-    req.query
+    query
   );
 
   res.status(200).json({
@@ -49,6 +55,8 @@ export const getClients = async (req: Request, res: Response) => {
     })),
   });
 };
+
+
 export const getClientById = async (req: Request, res: Response) => {
   const id = req.params.id as string;
 

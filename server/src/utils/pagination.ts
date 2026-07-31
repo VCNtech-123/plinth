@@ -21,8 +21,8 @@ export const getPagination = (
     const skip = (safePage - 1) * safeLimit;
 
     return {
-        page: safePage,
-        limit: safeLimit,
+        page: safePage as number,
+        limit: safeLimit as number,
         skip,
     };
 } 
