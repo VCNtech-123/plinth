@@ -5,7 +5,7 @@ import { Task } from '../task/task.model';
 import { ApiError } from '../../utils/ApiError';
 import { ProjectDetailsResult, PopulatedProject, ProjectsFilter } from '../../types/project.types';
 import mongoose from 'mongoose';
-import { GetProjectsQuery } from './project.validation'
+import { GetProjectsQuery, UpdateProjectData } from './project.validation'
 
 
 export const createProjectService = async (
@@ -144,16 +144,12 @@ export const getProjectsService = async (
 };
 
 export const updateProjectService = async (
-  id: string,
+  id: string | string[],
   userId: mongoose.Types.ObjectId,
-  data: Partial<IProject>
+  data: UpdateProjectData
 ) => {
 
-    const updateData: Partial<
-      Pick<IProject,
-        "name" | "description" | "status" | "deadline" | "budget" | "client"
-      >
-    > = {};
+    const updateData: Partial<UpdateProjectData> = {};
 
     if (data.name !== undefined) updateData.name = data.name;
     if (data.description !== undefined) updateData.description = data.description;
@@ -162,15 +158,12 @@ export const updateProjectService = async (
     if (data.budget !== undefined) updateData.budget = data.budget;
     if (data.client !== undefined) updateData.client = data.client;
 
-   if (updateData.client) {
-    if (!mongoose.Types.ObjectId.isValid(updateData.client)) {
-      throw new ApiError(400, "Invalid client ID");
-    }
 
+    if (updateData.client) {
     const client = await Client.findOne({
       _id: updateData.client,
       owner: userId,
-      isDeleted: false
+      isDeleted: false,
     });
 
     if (!client) {
@@ -187,6 +180,10 @@ export const updateProjectService = async (
     updateData,
     { new: true }
   );
+
+  if (!updatedProject) {
+    throw new ApiError(404, "Project not found");
+  }
 
   return updatedProject;
 }
