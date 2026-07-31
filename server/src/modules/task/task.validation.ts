@@ -1,22 +1,34 @@
-import { Request, Response, NextFunction } from "express";
-import { ApiError } from "../../utils/ApiError";
-import mongoose from "mongoose";
+import { z } from "zod";
+import { objectIdSchema } from "../../utils/objectId";
 
-export const validateCreateTask = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
 
-    const { title, project } = req.body;
+const taskBodySchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, "Task title is required"),
 
-    if ( !title || !project ) {
-        throw new ApiError(400, "Title and project required");
-    }
+  description: z
+    .string()
+    .trim()
+    .optional(),
 
-    if (!mongoose.Types.ObjectId.isValid(project)) {
-        throw new ApiError(400, "Invalid Project ID");
-    }
+  status: z
+    .enum(["todo", "in-progress", "done"])
+    .optional(),
 
-    next();
-}
+  priority: z
+    .enum(["low", "medium", "high"])
+    .optional(),
+
+  dueDate: z
+    .coerce
+    .date()
+    .optional(),
+
+  project: objectIdSchema,
+}).strict();
+
+export const createProjectSchema = z.object({
+    body: taskBodySchema
+});
