@@ -148,14 +148,10 @@ export const deleteProject = async (
 {
   const id = req.params.id as string;
 
-  const deletedProject = await deleteProjectService(
+  await deleteProjectService(
     id,
     req.user!._id
   );
-
-  if (!deletedProject) {
-    throw new ApiError(400, 'Project not found');
-  }
 
   res.status(201).json({
     status: "successful",

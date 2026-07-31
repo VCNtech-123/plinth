@@ -208,8 +208,8 @@ export const deleteProjectService = async (
   );
 
   if (!deletedProject) {
-    return null
-  };
+    throw new ApiError(400, 'Project not found');
+  }
 
   await Task.updateMany(
     {
