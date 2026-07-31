@@ -55,3 +55,12 @@ export const getProjectByIdSchema = z.object({
     id: objectIdSchema
   })
 })
+
+export const updateClientSchema = z.object({
+  params: z.object({
+    id: objectIdSchema
+  }),
+  body: z.object({
+    body: projectBodySchema.partial().strict()
+  })
+})
