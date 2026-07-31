@@ -46,7 +46,7 @@ export const createProjectSchema = z.object({
 });
 
 
-export const getProjectSchema = z.object({
+export const getProjectsSchema = z.object({
     query: getProjectsQuerySchema
 });
 
@@ -56,7 +56,7 @@ export const getProjectByIdSchema = z.object({
   })
 })
 
-export const updateClientSchema = z.object({
+export const updateProjectSchema = z.object({
   params: z.object({
     id: objectIdSchema
   }),
