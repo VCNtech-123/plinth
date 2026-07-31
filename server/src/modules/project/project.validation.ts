@@ -50,3 +50,8 @@ export const getProjectSchema = z.object({
     query: getProjectsQuerySchema
 });
 
+export const getProjectByIdSchema = z.object({
+  params: z.object({
+    id: objectIdSchema
+  })
+})
