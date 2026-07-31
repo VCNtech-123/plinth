@@ -17,6 +17,19 @@ export const validateCreateClient = (
   next();
 };
 
+const createClientBodySchema = z.object({
+  name: z.string().trim().min(1, "Name is required"),
+  email: z.string().trim().toLowerCase().email("Invalid email address"),
+  phone: z.string().trim().optional(),
+  company: z.string().trim().optional(),
+  notes: z.string().trim().optional(),
+  status: z.enum(["active", "inactive"]).optional(),
+}).strict();
+
+export const createClientSchema = z.object({
+  body: createClientBodySchema,
+});
+
 export const getClientByIdSchema = z.object({
   params: z.object({
     id: objectIdSchema,
