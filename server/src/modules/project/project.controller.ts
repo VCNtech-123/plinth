@@ -29,10 +29,9 @@ export const getProjectById = async (
     req: Request, 
     res: Response,
 ) => {
-    const id = req.params.id as string;
 
     const result = await getProjectByIdService(
-        id,
+        req.params.id,
         req.user!._id
     );
 

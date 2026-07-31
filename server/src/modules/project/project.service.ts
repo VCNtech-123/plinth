@@ -33,7 +33,7 @@ export const createProjectService = async (
 
 
 export const getProjectByIdService = async (
-  id: string,
+  id: string | string[],
   userId: mongoose.Types.ObjectId
 ): Promise<ProjectDetailsResult> => {
   
