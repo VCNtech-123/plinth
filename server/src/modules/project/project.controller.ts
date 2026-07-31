@@ -2,8 +2,7 @@
 import { Request, Response } from 'express';
 import { createProjectService, getProjectByIdService, getProjectsService, updateProjectService, deleteProjectService, restoreProjectService } from './project.service';
 import { ApiError } from '../../utils/ApiError';
-import mongoose from 'mongoose'
-import { GetProjectsQuery } from './project.validation';
+import { GetProjectsQuery, UpdateProjectData } from './project.validation';
 
 export const createProject = async (req: Request, res: Response) => {
     const project = await createProjectService(
@@ -114,17 +113,18 @@ export const updateProject = async (
   req: Request,
   res: Response
 ) => {
-  const id = req.params.id as string;
+  
+  const { body } = res.locals.validated as {
+    body: UpdateProjectData
+   }
 
   const updatedProject = await updateProjectService(
-    id,
+    req.params.id,
     req.user!._id,
-    req.body
+    body
   );
 
-   if (!updatedProject) {
-    throw new ApiError(404, "Project not found");
-  }
+
 
   res.status(200).json({
     status: "success",
@@ -175,12 +175,18 @@ export const restoreProject = async (
       req.user!._id
     )
 
-    if (!restoredProject) {
-      throw new ApiError(404, "Project not found")
-    }
-
     res.status(200).json({
-      status: "succes",
-      message: "Project restored succesfully"
+      status: "success",
+      message: "Project restored succesfully",
+      data: {
+      id: restoredProject._id,
+      name: restoredProject.name,
+      description: restoredProject.description,
+      status: restoredProject.status,
+      deadline: restoredProject.deadline,
+      budget: restoredProject.budget,
+      client: restoredProject.client,
+      updatedAt: restoredProject.updatedAt
+    }
     });
 }
