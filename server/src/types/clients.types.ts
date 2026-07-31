@@ -17,3 +17,36 @@ export interface GetClientsFilter {
   };
   status?: "active" | "inactive";
 }
+
+export interface LeanClient {
+  _id: mongoose.Types.ObjectId | string;
+  name: string;
+  owner: mongoose.Types.ObjectId | string;
+  isDeleted: boolean;
+  status: "active" | "inactive";
+  email?: string;
+  phone?: string;
+  company?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+export interface LeanRecentProject {
+  _id: mongoose.Types.ObjectId | string;
+  name: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ClientStats {
+  totalProjects: number;
+  activeProjects: number;
+  totalTasks: number;
+  overdueTasks: number;
+}
+
+export interface GetClientByIdResponse {
+  client: LeanClient;
+  projects: LeanRecentProject[];
+  stats: ClientStats;
+}
