@@ -127,10 +127,6 @@ export const updateClient = async (req: Request, res: Response) => {
 export const deleteClient = async (req: Request, res: Response) => {
   const id = req.params.id as string;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid Client ID");
-  }
-
   const deletedClient = await deleteClientService(
     id, 
     req.user!._id
