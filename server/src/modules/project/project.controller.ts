@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { createProjectService, getProjectByIdService, getProjectsService, updateProjectService, deleteProjectService, restoreProjectService } from './project.service';
 import { ApiError } from '../../utils/ApiError';
 import mongoose from 'mongoose'
+import { GetProjectsQuery } from './project.validation';
 
 export const createProject = async (req: Request, res: Response) => {
     const project = await createProjectService(
@@ -82,9 +83,14 @@ export const getProjects = async (
   req: Request,
   res: Response
 ) => {
+
+  const { query } = res.locals.validated as {
+      query: GetProjectsQuery;
+  };
+
   const result = await getProjectsService(
     req.user!._id,
-    req.query
+    query
   );
 
   res.status(200).json({
