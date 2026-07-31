@@ -3,9 +3,9 @@ import { Project, IProject } from './project.model';
 import { Client } from '../client/client.model';
 import { Task } from '../task/task.model';
 import { ApiError } from '../../utils/ApiError';
-import { getPagination } from '../../utils/pagination';
-import type { ProjectDetailsResult, PopulatedProject } from '../../types/project.types';
+import { ProjectDetailsResult, PopulatedProject, ProjectsFilter } from '../../types/project.types';
 import mongoose from 'mongoose';
+import { GetProjectsQuery } from './project.validation'
 
 
 export const createProjectService = async (
@@ -102,15 +102,13 @@ export const getProjectByIdService = async (
 
 export const getProjectsService = async (
   userId: mongoose.Types.ObjectId,
-  query: Record<string, unknown>
+  query: GetProjectsQuery
 ) => {
 
-  const { page, limit, skip } = getPagination(query);
-  const status = query.status;
-  const search = query.search;
-  const clientId = query.client;
+  const { page, limit, status, clientId, search } = query
+  const skip = Math.max(0, (page - 1) * limit);
 
-  const filter: Record<string, unknown> = {
+  const filter: ProjectsFilter = {
     owner: userId,
     isDeleted: false,
   };
