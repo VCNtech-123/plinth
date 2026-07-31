@@ -242,5 +242,9 @@ export const restoreProjectService = async (
     { new: true }
   );
 
+  if (!restoredProject) {
+    throw new ApiError(400, "Project not found")
+  }
+
   return restoredProject;
 }
