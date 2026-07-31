@@ -35,7 +35,7 @@ export const createProjectService = async (
 export const getProjectByIdService = async (
   id: string,
   userId: mongoose.Types.ObjectId
-): Promise<ProjectDetailsResult | null> => {
+): Promise<ProjectDetailsResult> => {
   
   const project = await Project.findOne({
     _id: id,
@@ -46,7 +46,7 @@ export const getProjectByIdService = async (
   .lean<PopulatedProject>();
 
   if (!project) {
-    return null
+    throw new ApiError(400, "No Project found")
   }
 
   const
