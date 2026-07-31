@@ -4,23 +4,13 @@ import mongoose from 'mongoose';
 import { z } from 'zod'
 import { objectIdSchema } from '../../utils/objectId';
 
-export const validateCreateProject = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    const { name, client } = req.body || { };
-
-    if (!name || !client ) {    
-        throw new ApiError(400, 'Name and client are requred')
-    } 
-
-    if (!mongoose.Types.ObjectId.isValid(client)) {
-        throw new ApiError(400, 'InvalidClientId');
-    }
-
-    next();
-}
+export const getProjectsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+  search: z.string().trim().optional(),
+  status: z.enum(["active", "inactive"]).optional(),
+  client: z.enum(["active", "completed", "paused"]).optional()
+});
 
 const projectBodySchema = z.object({
   name: z
@@ -54,3 +44,9 @@ const projectBodySchema = z.object({
 export const createProjectSchema = z.object({
   body: projectBodySchema,
 });
+
+
+export const getProjectSchema = z.object({
+    query: getProjectsQuerySchema
+});
+
