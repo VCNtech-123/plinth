@@ -9,8 +9,8 @@ type RequestSchema = z.ZodObject<{
 }>;
 
 export const validate =
-  (schema: RequestSchema) =>
-  (req: Request, _res: Response, next: NextFunction): void => {
+  <T>(schema: z.ZodType<T>) =>
+  (req: Request, res: Response, next: NextFunction): void => {
     const result = schema.safeParse({
       body: req.body,
       params: req.params,
@@ -28,17 +28,7 @@ export const validate =
       );
     }
 
-    if (result.data.body) {
-      req.body = result.data.body;
-    }
-
-    if (result.data.params) {
-      req.params = result.data.params as Request["params"];
-    }
-
-    if (result.data.query) {
-      req.query = result.data.query as Request["query"];
-    }
+    res.locals.validated = result.data;
 
     next();
   };
