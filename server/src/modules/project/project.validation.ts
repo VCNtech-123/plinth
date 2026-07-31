@@ -54,7 +54,7 @@ export const getProjectByIdSchema = z.object({
   params: z.object({
     id: objectIdSchema
   })
-})
+});
 
 export const updateProjectSchema = z.object({
   params: z.object({
@@ -63,4 +63,18 @@ export const updateProjectSchema = z.object({
   body: z.object({
     body: projectBodySchema.partial().strict()
   })
+});
+
+export const deleteProjectSchema = z.object({
+  params: z.object({
+    id: objectIdSchema
+  })
 })
+
+export const restoreProjectSchema = z.object({
+  params: z.object({
+    id: objectIdSchema
+  })
+})
+
+
