@@ -39,7 +39,7 @@ export interface ProjectsFilter {
   page?: string | number;
   status?: "active" | "completed" | "paused";
   search?: string;
-  client?: Types.ObjectId;
+  client?: string;
   name?: {
       $regex: string;
       $options: string;
@@ -47,10 +47,3 @@ export interface ProjectsFilter {
   isDeleted: boolean
 }
 
-export interface getProjectsQuery {
-    page: number;
-    limit: number;
-    search?: string;
-    status?: "active" | "completed" | "paused";
-    client: Types.ObjectId;
-}
