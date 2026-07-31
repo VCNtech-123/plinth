@@ -57,3 +57,16 @@ export const getClientsSchema = z.object({
       .optional(),
   }).strict(),
 });
+
+export const updateClientSchema = z.object({
+  params: z.object({
+    id: objectIdSchema,
+  }),
+  body: createClientBodySchema.partial().strict(),
+});
+
+export const deleteClientSchema = z.object({
+  params: z.object({
+    id: objectIdSchema,
+  }),
+});
