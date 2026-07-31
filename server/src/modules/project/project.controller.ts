@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import { createProjectService, getProjectByIdService, getProjectsService, updateProjectService, deleteProjectService, restoreProjectService } from './project.service';
 import { ApiError } from '../../utils/ApiError';
-import mongoose from 'mongoose'
+import { GetProjectsQuery, UpdateProjectData } from './project.validation';
 
 export const createProject = async (req: Request, res: Response) => {
     const project = await createProjectService(
@@ -29,20 +29,11 @@ export const getProjectById = async (
     req: Request, 
     res: Response,
 ) => {
-    const id = req.params.id as string;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(400, 'Invalid project ID');
-    }
 
     const result = await getProjectByIdService(
-        id,
+        req.params.id,
         req.user!._id
     );
-
-    if (!result) {
-        throw new ApiError(400, 'Project not found')
-    }
 
     const { project, tasks, stats } = result
 
@@ -82,9 +73,14 @@ export const getProjects = async (
   req: Request,
   res: Response
 ) => {
+
+  const { query } = res.locals.validated as {
+      query: GetProjectsQuery;
+  };
+
   const result = await getProjectsService(
     req.user!._id,
-    req.query
+    query
   );
 
   res.status(200).json({
@@ -112,21 +108,18 @@ export const updateProject = async (
   req: Request,
   res: Response
 ) => {
-  const id = req.params.id as string;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid project ID");
-  }
+  
+  const { body } = res.locals.validated as {
+    body: UpdateProjectData
+   }
 
   const updatedProject = await updateProjectService(
-    id,
+    req.params.id,
     req.user!._id,
-    req.body
+    body
   );
 
-   if (!updatedProject) {
-    throw new ApiError(404, "Project not found");
-  }
+
 
   res.status(200).json({
     status: "success",
@@ -150,18 +143,10 @@ export const deleteProject = async (
 {
   const id = req.params.id as string;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, 'Invalid project ID');
-  }
-
-  const deletedProject = await deleteProjectService(
+  await deleteProjectService(
     id,
     req.user!._id
   );
-
-  if (!deletedProject) {
-    throw new ApiError(400, 'Project not found');
-  }
 
   res.status(201).json({
     status: "successful",
@@ -176,21 +161,23 @@ export const restoreProject = async (
 
     const id = req.params.id as string;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(400, "Invalid project ID");
-    }
-
     const restoredProject = await restoreProjectService(
       id,
       req.user!._id
     )
 
-    if (!restoreProject) {
-      throw new ApiError(404, "Project not found")
-    }
-
     res.status(200).json({
-      status: "succes",
-      message: "Project restored succesfully"
+      status: "success",
+      message: "Project restored succesfully",
+      data: {
+      id: restoredProject._id,
+      name: restoredProject.name,
+      description: restoredProject.description,
+      status: restoredProject.status,
+      deadline: restoredProject.deadline,
+      budget: restoredProject.budget,
+      client: restoredProject.client,
+      updatedAt: restoredProject.updatedAt
+    }
     });
 }

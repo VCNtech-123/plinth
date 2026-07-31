@@ -1,16 +1,18 @@
 import { Router } from 'express';
 import { protect } from '../../middleware/auth.middleware';
 import { createProject, getProjectById, getProjects, updateProject, deleteProject, restoreProject } from './project.controller';
-import { validateCreateProject } from './project.validation';
+import { createProjectSchema, getProjectsSchema, getProjectByIdSchema, updateProjectSchema, deleteProjectSchema, restoreProjectSchema } from './project.validation';
+import { validate } from '../../middleware/validate.middleware';
+
 
 const router = Router();
 
-router.post("/", protect, validateCreateProject, createProject);
-router.get("/", protect, getProjects);
-router.get("/:id", protect, getProjectById);
-router.put("/:id", protect, updateProject);
-router.delete("/:id", protect, deleteProject);
-router.patch("/:id/restore", protect, restoreProject)
+router.post("/", protect, validate(createProjectSchema), createProject);
+router.get("/", protect, validate(getProjectsSchema), getProjects);
+router.get("/:id", protect, validate(getProjectByIdSchema), getProjectById);
+router.put("/:id", protect, validate(updateProjectSchema), updateProject);
+router.delete("/:id", protect, validate(deleteProjectSchema), deleteProject);
+router.patch("/:id/restore", protect, validate(restoreProjectSchema), restoreProject);
 
 export default router;
 

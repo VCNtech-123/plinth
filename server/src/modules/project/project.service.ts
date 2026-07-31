@@ -3,9 +3,9 @@ import { Project, IProject } from './project.model';
 import { Client } from '../client/client.model';
 import { Task } from '../task/task.model';
 import { ApiError } from '../../utils/ApiError';
-import { getPagination } from '../../utils/pagination';
-import type { ProjectDetailsResult, PopulatedProject } from '../../types/project.types';
+import { ProjectDetailsResult, PopulatedProject, ProjectsFilter } from '../../types/project.types';
 import mongoose from 'mongoose';
+import { GetProjectsQuery, UpdateProjectData } from './project.validation'
 
 
 export const createProjectService = async (
@@ -33,9 +33,9 @@ export const createProjectService = async (
 
 
 export const getProjectByIdService = async (
-  id: string,
+  id: string | string[],
   userId: mongoose.Types.ObjectId
-): Promise<ProjectDetailsResult | null> => {
+): Promise<ProjectDetailsResult> => {
   
   const project = await Project.findOne({
     _id: id,
@@ -46,7 +46,7 @@ export const getProjectByIdService = async (
   .lean<PopulatedProject>();
 
   if (!project) {
-    return null
+    throw new ApiError(400, "No Project found")
   }
 
   const
@@ -102,15 +102,13 @@ export const getProjectByIdService = async (
 
 export const getProjectsService = async (
   userId: mongoose.Types.ObjectId,
-  query: Record<string, unknown>
+  query: GetProjectsQuery
 ) => {
 
-  const { page, limit, skip } = getPagination(query);
-  const status = query.status;
-  const search = query.search;
-  const clientId = query.client;
+  const { page, limit, status, clientId, search } = query
+  const skip = Math.max(0, (page - 1) * limit);
 
-  const filter: Record<string, unknown> = {
+  const filter: ProjectsFilter = {
     owner: userId,
     isDeleted: false,
   };
@@ -146,16 +144,12 @@ export const getProjectsService = async (
 };
 
 export const updateProjectService = async (
-  id: string,
+  id: string | string[],
   userId: mongoose.Types.ObjectId,
-  data: Partial<IProject>
+  data: UpdateProjectData
 ) => {
 
-    const updateData: Partial<
-      Pick<IProject,
-        "name" | "description" | "status" | "deadline" | "budget" | "client"
-      >
-    > = {};
+    const updateData: Partial<UpdateProjectData> = {};
 
     if (data.name !== undefined) updateData.name = data.name;
     if (data.description !== undefined) updateData.description = data.description;
@@ -164,15 +158,12 @@ export const updateProjectService = async (
     if (data.budget !== undefined) updateData.budget = data.budget;
     if (data.client !== undefined) updateData.client = data.client;
 
-   if (updateData.client) {
-    if (!mongoose.Types.ObjectId.isValid(updateData.client)) {
-      throw new ApiError(400, "Invalid client ID");
-    }
 
+    if (updateData.client) {
     const client = await Client.findOne({
       _id: updateData.client,
       owner: userId,
-      isDeleted: false
+      isDeleted: false,
     });
 
     if (!client) {
@@ -189,6 +180,10 @@ export const updateProjectService = async (
     updateData,
     { new: true }
   );
+
+  if (!updatedProject) {
+    throw new ApiError(404, "Project not found");
+  }
 
   return updatedProject;
 }
@@ -213,8 +208,8 @@ export const deleteProjectService = async (
   );
 
   if (!deletedProject) {
-    return null
-  };
+    throw new ApiError(400, 'Project not found');
+  }
 
   await Task.updateMany(
     {
@@ -246,6 +241,10 @@ export const restoreProjectService = async (
     },
     { new: true }
   );
+
+  if (!restoredProject) {
+    throw new ApiError(400, "Project not found")
+  }
 
   return restoredProject;
 }

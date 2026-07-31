@@ -34,3 +34,16 @@ export type PopulatedProject = Omit<IProject, "client"> & {
   };
 };
 
+export interface ProjectsFilter {
+  owner: Types.ObjectId
+  page?: string | number;
+  status?: "active" | "completed" | "paused";
+  search?: string;
+  client?: string;
+  name?: {
+      $regex: string;
+      $options: string;
+    };  
+  isDeleted: boolean
+}
+

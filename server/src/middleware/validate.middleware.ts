@@ -9,7 +9,7 @@ type RequestSchema = z.ZodObject<{
 }>;
 
 export const validate =
-  <T>(schema: z.ZodType<T>) =>
+ (schema: RequestSchema) =>
   (req: Request, res: Response, next: NextFunction): void => {
     const result = schema.safeParse({
       body: req.body,
