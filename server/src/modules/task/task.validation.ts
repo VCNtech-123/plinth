@@ -12,7 +12,7 @@ export const getTasksQuerySchema = z.object({
 }).strict();
 
 export type GetTasksQuery = z.infer<typeof getTasksQuerySchema>;
-export type UpdateTaskData = z.infer<typeof taskBodySchema>
+export type TaskBody = z.infer<typeof taskBodySchema>
 
 const taskBodySchema = z.object({
   title: z
