@@ -47,3 +47,9 @@ export const createProjectSchema = z.object({
 export const getTasksSchema = z.object({
   query: getTasksQuerySchema,
 });
+
+export const getTaskByIdSchema = z.object({
+  params: z.object({
+    id: objectIdSchema
+  })
+})
