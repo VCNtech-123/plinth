@@ -18,15 +18,19 @@ export const validate =
     });
 
     if (!result.success) {
-      const firstError = result.error.issues[0];
+    const firstError = result.error.issues[0];
+    const fieldPath = firstError.path.join(".");
+    const errorMessage = fieldPath 
+      ? `${fieldPath}: ${firstError.message}` 
+      : firstError.message;
 
-      return next(
-        new ApiError(
-          400,
-          firstError?.message ?? "Invalid request data"
-        )
-      );
-    }
+    return next(
+      new ApiError(
+        400,
+        errorMessage ?? "Invalid request data"
+      )
+    );
+  }
 
     res.locals.validated = result.data;
 
