@@ -143,12 +143,12 @@ export const deleteTaskService = async (
     if (!deletedTask) {
         return null
     }
-    
+
     return deletedTask;
 }
 
 export const restoreTaskService = async (
-    id: string,
+    id: string | string[],
     userId: mongoose.Types.ObjectId
 ) => {
     
@@ -163,6 +163,10 @@ export const restoreTaskService = async (
         },
         { new: true }
     );
+
+    if (!restoredTask) {
+        return null
+    }
 
     return restoredTask;
 }

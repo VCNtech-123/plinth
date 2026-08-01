@@ -160,14 +160,8 @@ export const restoreTask = async (
     res: Response
 ) => {
 
-    const id = req.params.id as string;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError (400, "Invalid Task ID");
-    }
-
     const restoredTask = await restoreTaskService(
-        id,
+        req.params.id,
         req.user!._id
     );
 
