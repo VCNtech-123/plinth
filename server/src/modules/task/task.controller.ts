@@ -3,20 +3,24 @@ import { Request, Response } from "express";
 import { createTaskService, getTaskService, getTaskByIdService, updateTaskByIdService, deleteTaskService, restoreTaskService } from "./task.service";
 import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError";
-import { GetTasksQuery } from "./task.validation";
+import { GetTasksQuery, TaskBody } from "./task.validation";
 
 export const createTask = async (
     req: Request,
     res: Response
 ) => {
 
+    const { body } = res.locals.validated as {
+        body: TaskBody
+    }
+
     const task = await createTaskService(
-        req.body, 
+        body, 
         req.user!._id
     );
 
     if (!task) {
-        throw new ApiError(400, "No task found")
+        throw new ApiError(400, "Failed to create task")
     }
 
     res.status(201).json({
