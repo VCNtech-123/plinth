@@ -140,14 +140,8 @@ export const deleteTask = async (
     res: Response
 ) => {
 
-    const id = req.params.id as string
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(400, "Invalid task ID");
-    }
-
     const deletedTask = await deleteTaskService(
-        id, 
+        req.params.id, 
         req.user!._id
     );
 
