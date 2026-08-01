@@ -71,7 +71,7 @@ export const getTaskService = async (
 }
 
 export const getTaskByIdService = async (
-    id: string,
+    id: string | string[],
     userId: mongoose.Types.ObjectId
 ): Promise<PopulatedTask | null> => {
     
@@ -82,6 +82,10 @@ export const getTaskByIdService = async (
     })
     .populate("project", "name")
     .lean<PopulatedTask>();
+
+    if (!task) {
+        return null;
+    }
 
     return task;
 }
