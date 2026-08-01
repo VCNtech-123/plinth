@@ -1,11 +1,9 @@
 
 import { Task, ITask } from "./task.model";
 import { Project } from "../project/project.model";
-import { ApiError } from "../../utils/ApiError";
-import { getPagination } from "../../utils/pagination";
 import mongoose from 'mongoose'
-import { GetTaskResponse, PopulatedTask } from "../../types/task.types";
-import { UpdateTaskData } from './task.validation'
+import { GetTaskResponse, PopulatedTask, TaskFilter } from "../../types/task.types";
+import { UpdateTaskData, GetTasksQuery } from './task.validation'
 
 export const createTaskService = async (
     data: UpdateTaskData,
@@ -32,12 +30,13 @@ export const createTaskService = async (
 
 export const getTaskService = async (
     userId: mongoose.Types.ObjectId,
-    query: Record<string, unknown>
+    query: GetTasksQuery
 ): Promise<GetTaskResponse> => {
 
-    const { page, limit, skip } = getPagination(query);
+    const { page, limit } = query
+    const skip = Math.max(0, (page - 1) * limit);
 
-    const filter: Record<string, unknown> = {
+    const filter: TaskFilter = {
         owner: userId,
         isDeleted: false
     }
@@ -53,6 +52,8 @@ export const getTaskService = async (
     if (query.priority) {
         filter.priority = query.priority;
     } 
+
+    console.log(query);
 
     const tasks = await Task.find(filter)
     .populate("project", "name")
