@@ -1,13 +1,12 @@
 
 import { Task, ITask } from "./task.model";
 import { Project } from "../project/project.model";
-import { ApiError } from "../../utils/ApiError";
-import { getPagination } from "../../utils/pagination";
 import mongoose from 'mongoose'
-import { GetTaskResponse, PopulatedTask } from "../../types/task.types";
+import { GetTaskResponse, PopulatedTask, TaskFilter } from "../../types/task.types";
+import { TaskBody, GetTasksQuery } from './task.validation';
 
 export const createTaskService = async (
-    data: Partial<ITask>,
+    data: TaskBody,
     userId: mongoose.Types.ObjectId
 ) => {
 
@@ -18,7 +17,7 @@ export const createTaskService = async (
     });
 
     if (!project) {
-        throw new ApiError(400, "Invalid project");
+        return null
     }
 
     const task = await Task.create({
@@ -31,12 +30,13 @@ export const createTaskService = async (
 
 export const getTaskService = async (
     userId: mongoose.Types.ObjectId,
-    query: Record<string, unknown>
+    query: GetTasksQuery
 ): Promise<GetTaskResponse> => {
 
-    const { page, limit, skip } = getPagination(query);
+    const { page, limit } = query
+    const skip = Math.max(0, (page - 1) * limit);
 
-    const filter: Record<string, unknown> = {
+    const filter: TaskFilter = {
         owner: userId,
         isDeleted: false
     }
@@ -71,7 +71,7 @@ export const getTaskService = async (
 }
 
 export const getTaskByIdService = async (
-    id: string,
+    id: string | string[],
     userId: mongoose.Types.ObjectId
 ): Promise<PopulatedTask | null> => {
     
@@ -83,18 +83,20 @@ export const getTaskByIdService = async (
     .populate("project", "name")
     .lean<PopulatedTask>();
 
+    if (!task) {
+        return null;
+    }
+
     return task;
 }
 
 export const updateTaskByIdService = async (
-    id: string,
+    id: string | string[],
     userId: mongoose.Types.ObjectId,
-    data: Partial<ITask>
+    data: TaskBody
 ): Promise<PopulatedTask | null> => {
 
-    const updateData: Partial<
-        Pick<ITask, "title" | "description" | "status" | "priority" | "dueDate">
-    > = {};
+    const updateData: Partial<TaskBody> = {};
 
     if (data.title !== undefined) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description;
@@ -114,11 +116,15 @@ export const updateTaskByIdService = async (
     .populate("project", "name")
     .lean<PopulatedTask>();
 
+    if (!updatedTask) {
+        return null
+    }
+
     return updatedTask;
 }
 
 export const deleteTaskService = async (
-    id: string,
+    id: string | string[],
     userId: mongoose.Types.ObjectId
 ) => {
 
@@ -134,11 +140,15 @@ export const deleteTaskService = async (
         { new: true }
     );
 
+    if (!deletedTask) {
+        return null
+    }
+
     return deletedTask;
 }
 
 export const restoreTaskService = async (
-    id: string,
+    id: string | string[],
     userId: mongoose.Types.ObjectId
 ) => {
     
@@ -153,6 +163,10 @@ export const restoreTaskService = async (
         },
         { new: true }
     );
+
+    if (!restoredTask) {
+        return null
+    }
 
     return restoredTask;
 }

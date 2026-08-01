@@ -3,15 +3,25 @@ import { Request, Response } from "express";
 import { createTaskService, getTaskService, getTaskByIdService, updateTaskByIdService, deleteTaskService, restoreTaskService } from "./task.service";
 import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError";
+import { GetTasksQuery, TaskBody } from "./task.validation";
 
 export const createTask = async (
     req: Request,
     res: Response
 ) => {
 
-    const id = req.user!._id
+    const { body } = res.locals.validated as {
+        body: TaskBody
+    }
 
-    const task = await createTaskService(req.body, id);
+    const task = await createTaskService(
+        body, 
+        req.user!._id
+    );
+
+    if (!task) {
+        throw new ApiError(400, "Failed to create task")
+    }
 
     res.status(201).json({
     status: "success",
@@ -33,9 +43,13 @@ export const getTasks = async (
     res: Response
 ) => {
 
+    const { query } = res.locals.validated as {
+        query: GetTasksQuery
+    }
+
     const { tasks, page, pages, total } =  await getTaskService(
         req.user!._id,
-        req.query
+        query
     )
 
     res.status(200).json({
@@ -65,14 +79,8 @@ export const getTaskById = async (
     res: Response
 ) => {
 
-    const id = req.params.id as string;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(400, "Invalid task ID");
-    }
-
     const task = await getTaskByIdService(
-        id,
+        req.params.id,
         req.user!._id
     );
 
@@ -103,14 +111,8 @@ export const updateTaskById = async (
     res: Response
 ) => {
 
-    const id = req.params.id as string;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(400, "Invalid task ID");
-    }
-
     const updatedTask = await updateTaskByIdService(
-        id,
+        req.params.id,
         req.user!._id,
         req.body
     )
@@ -137,19 +139,13 @@ export const updateTaskById = async (
     });
 }
 
-export const deleteTask = async (
+export const deleteTask = async (       
     req: Request,
     res: Response
 ) => {
 
-    const id = req.params.id as string
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(400, "Invalid task ID");
-    }
-
     const deletedTask = await deleteTaskService(
-        id, 
+        req.params.id, 
         req.user!._id
     );
 
@@ -168,14 +164,8 @@ export const restoreTask = async (
     res: Response
 ) => {
 
-    const id = req.params.id as string;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError (400, "Invalid Task ID");
-    }
-
     const restoredTask = await restoreTaskService(
-        id,
+        req.params.id,
         req.user!._id
     );
 

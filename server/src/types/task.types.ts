@@ -18,3 +18,11 @@ export type PopulatedTask = Omit<ITask, "project"> & {
     name: string;
   }
 }
+
+export interface TaskFilter {
+  owner: Types.ObjectId
+  priority?: "low" | "medium" | "high"
+  status?: "todo" | "in-progress" | "done";
+  project?: string;
+  isDeleted: boolean
+}
