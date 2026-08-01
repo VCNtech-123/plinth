@@ -4,7 +4,7 @@ import { objectIdSchema } from "../../utils/objectId";
 export const getTasksQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  status: z.enum(["todo", "in-progress", "done"]),
+  status: z.enum(["todo", "in-progress", "done"]).optional(),
   priority: z
     .enum(["low", "medium", "high"])
     .optional(),
@@ -40,7 +40,7 @@ const taskBodySchema = z.object({
   project: objectIdSchema,
 }).strict();
 
-export const createProjectSchema = z.object({
+export const createTaskSchema = z.object({
     body: taskBodySchema
 });
 
