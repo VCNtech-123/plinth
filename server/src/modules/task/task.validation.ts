@@ -67,3 +67,9 @@ export const deleteTaskSchema = z.object({
     id: objectIdSchema
   })
 });
+
+export const restoreTaskSchema = z.object({
+  params: z.object({
+    id: objectIdSchema
+  })
+})
