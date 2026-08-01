@@ -9,9 +9,14 @@ export const createTask = async (
     res: Response
 ) => {
 
-    const id = req.user!._id
+    const task = await createTaskService(
+        req.body, 
+        req.user!._id
+    );
 
-    const task = await createTaskService(req.body, id);
+    if (!task) {
+        throw new ApiError(400, "No task found")
+    }
 
     res.status(201).json({
     status: "success",
@@ -137,7 +142,7 @@ export const updateTaskById = async (
     });
 }
 
-export const deleteTask = async (
+export const deleteTask = async (       
     req: Request,
     res: Response
 ) => {

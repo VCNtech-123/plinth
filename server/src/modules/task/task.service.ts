@@ -5,9 +5,10 @@ import { ApiError } from "../../utils/ApiError";
 import { getPagination } from "../../utils/pagination";
 import mongoose from 'mongoose'
 import { GetTaskResponse, PopulatedTask } from "../../types/task.types";
+import { UpdateTaskData } from './task.validation'
 
 export const createTaskService = async (
-    data: Partial<ITask>,
+    data: UpdateTaskData,
     userId: mongoose.Types.ObjectId
 ) => {
 
@@ -18,7 +19,7 @@ export const createTaskService = async (
     });
 
     if (!project) {
-        throw new ApiError(400, "Invalid project");
+        return null
     }
 
     const task = await Task.create({
