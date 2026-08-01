@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { createTaskService, getTaskService, getTaskByIdService, updateTaskByIdService, deleteTaskService, restoreTaskService } from "./task.service";
 import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError";
+import { GetTasksQuery } from "./task.validation";
 
 export const createTask = async (
     req: Request,
@@ -38,9 +39,13 @@ export const getTasks = async (
     res: Response
 ) => {
 
+    const { query } = res.locals.validated as {
+        query: GetTasksQuery
+    }
+
     const { tasks, page, pages, total } =  await getTaskService(
         req.user!._id,
-        req.query
+        query
     )
 
     res.status(200).json({

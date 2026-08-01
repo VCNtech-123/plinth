@@ -53,8 +53,6 @@ export const getTaskService = async (
         filter.priority = query.priority;
     } 
 
-    console.log(query);
-
     const tasks = await Task.find(filter)
     .populate("project", "name")
     .lean<PopulatedTask[]>()
