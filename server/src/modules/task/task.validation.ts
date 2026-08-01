@@ -11,8 +11,6 @@ export const getTasksQuerySchema = z.object({
   project: objectIdSchema.optional(),
 }).strict();
 
-export type GetTasksQuery = z.infer<typeof getTasksQuerySchema>;
-export type TaskBody = z.infer<typeof taskBodySchema>
 
 const taskBodySchema = z.object({
   title: z
@@ -38,8 +36,11 @@ const taskBodySchema = z.object({
     .date()
     .optional(),
 
-  project: objectIdSchema,
+  project: objectIdSchema.optional(),
 }).strict();
+
+export type GetTasksQuery = z.infer<typeof getTasksQuerySchema>;
+export type TaskBody = z.infer<typeof taskBodySchema>
 
 export const createTaskSchema = z.object({
     body: taskBodySchema
