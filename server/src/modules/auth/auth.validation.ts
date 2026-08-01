@@ -1,34 +1,46 @@
-import { Request, Response, NextFunction } from 'express';
-import { ApiError }from '../../utils/ApiError'
+import { z } from "zod";
 
-export const validateRegister = (
-    req: Request,
-    res: Response,
-    next: NextFunction 
-) => {
-    const { email, name, password } = req.body;
+const passwordSchema = z
+  .string()
+  .min(12, "Password must be at least 12 characters long")
+  .max(128, "Password is too long")
+  .refine(
+    (password) => /[a-z]/.test(password),
+    "Password must include at least one lowercase letter"
+  )
+  .refine(
+    (password) => /[A-Z]/.test(password),
+    "Password must include at least one uppercase letter"
+  )
+  .refine(
+    (password) => /\d/.test(password),
+    "Password must include at least one number"
+  );
 
-    if ( !name || !email || !password ) {
-        throw new ApiError(400, "All fields are required");
-    }
+export const registerSchema = z.object({
+  body: z.object({
+    name: z.string().trim().min(1, "Name is required"),
 
-    if (password.length < 8) {
-        throw new Error("Password must be at least 8 characters");
-    }
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .pipe(z.email({ error: "Invalid email address" })),
 
-    next();
-}
-    
-export const validateLogin = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    const { email, password } = req.body;
+    password: passwordSchema,
+  }).strict(),
+});
 
-    if (!email || !password ) {
-        throw new ApiError(400, 'Email and password are required');
-    } 
+export const loginSchema = z.object({
+  body: z.object({
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .email("Invalid email"),
 
-    next();
-}
+    password: z
+      .string()
+      .min(1, "Password is required"),
+  }).strict(),
+});
