@@ -60,3 +60,10 @@ export const updateTaskSchema = z.object({
   }),
   body: taskBodySchema.partial().strict()
 });
+
+
+export const deleteTaskSchema = z.object({
+  params: z.object({
+    id: objectIdSchema
+  })
+});
