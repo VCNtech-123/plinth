@@ -3,10 +3,10 @@ import { Task, ITask } from "./task.model";
 import { Project } from "../project/project.model";
 import mongoose from 'mongoose'
 import { GetTaskResponse, PopulatedTask, TaskFilter } from "../../types/task.types";
-import { UpdateTaskData, GetTasksQuery } from './task.validation'
+import { TaskBody, GetTasksQuery } from './task.validation';
 
 export const createTaskService = async (
-    data: UpdateTaskData,
+    data: TaskBody,
     userId: mongoose.Types.ObjectId
 ) => {
 
@@ -91,14 +91,12 @@ export const getTaskByIdService = async (
 }
 
 export const updateTaskByIdService = async (
-    id: string,
+    id: string | string[],
     userId: mongoose.Types.ObjectId,
-    data: Partial<ITask>
+    data: TaskBody
 ): Promise<PopulatedTask | null> => {
 
-    const updateData: Partial<
-        Pick<ITask, "title" | "description" | "status" | "priority" | "dueDate">
-    > = {};
+    const updateData: Partial<TaskBody> = {};
 
     if (data.title !== undefined) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description;
@@ -117,6 +115,10 @@ export const updateTaskByIdService = async (
     )
     .populate("project", "name")
     .lean<PopulatedTask>();
+
+    if (!updatedTask) {
+        return null
+    }
 
     return updatedTask;
 }

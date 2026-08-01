@@ -107,14 +107,8 @@ export const updateTaskById = async (
     res: Response
 ) => {
 
-    const id = req.params.id as string;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(400, "Invalid task ID");
-    }
-
     const updatedTask = await updateTaskByIdService(
-        id,
+        req.params.id,
         req.user!._id,
         req.body
     )
