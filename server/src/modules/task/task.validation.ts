@@ -52,4 +52,11 @@ export const getTaskByIdSchema = z.object({
   params: z.object({
     id: objectIdSchema
   })
-})
+});
+
+export const updateTaskSchema = z.object({
+  params: z.object({
+    id: objectIdSchema
+  }),
+  body: taskBodySchema.partial().strict()
+});
