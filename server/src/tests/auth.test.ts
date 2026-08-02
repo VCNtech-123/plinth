@@ -1,0 +1,40 @@
+import request from "supertest";
+import mongoose from "mongoose";
+import app from "../app";
+
+beforeAll(async () => {
+  const mongoUri = process.env.MONGO_URI_TEST || process.env.MONGO_URI || "mongodb://127.0.0.1:27017/workpilot_test";
+  await mongoose.connect(mongoUri);
+});
+
+afterEach(async () => {
+  if (mongoose.connection.db) {
+    const collections = await mongoose.connection.db.collections();
+    for (const collection of collections) {
+      await collection.deleteMany({});
+    }
+  }
+});
+
+afterAll(async () => {
+  await mongoose.connection.close();
+});
+
+describe("Auth API", () => {
+  it("should register a new user", async () => {
+    const newUser = {
+      name: "Test User",
+      email: "test@example.com",
+      password: "StrongPass123",
+    };
+
+    const res = await request(app)
+      .post("/api/auth/register")
+      .send(newUser);
+
+    expect(res.status).toBe(201);
+    expect(res.body.status).toBe("success");
+    expect(res.body.data.email).toBe(newUser.email);
+    expect(res.body.data).toHaveProperty("id");
+  });
+});
