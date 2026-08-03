@@ -1,46 +1,33 @@
 import request from "supertest";
 import app from "../app";
+import {
+  createAndLoginUser,
+  TestUser,
+} from "./utils/auth.helper";
+import { createClient } from "./utils/client.helper";
 
 describe("Client Tenant Isolation", () => {
   it("should prevent one user from accessing another user's client", async () => {
-    const userA = {
+    const userA: TestUser = {
       name: "User A",
       email: "a@example.com",
       password: "StrongPass123",
     };
 
-    const userB = {
+    const userB: TestUser = {
       name: "User B",
       email: "b@example.com",
       password: "StrongPass123",
     };
 
-    // Register users
-    await request(app).post("/api/auth/register").send(userA);
-    await request(app).post("/api/auth/register").send(userB);
+    // ✅ Create & login users
+    const cookieA = await createAndLoginUser(userA);
+    const cookieB = await createAndLoginUser(userB);
 
-    // Login both users
-    const loginA = await request(app)
-      .post("/api/auth/login")
-      .send({ email: userA.email, password: userA.password });
+    // ✅ User A creates client
+    const clientId = await createClient(cookieA);
 
-    const loginB = await request(app)
-      .post("/api/auth/login")
-      .send({ email: userB.email, password: userB.password });
-
-    const cookieA = loginA.headers["set-cookie"];
-    const cookieB = loginB.headers["set-cookie"];
-
-    const clientRes = await request(app)
-      .post("/api/clients")
-      .set("Cookie", cookieA)
-      .send({
-        name: "Private Client",
-        email: "client@example.com",
-      });
-
-    const clientId = clientRes.body.data.id;
-
+    // ✅ User B tries to access it
     const forbiddenRes = await request(app)
       .get(`/api/clients/${clientId}`)
       .set("Cookie", cookieB);

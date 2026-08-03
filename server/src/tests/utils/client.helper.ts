@@ -1,7 +1,7 @@
 import request from "supertest";
 import app from "../../app";
 
-export const createClient = async (cookie: string[]) => {
+export const createClient = async (cookie: string) => {
   const res = await request(app)
     .post("/api/clients")
     .set("Cookie", cookie)
