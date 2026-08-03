@@ -3,7 +3,7 @@ import { createClientService } from "./client.service";
 import { getClientsService } from "./client.service";
 import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError";
-import { getClientByIdService, updateClientService, deleteClientService } from "./client.service";
+import { getClientByIdService, updateClientService, deleteClientService, restoreProjectService } from "./client.service";
 import { GetClientsQuery } from "./client.validation";
 
 
@@ -133,4 +133,30 @@ export const deleteClient = async (req: Request, res: Response) => {
     status: "success",
     message: "Client deleted succesfully"
   });
+}
+
+export const restoreClient = async (
+    req: Request,
+    res: Response
+) => {
+
+    const restoredClient = await restoreProjectService(
+      req.params.id,
+      req.user!._id
+    )
+
+    res.status(200).json({
+      status: "success",
+      message: "Project restored succesfully",
+      data: {
+      id: restoredClient._id,
+      name: restoredClient.name,
+      email: restoredClient.email,
+      phone: restoredClient.phone,
+      company: restoredClient.company,
+      notes: restoredClient.notes,
+      status: restoredClient.status,
+      updatedAt: restoredClient.updatedAt,
+    },
+    });
 }
