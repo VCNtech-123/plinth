@@ -2,7 +2,7 @@ import request from "supertest";
 import app from "../../app";
 
 export const createTask = async (
-  cookie: string[],
+  cookie: string,
   projectId: string
 ) => {
   const res = await request(app)

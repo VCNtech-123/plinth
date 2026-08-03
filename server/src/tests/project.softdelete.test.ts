@@ -1,71 +1,65 @@
 import request from "supertest";
 import app from "../app";
+import {
+  createAndLoginUser,
+  TestUser,
+} from "./utils/auth.helper";
+import { createClient } from "./utils/client.helper";
+import { createProject } from "./utils/project.helper";
+import { createTask } from "./utils/task.helper";
 
 describe("Project Soft Delete Cascade", () => {
   it("should soft delete a project and cascade delete its tasks", async () => {
-    const user = {
+    const user: TestUser = {
       name: "Cascade User",
       email: "cascade@example.com",
       password: "StrongPass123",
     };
 
-    await request(app).post("/api/auth/register").send(user);
+    // ✅ Login user
+    const cookie = await createAndLoginUser(user);
 
-    const login = await request(app)
-      .post("/api/auth/login")
-      .send({ email: user.email, password: user.password });
+    // ✅ Create hierarchy
+    const clientId = await createClient(cookie);
+    const projectId = await createProject(cookie, clientId);
+    const taskId = await createTask(cookie, projectId);
 
-    const cookie = login.headers["set-cookie"];
+    // ✅ Sanity check — project exists
+    const projectBefore = await request(app)
+      .get(`/api/projects/${projectId}`)
+      .set("Cookie", cookie);
 
-    const clientRes = await request(app)
-      .post("/api/clients")
-      .set("Cookie", cookie)
-      .send({
-        name: "Cascade Client",
-        email: "cascadeclient@example.com",
-      });
+    expect(projectBefore.status).toBe(200);
 
-    const clientId = clientRes.body.data.id;
+    // ✅ Sanity check — task exists
+    const taskBefore = await request(app)
+      .get(`/api/tasks/${taskId}`)
+      .set("Cookie", cookie);
 
+    expect(taskBefore.status).toBe(200);
 
-    const projectRes = await request(app)
-      .post("/api/projects")
-      .set("Cookie", cookie)
-      .send({
-        name: "Cascade Project",
-        client: clientId,
-      });
-
-    const projectId = projectRes.body.data.id;
-
-    const taskRes = await request(app)
-      .post("/api/tasks")
-      .set("Cookie", cookie)
-      .send({
-        title: "Task Under Project",
-        project: projectId,
-      });
-
-    const taskId = taskRes.body.data.id;
-
+    // ✅ Delete project
     const deleteProject = await request(app)
       .delete(`/api/projects/${projectId}`)
       .set("Cookie", cookie);
 
     expect(deleteProject.status).toBe(200);
 
+    // ✅ Project removed from list
     const projectList = await request(app)
       .get("/api/projects")
       .set("Cookie", cookie);
 
     expect(projectList.body.data.length).toBe(0);
 
+    // ✅ Task removed from list (cascade)
     const taskList = await request(app)
       .get("/api/tasks")
       .set("Cookie", cookie);
 
     expect(taskList.body.data.length).toBe(0);
 
+    // ✅ Direct task access returns 404
     const getTask = await request(app)
       .get(`/api/tasks/${taskId}`)
       .set("Cookie", cookie);
