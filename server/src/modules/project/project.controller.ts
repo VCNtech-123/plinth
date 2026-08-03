@@ -148,7 +148,7 @@ export const deleteProject = async (
     req.user!._id
   );
 
-  res.status(201).json({
+  res.status(200).json({
     status: "successful",
     message: "Project deleted succesfully"
   });
