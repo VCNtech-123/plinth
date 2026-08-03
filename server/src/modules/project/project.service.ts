@@ -46,7 +46,7 @@ export const getProjectByIdService = async (
   .lean<PopulatedProject>();
 
   if (!project) {
-    throw new ApiError(400, "No Project found")
+    throw new ApiError(404, "No Project found")
   }
 
   const
@@ -135,6 +135,10 @@ export const getProjectsService = async (
     Project.countDocuments(filter)
   ])
 
+  if (!projects) {
+    throw new ApiError(404, "No projects found");
+  }
+
   return {
     projects,
     total,
@@ -208,7 +212,7 @@ export const deleteProjectService = async (
   );
 
   if (!deletedProject) {
-    throw new ApiError(400, 'Project not found');
+    throw new ApiError(404, 'Project not found');
   }
 
   await Task.updateMany(
@@ -243,7 +247,7 @@ export const restoreProjectService = async (
   );
 
   if (!restoredProject) {
-    throw new ApiError(400, "Project not found")
+    throw new ApiError(404, "Project not found")
   }
 
   return restoredProject;
