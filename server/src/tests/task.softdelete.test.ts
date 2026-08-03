@@ -1,70 +1,58 @@
 import request from "supertest";
 import app from "../app";
+import {
+  createAndLoginUser,
+  TestUser,
+} from "./utils/auth.helper";
+import { createClient } from "./utils/client.helper";
+import { createProject } from "./utils/project.helper";
+import { createTask } from "./utils/task.helper";
 
 describe("Task Soft Delete Lifecycle", () => {
   it("should soft delete and restore a task independently", async () => {
-    const user = {
+    const user: TestUser = {
       name: "Task Delete User",
       email: "taskdelete@example.com",
       password: "StrongPass123",
     };
 
-    await request(app).post("/api/auth/register").send(user);
+    // ✅ Login
+    const cookie = await createAndLoginUser(user);
 
-    const login = await request(app)
-      .post("/api/auth/login")
-      .send({ email: user.email, password: user.password });
+    // ✅ Create hierarchy
+    const clientId = await createClient(cookie);
+    const projectId = await createProject(cookie, clientId);
+    const taskId = await createTask(cookie, projectId);
 
-    const cookie = login.headers["set-cookie"];
+    // ✅ Sanity check — task exists
+    const taskBefore = await request(app)
+      .get(`/api/tasks/${taskId}`)
+      .set("Cookie", cookie);
 
-    const clientRes = await request(app)
-      .post("/api/clients")
-      .set("Cookie", cookie)
-      .send({
-        name: "Client T",
-        email: "clientt@example.com",
-      });
+    expect(taskBefore.status).toBe(200);
 
-    const clientId = clientRes.body.data.id;
-
-    const projectRes = await request(app)
-      .post("/api/projects")
-      .set("Cookie", cookie)
-      .send({
-        name: "Project T",
-        client: clientId,
-      });
-
-    const projectId = projectRes.body.data.id;
-
-    const taskRes = await request(app)
-      .post("/api/tasks")
-      .set("Cookie", cookie)
-      .send({
-        title: "Task T",
-        project: projectId,
-      });
-
-    const taskId = taskRes.body.data.id;
-
+    // ✅ Soft delete task
     const deleteTask = await request(app)
       .delete(`/api/tasks/${taskId}`)
       .set("Cookie", cookie);
 
     expect(deleteTask.status).toBe(200);
 
+    // ✅ Ensure removed from list
     const taskListAfterDelete = await request(app)
       .get("/api/tasks")
       .set("Cookie", cookie);
 
     expect(taskListAfterDelete.body.data.length).toBe(0);
 
+    // ✅ Restore task
     const restoreTask = await request(app)
       .patch(`/api/tasks/${taskId}/restore`)
       .set("Cookie", cookie);
 
     expect(restoreTask.status).toBe(200);
 
+    // ✅ Ensure restored
     const taskListAfterRestore = await request(app)
       .get("/api/tasks")
       .set("Cookie", cookie);
