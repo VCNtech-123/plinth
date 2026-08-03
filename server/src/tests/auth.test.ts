@@ -1,10 +1,11 @@
+
 import request from "supertest";
 import mongoose from "mongoose";
 import app from "../app";
 
+
 beforeAll(async () => {
-  const mongoUri = process.env.MONGO_URI_TEST || process.env.MONGO_URI || "mongodb://127.0.0.1:27017/workpilot_test";
-  await mongoose.connect(mongoUri);
+  await mongoose.connect(process.env.MONGO_URI as string);
 });
 
 afterEach(async () => {
@@ -19,6 +20,7 @@ afterEach(async () => {
 afterAll(async () => {
   await mongoose.connection.close();
 });
+
 
 describe("Auth API", () => {
   it("should register a new user", async () => {
@@ -37,4 +39,26 @@ describe("Auth API", () => {
     expect(res.body.data.email).toBe(newUser.email);
     expect(res.body.data).toHaveProperty("id");
   });
+
+  it("should login and set auth cookie", async () => {
+  const user = {
+    name: "Test User",
+    email: "login@example.com",
+    password: "StrongPass123",
+  };
+
+  await request(app)
+    .post("/api/auth/register")
+    .send(user);
+
+  const res = await request(app)
+    .post("/api/auth/login")
+    .send({
+      email: user.email,
+      password: user.password,
+    });
+
+  expect(res.status).toBe(200);
+  expect(res.headers["set-cookie"]).toBeDefined();
+});
 });
