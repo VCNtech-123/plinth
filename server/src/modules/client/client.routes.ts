@@ -12,6 +12,6 @@ router.get("/", protect, validate(getClientsSchema), getClients);
 router.get("/:id", protect, validate(getClientByIdSchema), getClientById);
 router.put("/:id", protect, validate(updateClientSchema), updateClient);
 router.delete("/:id", protect, validate(deleteClientSchema), deleteClient);
-router.patch("/:id", protect, validate(restoreClientSchema), restoreClient)
+router.patch("/:id/restore", protect, validate(restoreClientSchema), restoreClient)
 
 export default router;
