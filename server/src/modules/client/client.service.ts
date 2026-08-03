@@ -78,7 +78,7 @@ export const getClientByIdService = async (
   }).lean();
 
   if (!client) {
-    throw new ApiError(400, "No client found")
+    throw new ApiError(404, "No client found")
   }
 
   const now = new Date();
