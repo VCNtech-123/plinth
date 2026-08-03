@@ -22,7 +22,7 @@ describe("Client Soft Delete Lifecycle", () => {
       .get("/api/clients")
       .set("Cookie", cookie);
 
-    expect(listBeforeDelete.body.data.clients.length).toBe(1);
+    expect(listBeforeDelete.body.data.length).toBe(1);
 
     const deleteRes = await request(app)
       .delete(`/api/clients/${clientId}`)
@@ -34,7 +34,7 @@ describe("Client Soft Delete Lifecycle", () => {
       .get("/api/clients")
       .set("Cookie", cookie);
 
-    expect(listAfterDelete.body.data.clients.length).toBe(0);
+    expect(listAfterDelete.body.data.length).toBe(0);
 
     const restoreRes = await request(app)
       .patch(`/api/clients/${clientId}/restore`)
@@ -47,6 +47,6 @@ describe("Client Soft Delete Lifecycle", () => {
       .get("/api/clients")
       .set("Cookie", cookie);
 
-    expect(listAfterRestore.body.data.clients.length).toBe(1);
+    expect(listAfterRestore.body.data.length).toBe(1);
   });
 });
