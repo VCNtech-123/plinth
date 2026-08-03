@@ -196,3 +196,27 @@ export const deleteClientService = async (
 
   return deletedClient;
 }
+
+export const restoreProjectService = async (
+  id: string | string[], 
+  userId: mongoose.Types.ObjectId
+) => {
+
+  const restoredClient = await Client.findOneAndUpdate(
+    {
+      owner: userId,
+      _id: id,
+      isDeleted: true
+    },
+    {
+      isDeleted: false
+    },
+    { new: true }
+  );
+
+  if (!restoredClient) {
+    throw new ApiError(404, "Client not found")
+  }
+
+  return restoredClient;
+}
