@@ -9,4 +9,5 @@ module.exports = {
   testMatch: ["**/tests/**/*.test.ts"],
   clearMocks: true,
   forceExit: true,
+  setupFilesAfterEnv: ["<rootDir>/src/tests/setup.ts"],
 };
