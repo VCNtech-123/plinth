@@ -1,18 +1,21 @@
-
 import request from "supertest";
 import app from "../app";
+import {
+  registerUser,
+  loginUser,
+  createAndLoginUser,
+  TestUser,
+} from "./utils/auth.helper";
 
 describe("Auth API", () => {
   it("should register a new user", async () => {
-    const newUser = {
+    const newUser: TestUser = {
       name: "Test User",
       email: "test@example.com",
       password: "StrongPass123",
     };
 
-    const res = await request(app)
-      .post("/api/auth/register")
-      .send(newUser);
+    const res = await registerUser(newUser);
 
     expect(res.status).toBe(201);
     expect(res.body.status).toBe("success");
@@ -21,24 +24,16 @@ describe("Auth API", () => {
   });
 
   it("should login and set auth cookie", async () => {
-  const user = {
-    name: "Test User",
-    email: "login@example.com",
-    password: "StrongPass123",
-  };
+    const user: TestUser = {
+      name: "Test User",
+      email: "login@example.com",
+      password: "StrongPass123",
+    };
 
-  await request(app)
-    .post("/api/auth/register")
-    .send(user);
+    await registerUser(user);
 
-  const res = await request(app)
-    .post("/api/auth/login")
-    .send({
-      email: user.email,
-      password: user.password,
-    });
+    const cookie = await loginUser(user);
 
-  expect(res.status).toBe(200);
-  expect(res.headers["set-cookie"]).toBeDefined();
-});
+    expect(cookie).toBeDefined();
+  });
 });
