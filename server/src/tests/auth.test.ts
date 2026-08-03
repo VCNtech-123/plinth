@@ -1,26 +1,6 @@
 
 import request from "supertest";
-import mongoose from "mongoose";
 import app from "../app";
-
-
-beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URI as string);
-});
-
-afterEach(async () => {
-  if (mongoose.connection.db) {
-    const collections = await mongoose.connection.db.collections();
-    for (const collection of collections) {
-      await collection.deleteMany({});
-    }
-  }
-});
-
-afterAll(async () => {
-  await mongoose.connection.close();
-});
-
 
 describe("Auth API", () => {
   it("should register a new user", async () => {
