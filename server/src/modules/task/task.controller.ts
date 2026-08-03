@@ -52,6 +52,10 @@ export const getTasks = async (
         query
     )
 
+    if (!tasks) {
+        throw new ApiError(404, "Task not found")
+    }
+
     res.status(200).json({
     status: "success",
     results: tasks.length,
@@ -85,7 +89,7 @@ export const getTaskById = async (
     );
 
     if (!task) {
-        throw new ApiError(400, "Task not found");
+        throw new ApiError(404, "Task not found");
     }
 
     res.status(200).json({
