@@ -4,6 +4,7 @@ import { Project } from "../project/project.model";
 import mongoose from 'mongoose'
 import { GetTaskResponse, PopulatedTask, TaskFilter } from "../../types/task.types";
 import { TaskBody, GetTasksQuery } from './task.validation';
+import { ApiError } from "../../utils/ApiError";
 
 export const createTaskService = async (
     data: TaskBody,
