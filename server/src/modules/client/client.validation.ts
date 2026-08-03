@@ -1,6 +1,7 @@
 
 import { z } from "zod";
 import { objectIdSchema } from "../../utils/objectId";
+import { parseArgs } from "node:util";
 
 const createClientBodySchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
@@ -46,3 +47,9 @@ export const deleteClientSchema = z.object({
     id: objectIdSchema,
   }),
 });
+
+export const restoreClientSchema = z.object({
+  params: z.object({
+    id: objectIdSchema
+  })
+})
