@@ -2,7 +2,7 @@ import request from "supertest";
 import app from "../../app";
 
 export const createProject = async (
-  cookie: string[],
+  cookie: string,
   clientId: string
 ) => {
   const res = await request(app)
