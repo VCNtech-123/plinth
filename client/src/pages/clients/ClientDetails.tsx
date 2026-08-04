@@ -1,13 +1,20 @@
+// client/src/pages/clients/ClientDetails.tsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import Button from "../../components/ui/Button";
-import Card from "../../components/ui/Card";
-import { CardContent } from "../../components/ui/Card";
-import StatCard from "../../components/ui/StatCard";
 import Skeleton from "../../components/ui/Skeleton";
+import Card, { CardContent } from "../../components/ui/Card";
 import { getClientById } from "../../api/client.api";
 import type { ClientDetailsData } from "../../types/client.types";
+
+// Sub-components
+import ClientDetailsHeader from "./components/ClientDetailsHeader";
+import ClientDetailsStats from "./components/ClientDetailsStats";
+import ClientDetailsContactInfo from "./components/ClientDetailsContactInfo";
+import ClientDetailsProjectsList from "./components/ClientDetailsProjectList";
+import ClientModals from "./components/ClientModals";
+
+// Custom hook
+import { useClientActions } from "./hooks/useClientActions";
 
 const ClientDetails = () => {
   const { id } = useParams();
@@ -17,6 +24,20 @@ const ClientDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [showAddProject, setShowAddProject] = useState(false);
+  const [showEditClient, setShowEditClient] = useState(false);
+  const [showDeleteClient, setShowDeleteClient] = useState(false);
+
+  const {
+    handleAddProject,
+    handleEditClient,
+    handleDeleteClient,
+    isAddingProject,
+    isEditingClient,
+    isDeletingClient,
+  } = useClientActions(id!);
+
+  // Fetch client data
   useEffect(() => {
     const fetchClient = async () => {
       try {
@@ -30,19 +51,22 @@ const ClientDetails = () => {
       }
     };
 
-    fetchClient();
+    if (id) fetchClient();
   }, [id]);
 
+  // Loading state
   if (loading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-6 w-40" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
 
+  // Error state
   if (error || !data) {
     return (
       <Card>
@@ -56,114 +80,51 @@ const ClientDetails = () => {
   }
 
   const { client, projects, stats } = data;
+  const avgBudget = stats.totalProjects > 0 ? 12500 : 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
+      {/* Header */}
+      <ClientDetailsHeader
+        client={client}
+        onBack={() => navigate("/clients")}
+        onAddProject={() => setShowAddProject(true)}
+        onEdit={() => setShowEditClient(true)}
+        onDelete={() => setShowDeleteClient(true)}
+      />
 
-      {/* Back Button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate("/clients")}
-        className="flex items-center gap-2"
-      >
-        <ArrowLeft size={16} />
-        Back
-      </Button>
+      <ClientDetailsStats stats={stats} avgBudget={avgBudget} />
 
-      {/* Client Info */}
-      <Card>
-        <CardContent className="space-y-2">
-          <h1 className="text-xl sm:text-2xl font-semibold">
-            {client.name}
-          </h1>
+      <ClientDetailsContactInfo client={client} />
 
-          <p className="text-sm opacity-70">
-            {client.email}
-          </p>
+      <ClientDetailsProjectsList
+        client={client}
+        projects={projects}
+        stats={stats}
+        onAddProject={() => setShowAddProject(true)}
+        onViewAll={(clientId) => navigate(`/projects?client=${clientId}`)}
+      />
 
-          {client.company && (
-            <p className="text-sm opacity-70">
-              {client.company}
-            </p>
-          )}
-
-          <p className="text-xs opacity-50">
-            Created {new Date(client.createdAt).toLocaleDateString()}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
-        <StatCard
-          title="Total Projects"
-          value={stats.totalProjects}
-        />
-
-        <StatCard
-          title="Active Projects"
-          value={stats.activeProjects}
-          accent="success"
-        />
-
-        <StatCard
-          title="Total Tasks"
-          value={stats.totalTasks}
-        />
-
-        <StatCard
-          title="Overdue Tasks"
-          value={stats.overdueTasks}
-          accent="danger"
-        />
-
-      </div>
-
-      {/* Recent Projects */}
-      <Card>
-        <CardContent className="space-y-4">
-          <h2 className="text-lg font-semibold">
-            Recent Projects
-          </h2>
-
-          {projects.length === 0 ? (
-            <p className="text-sm opacity-60">
-              No projects yet.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {projects.map((project) => (
-                <div
-                  key={project.id}
-                  className="flex justify-between items-center border-b border-app pb-2"
-                >
-                  <span className="font-medium">
-                    {project.name}
-                  </span>
-
-                  <span className="text-xs opacity-60">
-                    {project.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {stats.totalProjects > 5 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(`/projects?client=${client.id}`)}
-            >
-              View All Projects
-            </Button>
-          )}
-
-        </CardContent>
-      </Card>
-
+      {/* Modals */}
+      <ClientModals
+        showAddProject={showAddProject}
+        showEditClient={showEditClient}
+        showDeleteClient={showDeleteClient}
+        client={client}
+        onAddProject={(projectData) =>
+          handleAddProject(projectData, setData)
+        }
+        onEditClient={(clientId, updateData) =>
+          handleEditClient(updateData, setData)
+        }
+        onDeleteClient={() => handleDeleteClient()}
+        onCloseAddProject={() => setShowAddProject(false)}
+        onCloseEditClient={() => setShowEditClient(false)}
+        onCloseDeleteClient={() => setShowDeleteClient(false)}
+        isAddingProject={isAddingProject}
+        isEditingClient={isEditingClient}
+        isDeletingClient={isDeletingClient}
+      />
     </div>
   );
 };

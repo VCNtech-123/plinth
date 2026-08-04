@@ -5,7 +5,7 @@ import { CardContent } from "./Card";
 
 interface StatCardProps {
   title: string;
-  value: number;
+  value: number | string;
   icon?: LucideIcon;
   accent?: "primary" | "success" | "danger" | "warning";
 }
