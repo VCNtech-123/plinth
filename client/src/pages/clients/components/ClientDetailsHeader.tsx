@@ -12,7 +12,7 @@ interface ClientHeaderProps {
   onDelete: () => void;
 }
 
-const ClientHeader = ({
+const ClientDetailsHeader = ({
   client,
   onBack,
   onAddProject,
@@ -81,4 +81,4 @@ const ClientHeader = ({
   );
 };
 
-export default ClientHeader;
+export default ClientDetailsHeader;

@@ -8,7 +8,7 @@ interface ClientStatsProps {
   avgBudget: number;
 }
 
-const ClientStatistics = ({ stats, avgBudget }: ClientStatsProps) => {
+const ClientDetailsStatistics = ({ stats, avgBudget }: ClientStatsProps) => {
   const completionRate = stats.totalTasks
     ? Math.round(
         ((stats.totalTasks - stats.overdueTasks) / stats.totalTasks) * 100
@@ -63,4 +63,4 @@ const ClientStatistics = ({ stats, avgBudget }: ClientStatsProps) => {
   );
 };
 
-export default ClientStatistics;
+export default ClientDetailsStatistics;
