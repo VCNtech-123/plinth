@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Mail,
@@ -16,6 +17,8 @@ import Badge from "../../components/ui/Badge";
 import Skeleton from "../../components/ui/Skeleton";
 import { getClientById } from "../../api/client.api";
 import type { ClientDetailsData } from "../../types/client.types";
+import { createProject } from "../../api/project.api";
+import { updateClient, deleteClient } from "../../api/client.api";
 
 // Import modals
 import AddProjectModal from "../projects/AddProjectModal";
@@ -60,6 +63,53 @@ const ClientDetails = () => {
       </div>
     );
   }
+
+  const handleAddProject = async (projectData: {
+    name: string;
+    description?: string;
+    deadline?: string;
+    budget?: number;
+    client: string;
+  }) => {
+    try {
+      await createProject(projectData);
+      toast.success("Project created successfully!");
+      setShowAddProject(false);
+      const result = await getClientById(id!);
+      setData(result);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to create project");
+    }
+  };
+
+  const handleEditClient = async (
+    clientId: string,
+    updateData: { name: string; email: string }
+  ) => {
+    try {
+      await updateClient(clientId, updateData);
+      toast.success("Client updated successfully!");
+      setShowEditClient(false);
+      // Refetch client data
+      const result = await getClientById(id!);
+      setData(result);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to update client");
+    }
+  };
+
+  const handleDeleteClient = async () => {
+    try {
+      await deleteClient(client.id);
+      toast.success("Client deleted successfully!");
+      setShowDeleteClient(false);
+      // Navigate back to clients list
+      navigate("/clients");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to delete client");
+    }
+  };
+
 
   if (error || !data) {
     return (
@@ -369,10 +419,7 @@ const ClientDetails = () => {
       <AddProjectModal
         open={showAddProject}
         onClose={() => setShowAddProject(false)}
-        onCreate={async (projectData) => {
-          // You'll need to implement this in your page/logic
-          console.log("Creating project:", projectData);
-        }}
+        onCreate={handleAddProject}
         clients={[{ id: client.id, name: client.name }]}
       />
 
@@ -380,19 +427,13 @@ const ClientDetails = () => {
         open={showEditClient}
         onClose={() => setShowEditClient(false)}
         client={client}
-        onUpdate={async (id, data) => {
-          // You'll need to implement this in your page/logic
-          console.log("Updating client:", id, data);
-        }}
+        onUpdate={handleEditClient}
       />
 
       <DeleteClientModal
         open={showDeleteClient}
         onClose={() => setShowDeleteClient(false)}
-        onConfirm={async () => {
-          // You'll need to implement this in your page/logic
-          console.log("Deleting client:", client.id);
-        }}
+        onConfirm={handleDeleteClient}
       />
     </div>
   );
