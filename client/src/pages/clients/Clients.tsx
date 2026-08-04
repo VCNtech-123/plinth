@@ -3,13 +3,13 @@ import type { Column } from "../../components/ui/table/DataTable";
 import Badge from "../../components/ui/Badge";
 import { getClients } from "../../api/client.api";
 import { createClient, deleteClient, updateClient } from "../../api/client.api";
-import AddClientModal from "./AddClientModal";
+import AddClientModal from "./modals/AddClientModal";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import DeleteClientModal from "./DeleteClientModal";
+import DeleteClientModal from "./modals/DeleteClientModal";
 import ClientsHeader from "./components/ClientsHeader";
 import ClientsTable from "./components/ClientsTable";
-import EditClientModal from "./EditClientModal";
+import EditClientModal from "./modals/EditClientModal";
 import Dropdown from "../../components/ui/Dropdown";
 import type { Client } from "../../types/client.types";
 

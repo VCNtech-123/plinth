@@ -1,32 +1,42 @@
-import { useState } from "react";
-import Modal from "../../components/ui/Modal";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
+import { useEffect, useState } from "react";
+import Modal from "../../../components/ui/Modal";
+import Button from "../../../components/ui/Button";
+import Input from "../../../components/ui/Input";
 
-interface AddClientModalProps {
+interface EditClientModalProps {
   open: boolean;
   onClose: () => void;
-  onCreate: (data: { name: string; email: string }) => Promise<void>;
+  client: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+  onUpdate: (id: string, data: { name: string; email: string }) => Promise<void>;
 }
 
-const AddClientModal = ({
+const EditClientModal = ({
   open,
   onClose,
-  onCreate,
-}: AddClientModalProps) => {
+  client,
+  onUpdate,
+}: EditClientModalProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (client) {
+      setName(client.name);
+      setEmail(client.email);
+    }
+  }, [client]);
+
   const handleSubmit = async () => {
-    if (!name || !email) return;
+    if (!client) return;
 
     try {
       setLoading(true);
-      await onCreate({ name, email });
-
-      setName("");
-      setEmail("");
+      await onUpdate(client.id, { name, email });
       onClose();
     } finally {
       setLoading(false);
@@ -35,27 +45,21 @@ const AddClientModal = ({
 
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fadeIn">
 
         <div>
           <h2 className="text-lg font-semibold">
-            Add Client
+            Edit Client
           </h2>
-          <p className="text-sm opacity-70 mt-1">
-            Enter client details below.
-          </p>
         </div>
 
         <div className="space-y-4">
           <Input
-            placeholder="Client Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
 
           <Input
-            type="email"
-            placeholder="Client Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -68,9 +72,9 @@ const AddClientModal = ({
 
           <Button
             onClick={handleSubmit}
-            disabled={!name || !email || loading}
+            disabled={loading}
           >
-            {loading ? "Creating..." : "Create"}
+            {loading ? "Saving..." : "Save Changes"}
           </Button>
         </div>
 
@@ -79,4 +83,4 @@ const AddClientModal = ({
   );
 };
 
-export default AddClientModal;
+export default EditClientModal;
