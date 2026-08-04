@@ -24,7 +24,7 @@ const ClientDetailsContactInfo = ({ client }: ClientContactInfoProps) => {
         {/* Email */}
         {client.email && (
           <div className="flex items-start gap-3">
-            <Mail size={18} className="text-primary mt-0.5 flex-shrink-0" />
+            <Mail size={18} className="text-primary mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-xs opacity-60">Email</p>
               <a
@@ -40,7 +40,7 @@ const ClientDetailsContactInfo = ({ client }: ClientContactInfoProps) => {
         {/* Phone */}
         {client.phone && (
           <div className="flex items-start gap-3">
-            <Phone size={18} className="text-primary mt-0.5 flex-shrink-0" />
+            <Phone size={18} className="text-primary mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-xs opacity-60">Phone</p>
               <a
@@ -56,7 +56,7 @@ const ClientDetailsContactInfo = ({ client }: ClientContactInfoProps) => {
         {/* Company */}
         {client.company && (
           <div className="flex items-start gap-3">
-            <Building2 size={18} className="text-primary mt-0.5 flex-shrink-0" />
+            <Building2 size={18} className="text-primary mt-0.5 shrink-0" />
             <div className="flex-1">
               <p className="text-xs opacity-60">Company</p>
               <p className="text-sm font-medium">{client.company}</p>

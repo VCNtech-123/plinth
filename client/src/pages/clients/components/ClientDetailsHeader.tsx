@@ -27,7 +27,7 @@ const ClientDetailsHeader = ({
           variant="ghost"
           size="sm"
           onClick={onBack}
-          className="flex items-center gap-2 flex-shrink-0"
+          className="flex items-center gap-2 shrink-0"
         >
           <ArrowLeft size={16} />
           <span className="hidden sm:inline">Back</span>
