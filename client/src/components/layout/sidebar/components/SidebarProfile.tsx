@@ -1,10 +1,9 @@
 // client/src/layouts/sidebar/components/SidebarProfile.tsx
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { LogOut, Settings } from "lucide-react";
-import { useAuthStore } from "../../../store/auth.store";
-import { logout } from "../../../api/auth.api";
-import Dropdown from "../../../components/ui/Dropdown";
+import { useAuthStore } from "../../../../store/auth.store";
+import { logout } from "../../../../api/auth.api";
+import Dropdown from "../../../ui/Dropdown";
 
 const SidebarProfile = () => {
   const navigate = useNavigate();
