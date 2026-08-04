@@ -44,7 +44,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
             className="w-8 h-8 object-contain"
           />
           <h2 className="text-lg font-bold tracking-wide text-text">
-            WorkPilot
+            Plinth
           </h2>
         </div>
 
