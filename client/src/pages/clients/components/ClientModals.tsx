@@ -10,7 +10,7 @@ interface ClientModalsProps {
   showDeleteClient: boolean;
   client: ClientDetailsData["client"];
   onAddProject: (data: any) => Promise<void>;
-  onEditClient: (id: string, data: any) => Promise<void>;
+  onEditClient: (data: any) => Promise<void>;
   onDeleteClient: () => Promise<void>;
   onCloseAddProject: () => void;
   onCloseEditClient: () => void;
