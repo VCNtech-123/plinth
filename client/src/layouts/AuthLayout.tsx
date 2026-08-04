@@ -12,11 +12,11 @@ const AuthLayout = () => {
         <div className="flex items-center gap-3 lg:gap-0">
           <img
             src={Logo}
-            alt="WorkPilot Logo"
+            alt="Plinth Logo"
             className="w-8 h-8 lg:w-18 lg:h-18 object-contain"
           />
           <span className="text-lg font-semibold tracking-tight">
-            WorkPilot
+            Plinth
           </span>
         </div>
 
@@ -31,7 +31,7 @@ const AuthLayout = () => {
           </h1>
 
           <p className="text-sm text-slate-300 leading-relaxed">
-            WorkPilot helps freelancers and small teams organize
+            Plinth helps freelancers and small teams organize
             projects and tasks in one focused workspace.
           </p>
         </div>
