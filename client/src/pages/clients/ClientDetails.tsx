@@ -114,7 +114,7 @@ const ClientDetails = () => {
         onAddProject={(projectData) =>
           handleAddProject(projectData, setData)
         }
-        onEditClient={(clientId, updateData) =>
+        onEditClient={(updateData) =>
           handleEditClient(updateData, setData)
         }
         onDeleteClient={() => handleDeleteClient()}
