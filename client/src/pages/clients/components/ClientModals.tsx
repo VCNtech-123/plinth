@@ -1,5 +1,5 @@
 // client/src/pages/clients/components/ClientModals.tsx
-import AddProjectModal from "../../projects/AddProjectModal";
+import AddProjectModal from "../../projects/modals/AddProjectModal";
 import EditClientModal from "../modals/EditClientModal";
 import DeleteClientModal from "../modals/DeleteClientModal";
 import type { ClientDetailsData } from "../../../types/client.types";
