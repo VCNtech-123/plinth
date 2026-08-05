@@ -57,7 +57,9 @@ export const getProjectById = async (
         totalTasks: stats.totalTasks,
         completedTasks: stats.completedTasks,
         overdueTasks: stats.overdueTasks,
-        completionRate: stats.completionRate
+        completionRate: stats.completionRate,
+        inProgressCount: stats.inProgressCount,
+        progressPercent: stats.progressPercent
       },
       tasks: tasks.map((task) => ({
         id: task._id,

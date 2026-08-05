@@ -83,12 +83,13 @@ export const getProjectByIdService = async (
         owner: userId,
         isDeleted: false,
         dueDate: { $lt: new Date() },
+        status: "in-progress"
       }),
     ]);
 
     const completionRate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
-    const progressPercent = (completedTasks / totalTasks) * 100;
-    const inProgressCount = totalTasks - completedTasks - overdueTasks;
+    const progressPercent = totalTasks === 0 ? 0 : (completedTasks / totalTasks) * 100;
+    const inProgressCount = totalTasks === 0 ? 0 : totalTasks - completedTasks - overdueTasks;
 
     return {
       project,
