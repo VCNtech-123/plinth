@@ -87,6 +87,8 @@ export const getProjectByIdService = async (
     ]);
 
     const completionRate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+    const progressPercent = (completedTasks / totalTasks) * 100;
+    const inProgressCount = totalTasks - completedTasks - overdueTasks;
 
     return {
       project,
@@ -94,7 +96,9 @@ export const getProjectByIdService = async (
         totalTasks,
         completedTasks,
         overdueTasks,
-        completionRate
+        completionRate,
+        progressPercent,
+        inProgressCount
       },
       tasks
     }
