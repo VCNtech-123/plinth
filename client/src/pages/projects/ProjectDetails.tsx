@@ -1,7 +1,6 @@
 // client/src/pages/projects/ProjectDetails.tsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import {
   ArrowLeft,
   Calendar,
@@ -17,41 +16,35 @@ import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Skeleton from "../../components/ui/Skeleton";
 import StatCard from "../../components/ui/StatCard";
-import { getProjectById, deleteProject, updateProject } from "../../api/project.api";
-import { createTask } from "../../api/task.api";
-import type { IProjectDetails } from "../../types/project.types";
 import EditProjectModal from "./modals/EditProjectModal";
 import AddProjectTaskModal from "./modals/AddProjectTaskModal ";
 import DeleteProjectModal from "./modals/DeleteProjectModal";
+import { useProjectDetails } from "./hooks/useProjectDetails";
 
 const ProjectDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [data, setData] = useState<IProjectDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Custom hook
+  const {
+    data,
+    loading,
+    error,
+    fetchProject,
+    handleUpdateProject,
+    handleDeleteProject,
+    handleAddTask,
+  } = useProjectDetails(id!);
 
   // Modal states
   const [showEditProject, setShowEditProject] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
   const [showDeleteProject, setShowDeleteProject] = useState(false);
 
+  // Fetch on mount
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        setLoading(true);
-        const result = await getProjectById(id!);
-        setData(result.data);
-      } catch (err: any) {
-        setError(err?.message || "Failed to load project");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProject();
-  }, [id]);
+  }, [fetchProject]);
 
   if (loading) {
     return (
@@ -76,48 +69,6 @@ const ProjectDetails = () => {
   }
 
   const { project, stats, tasks } = data;
-
-  // Handlers
-  const handleUpdateProject = async (updateData: any) => {
-    try {
-      await updateProject(id!, updateData);
-      toast.success("Project updated successfully");
-      setShowEditProject(false);
-      
-      // Refetch project
-      const result = await getProjectById(id!);
-      setData(result.data);
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to update project");
-    }
-  };
-
-  const handleDeleteProject = async () => {
-    try {
-      await deleteProject(id!);
-      toast.success("Project deleted successfully");
-      setShowDeleteProject(false);
-      navigate("/projects");
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to delete project");
-    }
-  };
-
-  const handleAddTask = async (taskData: any) => {
-    try {
-      await createTask({
-        ...taskData,
-        project: id!,
-      });
-      toast.success("Task created successfully");
-      setShowAddTask(false);
-
-      const result = await getProjectById(id!);
-      setData(result.data);
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to create task");
-    }
-  };
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -336,7 +287,7 @@ const ProjectDetails = () => {
                 <div
                   key={task.id}
                   onClick={() => navigate(`/tasks/${task.id}`)}
-                  className="flex items-center justify-between p-4 rounded-lg bg-app/50 hover:bg-app transition-colors cursor-pointer group"
+                  className="flex items-center justify-between p-4 rounded-lg bg-app/50 hover:bg-app transition-colors cursor-pointer"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-text truncate">
@@ -372,7 +323,10 @@ const ProjectDetails = () => {
         open={showEditProject}
         onClose={() => setShowEditProject(false)}
         project={project}
-        onUpdate={handleUpdateProject}
+        onUpdate={async (updateData) => {
+          await handleUpdateProject(updateData);
+          setShowEditProject(false);
+        }}
       />
 
       <AddProjectTaskModal
@@ -380,13 +334,20 @@ const ProjectDetails = () => {
         onClose={() => setShowAddTask(false)}
         projectId={project.id}
         projectName={project.name}
-        onCreate={handleAddTask}
+        onCreate={async (taskData) => {
+          await handleAddTask(taskData);
+          setShowAddTask(false);
+        }}
       />
 
       <DeleteProjectModal
         open={showDeleteProject}
         onClose={() => setShowDeleteProject(false)}
-        onConfirm={handleDeleteProject}
+        onConfirm={async () => {
+          await handleDeleteProject();
+          setShowDeleteProject(false);
+          navigate("/projects");
+        }}
         projectName={project.name}
       />
     </div>
