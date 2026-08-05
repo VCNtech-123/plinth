@@ -5,14 +5,14 @@ import { getProjects, deleteProject, createProject, updateProject } from "../../
 import { toast } from "sonner";
 import Badge from "../../components/ui/Badge";
 import Dropdown from "../../components/ui/Dropdown";
-import ProjectsHeader from "./ProjectsHeader";
+import ProjectsHeader from "./components/ProjectsHeader";
 import ProjectsTable from "./ProjectsTable";
 import type { Column } from "../../components/ui/table/DataTable";
 import type { Project } from "../../types/project.types";
-import AddProjectModal from "./AddProjectModal";
+import AddProjectModal from "./modals/AddProjectModal";
 import { getClients } from "../../api/client.api";
-import EditProjectModal from "./EditProjectModal";
-import DeleteProjectModal from "./DeleteProjectModal";
+import EditProjectModal from "./modals/EditProjectModal";
+import DeleteProjectModal from "./modals/DeleteProjectModal";
 
 const Projects = () => {
 
