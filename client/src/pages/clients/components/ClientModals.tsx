@@ -1,5 +1,5 @@
-// client/src/pages/clients/components/ClientModals.tsx
-import AddProjectModal from "../../projects/modals/AddProjectModal";
+
+import ClientDetailsAddProjectModal from "../modals/ClientDetailsAddProjectModal";
 import EditClientModal from "../modals/EditClientModal";
 import DeleteClientModal from "../modals/DeleteClientModal";
 import type { ClientDetailsData } from "../../../types/client.types";
@@ -34,11 +34,12 @@ const ClientModals = ({
 }: ClientModalsProps) => {
   return (
     <>
-      <AddProjectModal
+      <ClientDetailsAddProjectModal
         open={showAddProject}
         onClose={onCloseAddProject}
+        clientName={client.name}
+        clientId={client.id}
         onCreate={onAddProject}
-        clients={[{ id: client.id, name: client.name }]}
       />
 
       <EditClientModal
