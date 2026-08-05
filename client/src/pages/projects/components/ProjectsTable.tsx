@@ -1,8 +1,8 @@
-import DataTable from "../../components/ui/table/DataTable";
-import TableSkeleton from "../../components/ui/table/TableSkeleton";
-import Pagination from "../../components/ui/table/Pagination";
-import type { Column } from "../../components/ui/table/DataTable";
-import type { Project } from "../../types/project.types";
+import DataTable from "../../../components/ui/table/DataTable";
+import TableSkeleton from "../../../components/ui/table/TableSkeleton";
+import Pagination from "../../../components/ui/table/Pagination";
+import type { Column } from "../../../components/ui/table/DataTable";
+import type { Project } from "../../../types/project.types";
 
 
 interface ProjectsTableProps {
