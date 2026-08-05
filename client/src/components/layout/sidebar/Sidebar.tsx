@@ -23,7 +23,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       <aside
         className={`
           fixed top-0 left-0 z-40
-          min-h-screen w-64
+          w-64 h-screen
           bg-card border-r border-border
           transform transition-transform duration-300 ease-out
           flex flex-col
@@ -31,6 +31,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0
           md:static
+          md:h-screen
         `}
       >
         {/* Logo */}
@@ -56,10 +57,10 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
         </div>
 
         {/* Spacer */}
-        <div className="flex-1" />
+        <div className="flex-1 overflow-hidden" />
 
         {/* Profile */}
-        <div className="shrink-0">
+        <div className="shrink-0 border-t border-border">
           <SidebarProfile />
         </div>
       </aside>

@@ -57,7 +57,7 @@ const SidebarProfile = () => {
     "bg-emerald-500",
   ];
   
-  const colorIndex = user.id.charCodeAt(0) % colors.length;
+  const colorIndex = user._id.charCodeAt(0) % colors.length;
   const avatarColor = colors[colorIndex];
 
   return (
