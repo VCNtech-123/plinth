@@ -20,9 +20,9 @@ import StatCard from "../../components/ui/StatCard";
 import { getProjectById, deleteProject, updateProject } from "../../api/project.api";
 import { createTask } from "../../api/task.api";
 import type { IProjectDetails } from "../../types/project.types";
-import EditProjectModal from "./EditProjectModal";
-import AddProjectTaskModal from "./components/AddProjectTaskModal ";
-import DeleteProjectModal from "./DeleteProjectModal";
+import EditProjectModal from "./modals/EditProjectModal";
+import AddProjectTaskModal from "./modals/AddProjectTaskModal ";
+import DeleteProjectModal from "./modals/DeleteProjectModal";
 
 const ProjectDetails = () => {
   const { id } = useParams();
