@@ -16,32 +16,35 @@ import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Skeleton from "../../components/ui/Skeleton";
 import StatCard from "../../components/ui/StatCard";
-import { getProjectById } from "../../api/project.api";
-import type { IProjectDetails } from "../../types/project.types";
+import EditProjectModal from "./modals/EditProjectModal";
+import AddProjectTaskModal from "./modals/AddProjectTaskModal ";
+import DeleteProjectModal from "./modals/DeleteProjectModal";
+import { useProjectDetails } from "./hooks/useProjectDetails";
 
 const ProjectDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [data, setData] = useState<IProjectDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Custom hook
+  const {
+    data,
+    loading,
+    error,
+    fetchProject,
+    handleUpdateProject,
+    handleDeleteProject,
+    handleAddTask,
+  } = useProjectDetails(id!);
 
+  // Modal states
+  const [showEditProject, setShowEditProject] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [showDeleteProject, setShowDeleteProject] = useState(false);
+
+  // Fetch on mount
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        setLoading(true);
-        const result = await getProjectById(id!);
-        setData(result.data);
-      } catch (err: any) {
-        setError(err?.message || "Failed to load project");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProject();
-  }, [id]);
+  }, [fetchProject]);
 
   if (loading) {
     return (
@@ -66,11 +69,6 @@ const ProjectDetails = () => {
   }
 
   const { project, stats, tasks } = data;
-
-  const progressPercent =
-    stats.totalTasks > 0
-      ? Math.round((stats.completedTasks / stats.totalTasks) * 100)
-      : 0;
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -135,6 +133,7 @@ const ProjectDetails = () => {
           <Button
             variant="secondary"
             size="sm"
+            onClick={() => setShowEditProject(true)}
             className="flex items-center gap-2"
           >
             <Edit2 size={16} />
@@ -144,6 +143,7 @@ const ProjectDetails = () => {
           <Button
             variant="danger"
             size="sm"
+            onClick={() => setShowDeleteProject(true)}
             className="flex items-center gap-2"
           >
             <Trash2 size={16} />
@@ -170,18 +170,17 @@ const ProjectDetails = () => {
                 <div className="w-full bg-app rounded-full h-2.5 overflow-hidden">
                   <div
                     className="bg-primary h-full rounded-full transition-all duration-500"
-                    style={{ width: `${progressPercent}%` }}
+                    style={{ width: `${stats.progressPercent}%` }}
                   />
                 </div>
 
                 <p className="text-sm text-primary font-semibold">
-                  {progressPercent}% complete
+                  {stats.progressPercent}% complete
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Project Details */}
           <Card>
             <CardHeader>
               <h2 className="text-lg font-semibold">Details</h2>
@@ -259,6 +258,7 @@ const ProjectDetails = () => {
             <Button
               variant="primary"
               size="sm"
+              onClick={() => setShowAddTask(true)}
               className="flex items-center gap-2"
             >
               <Plus size={16} />
@@ -274,6 +274,7 @@ const ProjectDetails = () => {
               <Button
                 variant="primary"
                 size="sm"
+                onClick={() => setShowAddTask(true)}
                 className="inline-flex items-center gap-2"
               >
                 <Plus size={16} />
@@ -285,7 +286,8 @@ const ProjectDetails = () => {
               {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-app/50 hover:bg-app transition-colors group"
+                  onClick={() => navigate(`/tasks/${task.id}`)}
+                  className="flex items-center justify-between p-4 rounded-lg bg-app/50 hover:bg-app transition-colors cursor-pointer"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-text truncate">
@@ -315,6 +317,39 @@ const ProjectDetails = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      <EditProjectModal
+        open={showEditProject}
+        onClose={() => setShowEditProject(false)}
+        project={project}
+        onUpdate={async (updateData) => {
+          await handleUpdateProject(updateData);
+          setShowEditProject(false);
+        }}
+      />
+
+      <AddProjectTaskModal
+        open={showAddTask}
+        onClose={() => setShowAddTask(false)}
+        projectId={project.id}
+        projectName={project.name}
+        onCreate={async (taskData) => {
+          await handleAddTask(taskData);
+          setShowAddTask(false);
+        }}
+      />
+
+      <DeleteProjectModal
+        open={showDeleteProject}
+        onClose={() => setShowDeleteProject(false)}
+        onConfirm={async () => {
+          await handleDeleteProject();
+          setShowDeleteProject(false);
+          navigate("/projects");
+        }}
+        projectName={project.name}
+      />
     </div>
   );
 };
