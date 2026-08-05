@@ -24,5 +24,9 @@ export interface TaskFilter {
   priority?: "low" | "medium" | "high"
   status?: "todo" | "in-progress" | "done";
   project?: string;
-  isDeleted: boolean
+  isDeleted: boolean;
+  title?: {
+      $regex: string;
+      $options: string;
+    };  
 }
