@@ -20,6 +20,7 @@ import EditProjectModal from "./modals/EditProjectModal";
 import AddProjectTaskModal from "./modals/AddProjectTaskModal ";
 import DeleteProjectModal from "./modals/DeleteProjectModal";
 import { useProjectDetails } from "./hooks/useProjectDetails";
+import { getStatusVariant, getTaskStatusVariant } from '../../utils/getStatus'
 
 const ProjectDetails = () => {
   const { id } = useParams();
@@ -69,32 +70,6 @@ const ProjectDetails = () => {
   }
 
   const { project, stats, tasks } = data;
-
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case "active":
-        return "success";
-      case "completed":
-        return "default";
-      case "paused":
-        return "warning";
-      default:
-        return "default";
-    }
-  };
-
-  const getTaskStatusVariant = (status: string) => {
-    switch (status) {
-      case "done":
-        return "success";
-      case "in-progress":
-        return "warning";
-      case "todo":
-        return "default";
-      default:
-        return "default";
-    }
-  };
 
   return (
     <div className="space-y-8 animate-fadeIn">
