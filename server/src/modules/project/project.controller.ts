@@ -64,6 +64,7 @@ export const getProjectById = async (
         title: task.title,
         status: task.status,
         dueDate: task.createdAt,
+        priority: task.priority
       }))  
     }
   });
