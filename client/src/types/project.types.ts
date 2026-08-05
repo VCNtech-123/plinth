@@ -4,6 +4,9 @@ export interface Project {
   id: string;
   name: string;
   status: ProjectStatus;
+  deadline: Date;
+  budget: number;
+  description: string;
   client: {
     id: string;
     name: string;
@@ -28,5 +31,6 @@ export interface ProjectTaskPreview {
   id: string;
   title: string;
   status: string;
-  dueDate?: string;
+  priority: 'low' | 'medium' | 'high';
+  dueDate: string;
 }

@@ -1,7 +1,17 @@
+// client/src/pages/projects/ProjectDetails.tsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Card from "../../components/ui/Card";
-import { CardContent } from "../../components/ui/Card";
+import {
+  ArrowLeft,
+  Calendar,
+  DollarSign,
+  CheckCircle,
+  AlertCircle,
+  Edit2,
+  Trash2,
+  Plus,
+} from "lucide-react";
+import Card, { CardContent, CardHeader } from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Skeleton from "../../components/ui/Skeleton";
@@ -15,12 +25,16 @@ const ProjectDetails = () => {
 
   const [data, setData] = useState<IProjectDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProject = async () => {
       try {
+        setLoading(true);
         const result = await getProjectById(id!);
         setData(result.data);
+      } catch (err: any) {
+        setError(err?.message || "Failed to load project");
       } finally {
         setLoading(false);
       }
@@ -31,118 +45,276 @@ const ProjectDetails = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-24 w-full" />
+      <div className="space-y-8">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
 
-  if (!data) return null;
+  if (error || !data) {
+    return (
+      <Card>
+        <CardContent>
+          <p className="text-(--color-danger)">
+            {error || "Project not found"}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const { project, stats, tasks } = data;
 
+  const progressPercent =
+    stats.totalTasks > 0
+      ? Math.round((stats.completedTasks / stats.totalTasks) * 100)
+      : 0;
+
+  const getStatusVariant = (status: string) => {
+    switch (status) {
+      case "active":
+        return "success";
+      case "completed":
+        return "default";
+      case "paused":
+        return "warning";
+      default:
+        return "default";
+    }
+  };
+
+  const getTaskStatusVariant = (status: string) => {
+    switch (status) {
+      case "done":
+        return "success";
+      case "in-progress":
+        return "warning";
+      case "todo":
+        return "default";
+      default:
+        return "default";
+    }
+  };
+
   return (
     <div className="space-y-8 animate-fadeIn">
-
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-6 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/projects")}
+              className="p-2 rounded-lg hover:bg-app transition-colors"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h1 className="text-3xl font-bold text-text">
+              {project.name}
+            </h1>
+          </div>
 
-        <div>
-          <h1 className="text-2xl font-semibold">
-            {project.name}
-          </h1>
-
-          <div className="flex items-center gap-3 mt-2 text-sm opacity-70">
+          <div className="flex flex-wrap items-center gap-3 ml-12">
             <button
               onClick={() => navigate(`/clients/${project.client.id}`)}
-              className="hover:underline"
+              className="text-sm text-text/70 hover:text-primary transition-colors"
             >
               {project.client.name}
             </button>
 
-            <span>•</span>
+            <span className="text-text/30">•</span>
 
-            <Badge variant="default">
+            <Badge variant={getStatusVariant(project.status)}>
               {project.status}
             </Badge>
           </div>
         </div>
 
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/projects")}
-        >
-          Back
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Edit2 size={16} />
+            Edit
+          </Button>
 
+          <Button
+            variant="danger"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Trash2 size={16} />
+            Delete
+          </Button>
+        </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column - Progress & Info */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Progress Section */}
+          <Card>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-text">Progress</h3>
+                  <p className="text-sm text-text/60">
+                    {stats.completedTasks}/{stats.totalTasks} completed
+                  </p>
+                </div>
 
-        <StatCard
-          title="Total Tasks"
-          value={stats.totalTasks}
-        />
+                <div className="w-full bg-app rounded-full h-2.5 overflow-hidden">
+                  <div
+                    className="bg-primary h-full rounded-full transition-all duration-500"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
 
-        <StatCard
-          title="Completed"
-          value={stats.completedTasks}
-          accent="success"
-        />
+                <p className="text-sm text-primary font-semibold">
+                  {progressPercent}% complete
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-        <StatCard
-          title="Overdue"
-          value={stats.overdueTasks}
-          accent="danger"
-        />
+          {/* Project Details */}
+          <Card>
+            <CardHeader>
+              <h2 className="text-lg font-semibold">Details</h2>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {project.deadline && (
+                <div className="flex items-center justify-between pb-4 border-b border-app">
+                  <div className="flex items-center gap-3">
+                    <Calendar size={18} className="text-primary" />
+                    <span className="text-sm text-text/70">Deadline</span>
+                  </div>
+                  <span className="text-sm font-medium text-text">
+                    {new Date(project.deadline).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
+              )}
 
-        <StatCard
-          title="Completion"
-          value={stats.completionRate}
-        />
+              {project.budget && (
+                <div className="flex items-center justify-between pb-4 border-b border-app">
+                  <div className="flex items-center gap-3">
+                    <DollarSign size={18} className="text-primary" />
+                    <span className="text-sm text-text/70">Budget</span>
+                  </div>
+                  <span className="text-sm font-medium text-text">
+                    ${project.budget.toLocaleString()}
+                  </span>
+                </div>
+              )}
 
+              {project.description && (
+                <div className="pt-2">
+                  <p className="text-xs text-text/60 mb-2">Description</p>
+                  <p className="text-sm text-text/80 leading-relaxed">
+                    {project.description}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Stats */}
+        <div className="space-y-6">
+          <StatCard
+            title="Completed"
+            value={stats.completedTasks}
+            icon={CheckCircle}
+            accent="success"
+          />
+
+          <StatCard
+            title="Overdue"
+            value={stats.overdueTasks}
+            icon={AlertCircle}
+            accent="danger"
+          />
+
+          <StatCard
+            title="Total Tasks"
+            value={stats.totalTasks}
+            accent="primary"
+          />
+        </div>
       </div>
 
-      {/* Tasks Preview */}
+      {/* Tasks Section */}
       <Card>
-        <CardContent className="space-y-4">
-          <h2 className="text-lg font-semibold">
-            Recent Tasks
-          </h2>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Tasks</h2>
+            <Button
+              variant="primary"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Plus size={16} />
+              Add Task
+            </Button>
+          </div>
+        </CardHeader>
 
+        <CardContent>
           {tasks.length === 0 ? (
-            <p className="text-sm opacity-60">
-              No tasks yet.
-            </p>
+            <div className="py-12 text-center">
+              <p className="text-sm text-text/60 mb-4">No tasks yet</p>
+              <Button
+                variant="primary"
+                size="sm"
+                className="inline-flex items-center gap-2"
+              >
+                <Plus size={16} />
+                Create First Task
+              </Button>
+            </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="flex justify-between items-center border-b border-app pb-2"
+                  className="flex items-center justify-between p-4 rounded-lg bg-app/50 hover:bg-app transition-colors group"
                 >
-                  <span>{task.title}</span>
-                  <span className="text-xs opacity-60">
-                    {task.status}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text truncate">
+                      {task.title}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3 ml-4">
+                    <Badge variant={getTaskStatusVariant(task.status)}>
+                      {task.status}
+                    </Badge>
+                  </div>
                 </div>
               ))}
+
+              <div className="pt-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(`/tasks?project=${project.id}`)}
+                  className="w-full"
+                >
+                  View All Tasks →
+                </Button>
+              </div>
             </div>
           )}
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(`/tasks?project=${project.id}`)}
-          >
-            View All Tasks
-          </Button>
-
         </CardContent>
       </Card>
-
     </div>
   );
 };
