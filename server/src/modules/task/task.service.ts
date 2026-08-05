@@ -34,7 +34,7 @@ export const getTaskService = async (
     query: GetTasksQuery
 ): Promise<GetTaskResponse> => {
 
-    const { page, limit } = query
+    const { page, limit, project, status, priority, search } = query
     const skip = Math.max(0, (page - 1) * limit);
 
     const filter: TaskFilter = {
@@ -42,17 +42,21 @@ export const getTaskService = async (
         isDeleted: false
     }
 
-    if (query.project) {
-        filter.project = query.project;
+    if (project) {
+        filter.project = project;
     }
 
-    if (query.status) {
-        filter.status = query.status;
+    if (status) {
+        filter.status = status;
     }
 
-    if (query.priority) {
-        filter.priority = query.priority;
+    if (priority) {
+        filter.priority = priority;
     } 
+
+    if (search) {
+        filter.title = { $regex: search, $options: "i" }
+    }
 
     const tasks = await Task.find(filter)
     .populate("project", "name")
