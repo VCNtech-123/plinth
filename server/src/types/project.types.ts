@@ -22,6 +22,8 @@ export interface ProjectDetailsResult {
     completedTasks: number;
     overdueTasks: number;
     completionRate: number;
+    progressPercent: number;
+    inProgressCount: number;
   };
   tasks: ITask[];
 }
