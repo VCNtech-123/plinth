@@ -62,7 +62,7 @@ export const getProjectByIdService = async (
         isDeleted: false,
       })
         .sort({ createdAt: -1 })
-        .select("_id title status dueDate")
+        .select("_id title status dueDate priority")
         .lean(),
 
       Task.countDocuments({
