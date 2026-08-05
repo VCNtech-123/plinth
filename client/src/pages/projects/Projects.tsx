@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import Badge from "../../components/ui/Badge";
 import Dropdown from "../../components/ui/Dropdown";
 import ProjectsHeader from "./components/ProjectsHeader";
-import ProjectsTable from "./ProjectsTable";
+import ProjectsTable from "./components/ProjectsTable";
 import type { Column } from "../../components/ui/table/DataTable";
 import type { Project } from "../../types/project.types";
 import AddProjectModal from "./modals/AddProjectModal";
