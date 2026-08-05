@@ -229,7 +229,12 @@ const ProjectDetails = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Tasks</h2>
+            <div>
+              <h2 className="text-lg font-semibold">Tasks</h2>
+              <p className="text-xs text-text/60 mt-1">
+                {stats.totalTasks} total • {stats.completedTasks} completed
+              </p>
+            </div>
             <Button
               variant="primary"
               size="sm"
@@ -244,8 +249,9 @@ const ProjectDetails = () => {
 
         <CardContent>
           {tasks.length === 0 ? (
-            <div className="py-12 text-center">
-              <p className="text-sm text-text/60 mb-4">No tasks yet</p>
+            <div className="py-12 text-center space-y-4">
+              <div className="text-4xl opacity-20">📋</div>
+              <p className="text-sm text-text/60">No tasks yet</p>
               <Button
                 variant="primary"
                 size="sm"
@@ -258,19 +264,60 @@ const ProjectDetails = () => {
             </div>
           ) : (
             <div className="space-y-2">
+              {/* Status Filter Tabs (optional) */}
+              <div className="flex gap-2 mb-4 pb-4 border-b border-app">
+                <button className="text-xs font-semibold text-primary px-3 py-1 rounded-full bg-primary/10">
+                  All ({tasks.length})
+                </button>
+                <button className="text-xs font-semibold text-text/60 px-3 py-1 rounded-full hover:bg-app transition-colors">
+                  Todo ({tasks.filter(t => t.status === "todo").length})
+                </button>
+                <button className="text-xs font-semibold text-text/60 px-3 py-1 rounded-full hover:bg-app transition-colors">
+                  In Progress ({tasks.filter(t => t.status === "in-progress").length})
+                </button>
+                <button className="text-xs font-semibold text-text/60 px-3 py-1 rounded-full hover:bg-app transition-colors">
+                  Done ({tasks.filter(t => t.status === "done").length})
+                </button>
+              </div>
+
+              {/* Task List */}
               {tasks.map((task) => (
                 <div
                   key={task.id}
-                  onClick={() => navigate(`/tasks/${task.id}`)}
-                  className="flex items-center justify-between p-4 rounded-lg bg-app/50 hover:bg-app transition-colors cursor-pointer"
+                  onClick={() => navigate(`/projects/${project.id}/tasks/${task.id}`)}
+                  className="flex items-center justify-between p-4 rounded-lg bg-app/30 border border-app/50 hover:border-primary/50 hover:bg-app transition-all cursor-pointer group"
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-text truncate">
-                      {task.title}
-                    </p>
+                  {/* Left: Title + Priority */}
+                  <div className="flex-1 min-w-0 flex items-center gap-3">
+                    {/* Priority Indicator */}
+                    <div
+                      className={`w-1.5 h-6 rounded-full shrink-0 ${
+                        task.priority === "high"
+                          ? "bg-(--color-danger)"
+                          : task.priority === "medium"
+                            ? "bg-(--color-warning)"
+                            : "bg-(--color-success)"
+                      }`}
+                    />
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-text truncate group-hover:text-primary transition-colors">
+                        {task.title}
+                      </p>
+                      {task.dueDate && (
+                        <p className="text-xs text-text/50 mt-1">
+                          Due:{" "}
+                          {new Date(task.dueDate).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3 ml-4">
+                  {/* Right: Status Badge */}
+                  <div className="flex items-center gap-2 ml-4 shrink-0">
                     <Badge variant={getTaskStatusVariant(task.status)}>
                       {task.status}
                     </Badge>
@@ -278,16 +325,19 @@ const ProjectDetails = () => {
                 </div>
               ))}
 
-              <div className="pt-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(`/tasks?project=${project.id}`)}
-                  className="w-full"
-                >
-                  View All Tasks →
-                </Button>
-              </div>
+              {/* View All Button */}
+              {stats.totalTasks > 5 && (
+                <div className="pt-4 border-t border-app">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/projects/${project.id}/tasks`)}
+                    className="w-full text-primary hover:bg-app"
+                  >
+                    View All {stats.totalTasks} Tasks →
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
