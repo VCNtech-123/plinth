@@ -1,12 +1,14 @@
-
+// client/src/pages/clients/ClientDetails/modals/ClientDetailsAddProjectModal.tsx
 import { useState } from "react";
-import Modal from "../../../components/ui/Modal";
+import Modal from "../../../components/ui/Modal"
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
+import { Calendar, DollarSign, FileText } from "lucide-react";
 
-interface AddProjectModalProps {
+interface ClientDetailsAddProjectModalProps {
   open: boolean;
   onClose: () => void;
+  clientName: string;
   onCreate: (data: {
     name: string;
     description?: string;
@@ -14,24 +16,24 @@ interface AddProjectModalProps {
     budget?: number;
     client: string;
   }) => Promise<void>;
-  clients: { id: string; name: string }[];
+  clientId: string;
 }
 
-const AddProjectModal = ({
+const ClientDetailsAddProjectModal = ({
   open,
   onClose,
+  clientName,
   onCreate,
-  clients,
-}: AddProjectModalProps) => {
+  clientId,
+}: ClientDetailsAddProjectModalProps) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [deadline, setDeadline] = useState("");
   const [budget, setBudget] = useState("");
-  const [client, setClient] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!name || !client) return;
+    if (!name.trim()) return;
 
     try {
       setLoading(true);
@@ -41,7 +43,7 @@ const AddProjectModal = ({
         description,
         deadline,
         budget: budget ? Number(budget) : undefined,
-        client,
+        client: clientId,
       });
 
       // Reset form
@@ -49,7 +51,6 @@ const AddProjectModal = ({
       setDescription("");
       setDeadline("");
       setBudget("");
-      setClient("");
       onClose();
     } finally {
       setLoading(false);
@@ -57,12 +58,10 @@ const AddProjectModal = ({
   };
 
   const handleClose = () => {
-    // Reset form when closing
     setName("");
     setDescription("");
     setDeadline("");
     setBudget("");
-    setClient("");
     onClose();
   };
 
@@ -70,45 +69,21 @@ const AddProjectModal = ({
     <Modal open={open} onClose={handleClose}>
       <div className="space-y-6 w-full max-w-md">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-text">
-              Create New Project
-            </h2>
-            <p className="text-sm text-text/60 mt-1">
-              Add a new project to get started
-            </p>
-          </div>
+        <div>
+          <h2 className="text-xl font-bold text-text">
+            Create New Project
+          </h2>
+          <p className="text-sm text-text/60 mt-2">
+            For <span className="font-semibold text-text">{clientName}</span>
+          </p>
         </div>
 
         {/* Form */}
         <div className="space-y-4">
-          {/* Client Selection (Required) */}
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-text">
-              Client *
-            </label>
-            <select
-              value={client}
-              onChange={(e) => setClient(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg border border-app bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-            >
-              <option value="">Select a client</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            {!client && (
-              <p className="text-xs text-text/50">Required field</p>
-            )}
-          </div>
-
           {/* Project Name (Required) */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-text">
-              Project Name *
+            <label className="text-sm font-semibold text-text flex items-center gap-2">
+              Project Name <span className="text-(--color-danger)">*</span>
             </label>
             <Input
               placeholder="e.g. Website Redesign"
@@ -116,14 +91,15 @@ const AddProjectModal = ({
               onChange={(e) => setName(e.target.value)}
               autoFocus
             />
-            {!name && (
+            {!name.trim() && (
               <p className="text-xs text-text/50">Required field</p>
             )}
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-text">
+            <label className="text-sm font-semibold text-text flex items-center gap-2">
+              <FileText size={16} />
               Description
             </label>
             <textarea
@@ -140,7 +116,8 @@ const AddProjectModal = ({
           <div className="grid grid-cols-2 gap-3">
             {/* Deadline */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-text">
+              <label className="text-sm font-semibold text-text flex items-center gap-2">
+                <Calendar size={16} />
                 Deadline
               </label>
               <Input
@@ -153,7 +130,8 @@ const AddProjectModal = ({
 
             {/* Budget */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-text">
+              <label className="text-sm font-semibold text-text flex items-center gap-2">
+                <DollarSign size={16} />
                 Budget
               </label>
               <div className="relative">
@@ -186,20 +164,15 @@ const AddProjectModal = ({
           <Button
             variant="primary"
             onClick={handleSubmit}
-            disabled={!name || !client || loading}
+            disabled={!name.trim() || loading}
             className="flex-1"
           >
             {loading ? "Creating..." : "Create Project"}
           </Button>
         </div>
-
-        {/* Helper Text */}
-        <p className="text-xs text-text/50 text-center">
-          Fields marked with * are required
-        </p>
       </div>
     </Modal>
   );
 };
 
-export default AddProjectModal;
+export default ClientDetailsAddProjectModal;
