@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 interface AuthState {
   user: {
-    id: string;
+    _id: string;
     name: string;
     email: string;
   } | null;
