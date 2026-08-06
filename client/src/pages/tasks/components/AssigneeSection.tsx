@@ -41,7 +41,7 @@ const AssigneeSection = ({
             </p>
           </div>
           {isAssignedToMe && (
-            <Check size={16} className="text-success flex-shrink-0" />
+            <Check size={16} className="text-success shrink-0" />
           )}
         </div>
       ) : (
