@@ -1,7 +1,7 @@
 import { api } from "./axios";
-import type { UpdateTaskBody, Task } from "../types/task.types";
+import type { UpdateTaskBody } from "../types/task.types";
 
-export const getTasks = async (params?: Task) => {
+export const getTasks = async (params?: any) => {
   const response = await api.get("/tasks", { params });
   return response.data;
 };
