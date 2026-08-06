@@ -38,6 +38,7 @@ const taskBodySchema = z.object({
     .optional(),
 
   project: objectIdSchema,
+  assignee: objectIdSchema.optional()
 }).strict();
 
 export type GetTasksQuery = z.infer<typeof getTasksQuerySchema>;
