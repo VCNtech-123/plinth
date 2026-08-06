@@ -17,6 +17,12 @@ export type PopulatedTask = Omit<ITask, "project"> & {
     _id: Types.ObjectId;
     name: string;
   }
+  assignee?: {
+    _id: Types.ObjectId;
+    name: string;
+    email: string;
+  }
+
 }
 
 export interface TaskFilter {
