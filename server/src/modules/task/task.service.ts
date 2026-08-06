@@ -4,7 +4,6 @@ import { Project } from "../project/project.model";
 import mongoose from 'mongoose'
 import { GetTaskResponse, PopulatedTask, TaskFilter } from "../../types/task.types";
 import { TaskBody, GetTasksQuery } from './task.validation';
-import { ApiError } from "../../utils/ApiError";
 
 export const createTaskService = async (
     data: TaskBody,
@@ -60,6 +59,7 @@ export const getTaskService = async (
 
     const tasks = await Task.find(filter)
     .populate("project", "name")
+    .populate("assignee", "_id name email")
     .lean<PopulatedTask[]>()
     .sort({ createdAt: -1 })
     .skip(skip)
@@ -86,6 +86,7 @@ export const getTaskByIdService = async (
         isDeleted: false
     })
     .populate("project", "name")
+    .populate("assignee", "_id name email")
     .lean<PopulatedTask>();
 
     if (!task) {
@@ -108,6 +109,7 @@ export const updateTaskByIdService = async (
     if (data.status !== undefined) updateData.status = data.status;
     if (data.priority !== undefined) updateData.priority = data.priority;
     if (data.dueDate !== undefined) updateData.dueDate = data.dueDate;
+    if (data.assignee !== undefined) updateData.assignee = data.assignee;
 
   const updatedTask = await Task.findOneAndUpdate(
     {
@@ -119,6 +121,7 @@ export const updateTaskByIdService = async (
     { new: true }
     )
     .populate("project", "name")
+    .populate("assignee", "_id name email")
     .lean<PopulatedTask>();
 
     if (!updatedTask) {

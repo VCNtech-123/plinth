@@ -9,6 +9,7 @@ export interface ITask {
     dueDate?: Date;
     project: mongoose.Types.ObjectId;
     owner: mongoose.Types.ObjectId;
+    assignee: mongoose.Types.ObjectId;
     isDeleted: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -47,6 +48,10 @@ const taskSchema = new Schema<ITask>(
             ref: "User",
             required: true
         },
+        assignee: {
+            type: Schema.Types.ObjectId,
+            ref: "User"
+        },
         isDeleted: {
             type: Boolean,
             default: false,
@@ -62,5 +67,6 @@ taskSchema.index({ owner: 1 });
 taskSchema.index({ project: 1 });
 taskSchema.index({ status: 1 });
 taskSchema.index({ isDeleted: 1 });
+taskSchema.index({ assignee: 1 });
 
 export const Task = mongoose.model<ITask>("Task", taskSchema);
