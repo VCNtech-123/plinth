@@ -74,9 +74,9 @@ export const getTasks = async (
             name: task.project.name
         },
       assignee: {
-            id: task.assignee._id,
-            name: task.assignee.name,
-            email: task.assignee.email
+            id: task.assignee?._id,
+            name: task.assignee?.name,
+            email: task.assignee?.email
         },
       createdAt: task.createdAt
     }))
@@ -111,9 +111,9 @@ export const getTaskById = async (
             name: task.project.name,
         },
         assignee: {
-            id: task.assignee._id,
-            name: task.assignee.name,
-            email: task.assignee.email
+            id: task.assignee?._id,
+            name: task.assignee?.name,
+            email: task.assignee?.email
         },
         createdAt: task.createdAt
         }
@@ -148,9 +148,9 @@ export const updateTaskById = async (
             name: updatedTask.project.name,
         },
         assignee: {
-            id: updatedTask.assignee._id,
-            name: updatedTask.assignee.name,
-            email: updatedTask.assignee.email
+            id: updatedTask.assignee?._id,
+            name: updatedTask.assignee?.name,
+            email: updatedTask.assignee?.email
         },
         dueDate: updatedTask.dueDate,
         updatedAt: updatedTask.updatedAt
