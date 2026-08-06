@@ -7,8 +7,8 @@ import { getTasks, updateTask, deleteTask, createTask } from "../../api/task.api
 import { getProjects } from "../../api/project.api";
 import TaskDrawer from "./TaskDrawer";
 import TasksHeader from "./TasksHeader";
-import DeleteTaskModal from "./DeleteModalTask";
-import AddTaskModal from "./AddTaskModal";
+import DeleteTaskModal from "./modals/DeleteModalTask";
+import AddTaskModal from "./modals/AddTaskModal";
 
 const Tasks = () => {
 
