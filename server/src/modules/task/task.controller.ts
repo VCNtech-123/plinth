@@ -70,9 +70,14 @@ export const getTasks = async (
       priority: task.priority,
       dueDate: task.dueDate,
       project: {
-        id: task.project._id,
-        name: task.project.name
-      },
+            id: task.project._id,
+            name: task.project.name
+        },
+      assignee: {
+            id: task.assignee._id,
+            name: task.assignee.name,
+            email: task.assignee.email
+        },
       createdAt: task.createdAt
     }))
   });

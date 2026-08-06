@@ -87,6 +87,7 @@ export const getTaskByIdService = async (
         isDeleted: false
     })
     .populate("project", "name")
+    .populate("assignee", "_id name email")
     .lean<PopulatedTask>();
 
     if (!task) {
