@@ -1,6 +1,6 @@
 import { Draggable } from "@hello-pangea/dnd";
 import TaskCard from "./TaskCard";
-import type { Task } from "../../types/task.types";
+import type { Task } from "../../../types/task.types";
 
 interface TaskColumnProps {
   title: string;

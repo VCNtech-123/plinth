@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import TaskBoard from "./TaskBoard";
+import TaskBoard from "./components/TaskBoard";
 import type { Task } from "../../types/task.types";
 import type { Project } from "../../types/project.types";
 import { getTasks, updateTask, deleteTask, createTask } from "../../api/task.api";
 import { getProjects } from "../../api/project.api";
-import TaskDrawer from "./TaskDrawer";
-import TasksHeader from "./TasksHeader";
-import DeleteTaskModal from "./DeleteModalTask";
-import AddTaskModal from "./AddTaskModal";
+import TaskDrawer from "./components/TaskDrawer";
+import TasksHeader from "./components/TasksHeader";
+import DeleteTaskModal from "./modals/DeleteModalTask";
+import AddTaskModal from "./modals/AddTaskModal";
 
 const Tasks = () => {
 

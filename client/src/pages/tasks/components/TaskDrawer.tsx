@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
-import Badge from "../../components/ui/Badge";
-import { getTaskById, updateTask } from "../../api/task.api";
+import Button from "../../../components/ui/Button";
+import Input from "../../../components/ui/Input";
+import Badge from "../../../components/ui/Badge";
+import { getTaskById, updateTask } from "../../../api/task.api";
 
 interface TaskDrawerProps {
   taskId: string | null;

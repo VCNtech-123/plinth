@@ -2,7 +2,7 @@
 import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import type { DropResult } from "@hello-pangea/dnd"
 import TaskColumn from "./TaskColumn";
-import type { Task } from "../../types/task.types";
+import type { Task } from "../../../types/task.types";
 
 interface TaskBoardProps {
   tasks: Task[];
