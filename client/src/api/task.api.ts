@@ -1,7 +1,7 @@
 import { api } from "./axios";
-import type { Task } from "../types/task.types";
+import type { UpdateTaskBody, Task } from "../types/task.types";
 
-export const getTasks = async (params?: any) => {
+export const getTasks = async (params?: Task) => {
   const response = await api.get("/tasks", { params });
   return response.data;
 };
@@ -16,7 +16,7 @@ export const createTask = async (data: any) => {
   return response.data;
 };
 
-export const updateTask = async (id: string, data: Partial<Task>) => {
+export const updateTask = async (id: string, data: UpdateTaskBody) => {
   const response = await api.put(`/tasks/${id}`, data);
   return response.data;
 };

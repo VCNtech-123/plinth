@@ -19,3 +19,12 @@ export interface Task {
     email: string
   }
 }   
+
+export interface UpdateTaskBody {
+  title?: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  dueDate?: string;
+  assignee?: string | null;
+}
