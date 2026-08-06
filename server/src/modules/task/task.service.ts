@@ -60,6 +60,7 @@ export const getTaskService = async (
 
     const tasks = await Task.find(filter)
     .populate("project", "name")
+    .populate("assignee", "_id name email")
     .lean<PopulatedTask[]>()
     .sort({ createdAt: -1 })
     .skip(skip)
