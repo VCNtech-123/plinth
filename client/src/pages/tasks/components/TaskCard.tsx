@@ -1,6 +1,6 @@
-import Badge from "../../components/ui/Badge";
-import Dropdown from "../../components/ui/Dropdown";
-import Card from "../../components/ui/Card";
+import Badge from "../../../components/ui/Badge";
+import Dropdown from "../../../components/ui/Dropdown";
+import Card from "../../../components/ui/Card";
 
 interface TaskCardProps {
   id: string;
