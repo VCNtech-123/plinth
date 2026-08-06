@@ -15,6 +15,7 @@ interface TaskCardProps {
   onEdit: () => void;
   onDelete: () => void;
   onMove: (status: "todo" | "in-progress" | "done") => void;
+  isDragging?: boolean;
 }
 
 const TaskCard = ({
@@ -28,8 +29,18 @@ const TaskCard = ({
   onEdit,
   onDelete,
   onMove,
+  isDragging
 }: TaskCardProps) => {
   return (
+
+    <div className={`
+      p-3 rounded-lg border cursor-grab active:cursor-grabbing
+      transition-all
+      ${isDragging 
+        ? "bg-primary/10 border-primary shadow-lg" 
+        : "bg-app/50 border-app hover:border-primary/30"
+      }
+    `}>
     <Card
       onClick={onOpen}
       className={`
@@ -114,6 +125,8 @@ const TaskCard = ({
       </div>
 
     </Card>
+
+    </div>
   );
 };
 

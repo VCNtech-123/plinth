@@ -47,7 +47,7 @@ const TaskDrawer = ({ taskId, open, onClose, onUpdate }: TaskDrawerProps) => {
         className="
             relative ml-auto
             h-full
-            w-full sm:w-[480px]
+            w-full sm:w-120
             bg-card
             border-l border-app
             shadow-2xl
