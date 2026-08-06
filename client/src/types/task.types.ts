@@ -13,4 +13,18 @@ export interface Task {
     id: string;
     name: string;
   };
+  assignee?: {
+    id: string,
+    name: string,
+    email: string
+  }
 }   
+
+export interface UpdateTaskBody {
+  title?: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  dueDate?: string;
+  assignee?: string | null;
+}

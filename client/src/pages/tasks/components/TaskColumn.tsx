@@ -62,15 +62,15 @@ const TaskColumn = ({
                   }`}
                 >
                   <TaskCard
-                    onOpen={() => onEdit(task)}
-                    key={task.id}
                     {...task}
                     projectName={task.project.name}
+                    assignee={task.assignee}  // ← Add this
                     overdue={
                       !!task.dueDate &&
                       new Date(task.dueDate) < new Date() &&
                       task.status !== "done"
                     }
+                    onOpen={() => onEdit(task)}
                     onEdit={() => onEdit(task)}
                     onDelete={() => onDelete(task.id)}
                     onMove={(status) => onMove(task.id, status)}
