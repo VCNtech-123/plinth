@@ -1,3 +1,4 @@
+// client/src/pages/tasks/Tasks.tsx
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import TaskBoard from "./components/TaskBoard";
@@ -11,7 +12,6 @@ import DeleteTaskModal from "./modals/DeleteModalTask";
 import AddTaskModal from "./modals/AddTaskModal";
 
 const Tasks = () => {
-
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
@@ -44,7 +44,6 @@ const Tasks = () => {
         });
 
         setTasks(response.data);
-
       } catch (err: any) {
         toast.error("Failed to load tasks");
       } finally {
@@ -71,14 +70,14 @@ const Tasks = () => {
 
     fetchProjects();
   }, []);
-  
+
   const handleMoveTask = async (
     taskId: string,
     status: Task["status"]
   ) => {
-
     const previous = [...tasks];
 
+    // Optimistic update
     setTasks((prev) =>
       prev.map((t) =>
         t.id === taskId ? { ...t, status } : t
@@ -101,8 +100,8 @@ const Tasks = () => {
 
       await deleteTask(deleteTaskId);
 
-      setTasks(prev =>
-        prev.filter(t => t.id !== deleteTaskId)
+      setTasks((prev) =>
+        prev.filter((t) => t.id !== deleteTaskId)
       );
 
       toast.success("Task deleted");
@@ -128,7 +127,6 @@ const Tasks = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-
       {/* Header */}
       <TasksHeader
         search={search}
@@ -151,7 +149,7 @@ const Tasks = () => {
             tasks={tasks}
             onEdit={(task) => setActiveTaskId(task.id)}
             onDelete={(taskId) => {
-              const task = tasks.find(t => t.id === taskId);
+              const task = tasks.find((t) => t.id === taskId);
               setDeleteTaskId(taskId);
               setDeleteTaskTitle(task?.title || "");
             }}
@@ -163,8 +161,9 @@ const Tasks = () => {
             open={!!activeTaskId}
             onClose={() => setActiveTaskId(null)}
             onUpdate={(updatedTask) => {
-              setTasks(prev =>
-                prev.map(t =>
+              // ✅ Update tasks list immediately when task is updated
+              setTasks((prev) =>
+                prev.map((t) =>
                   t.id === updatedTask.id ? updatedTask : t
                 )
               );
@@ -186,11 +185,8 @@ const Tasks = () => {
             projects={projects}
             defaultProjectId={projectFilter}
           />
-          
         </>
-        
       )}
-
     </div>
   );
 };
