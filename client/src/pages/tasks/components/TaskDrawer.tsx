@@ -166,7 +166,7 @@ const TaskDrawer = ({ taskId, open, onClose, onUpdate }: TaskDrawerProps) => {
               )}
 
               {/* Assignee Section - NEW */}
-              {user && (
+              {user && task && (
                 <AssigneeSection
                   task={task}
                   onAssign={handleAssign}
