@@ -15,10 +15,11 @@ const AssigneeSection = ({
   currentUserId,
   loading = false,
 }: AssigneeSectionProps) => {
-
   if (!task) return null;
 
-  const isAssignedToMe = task.assignee && task.assignee.id === currentUserId;
+  // ✅ Normalize assignee state
+  const hasAssignee = Boolean(task.assignee?.id);
+  const isAssignedToMe = task.assignee?.id === currentUserId;
 
   return (
     <div className="py-4 space-y-3 border-b border-app">
@@ -27,21 +28,23 @@ const AssigneeSection = ({
       </div>
 
       {/* Current Assignee */}
-      {task.assignee && task.assignee.name ? (
+      {hasAssignee ? (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-app/50 border border-app">
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
             <span className="text-xs font-bold text-white">
-              {task.assignee.name[0].toUpperCase()}
+              {task.assignee!.name[0].toUpperCase()}
             </span>
           </div>
+
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-text truncate">
-              {task.assignee.name}
+              {task.assignee!.name}
             </p>
             <p className="text-xs text-text/60 truncate">
-              {task.assignee.email}
+              {task.assignee!.email}
             </p>
           </div>
+
           {isAssignedToMe && (
             <Check size={16} className="text-success shrink-0" />
           )}
@@ -69,7 +72,7 @@ const AssigneeSection = ({
           </Button>
         )}
 
-        {task.assignee && task.assignee.name && (
+        {hasAssignee && (
           <Button
             variant="ghost"
             size="sm"
