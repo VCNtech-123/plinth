@@ -46,8 +46,9 @@ const TaskDrawer = ({ taskId, open, onClose, onUpdate }: TaskDrawerProps) => {
       const updated = await updateTask(task.id, {
         assignee: assigneeId,
       });
-      setTask(updated);
-      onUpdate(updated);
+      
+      setTask(updated.data);
+      onUpdate(updated.data);
     } finally {
       setAssignLoading(false);
     }
@@ -165,8 +166,8 @@ const TaskDrawer = ({ taskId, open, onClose, onUpdate }: TaskDrawerProps) => {
                 </div>
               )}
 
-              {/* Assignee Section - NEW */}
-              {user && task && (
+              {/* Assignee Section */}
+              {user && (
                 <AssigneeSection
                   task={task}
                   onAssign={handleAssign}
