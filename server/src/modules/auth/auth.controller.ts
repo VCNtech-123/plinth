@@ -29,10 +29,10 @@ export const login = async (req: Request, res: Response) => {
 
     const cookieOptions: CookieOptions = {
       httpOnly: true,
-      secure: isProd,                    // ✅ only secure in production
-      sameSite: isProd ? "none" : "lax", // ✅ none for cross-domain prod, lax for dev
+      secure: isProd,                    
+      sameSite: isProd ? "none" : "lax", 
       path: "/",
-      maxAge: 1000 * 60 * 60,
+      maxAge: 24 * 60 * 60 * 1000,
     };
 
     res.cookie("token", token, cookieOptions)
