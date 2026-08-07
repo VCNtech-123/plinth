@@ -125,6 +125,34 @@ const Tasks = () => {
     }
   };
 
+  // ✅ NEW: Handle task update from drawer (assignee, status, etc.)
+  const handleTaskUpdate = async (updatedTask: Task) => {
+    try {
+      // Update local state immediately
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === updatedTask.id ? updatedTask : t
+        )
+      );
+
+      const response = await getTasks({
+        search: debouncedSearch,
+        project: projectFilter,
+      });
+      setTasks(response.data);
+
+      toast.success("Task updated");
+    } catch (err: any) {
+      toast.error("Failed to update task");
+      // Refetch to revert optimistic update
+      const response = await getTasks({
+        search: debouncedSearch,
+        project: projectFilter,
+      });
+      setTasks(response.data);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Header */}
@@ -160,14 +188,7 @@ const Tasks = () => {
             taskId={activeTaskId}
             open={!!activeTaskId}
             onClose={() => setActiveTaskId(null)}
-            onUpdate={(updatedTask) => {
-              // ✅ Update tasks list immediately when task is updated
-              setTasks((prev) =>
-                prev.map((t) =>
-                  t.id === updatedTask.id ? updatedTask : t
-                )
-              );
-            }}
+            onUpdate={handleTaskUpdate}  // ✅ Pass the handler
           />
 
           <DeleteTaskModal
