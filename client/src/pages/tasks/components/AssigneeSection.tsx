@@ -1,10 +1,9 @@
-
 import { User, Check } from "lucide-react";
 import Button from "../../../components/ui/Button";
 import type { Task } from "../../../types/task.types";
 
 interface AssigneeSectionProps {
-  task: Task;
+  task: Task | null;
   onAssign: (assigneeId: string | null) => Promise<void>;
   currentUserId: string;
   loading?: boolean;
@@ -16,7 +15,10 @@ const AssigneeSection = ({
   currentUserId,
   loading = false,
 }: AssigneeSectionProps) => {
-  const isAssignedToMe = task.assignee?.id === currentUserId;
+
+  if (!task) return null;
+
+  const isAssignedToMe = task.assignee && task.assignee.id === currentUserId;
 
   return (
     <div className="py-4 space-y-3 border-b border-app">
@@ -25,7 +27,7 @@ const AssigneeSection = ({
       </div>
 
       {/* Current Assignee */}
-      {task.assignee ? (
+      {task.assignee && task.assignee.name ? (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-app/50 border border-app">
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
             <span className="text-xs font-bold text-white">
@@ -67,7 +69,7 @@ const AssigneeSection = ({
           </Button>
         )}
 
-        {task.assignee && (
+        {task.assignee && task.assignee.name && (
           <Button
             variant="ghost"
             size="sm"
