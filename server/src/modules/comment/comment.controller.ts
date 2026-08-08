@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createCommentService, getCommentsByTaskIdService, deleteCommentService } from "./comment.service";
+import { createCommentService, getCommentsByTaskIdService, deleteCommentService, restoreCommentService } from "./comment.service";
 import { CommentBody, GetCommentsQuery } from "./comment.validation";
 import { ApiError } from "../../utils/ApiError";
 
@@ -103,6 +103,37 @@ export const deleteComment = async (
                 email: deletedComment.author.email
             },
             createdAt: deletedComment.createdAt
+        }
+    })
+}
+
+export const restoreComment = async (
+    req: Request,
+    res: Response
+) => {
+
+    const id = req.params.id as string;
+
+    const restoredComment = await restoreCommentService(
+        id,
+        req.user!._id
+    )
+
+    if (!restoredComment) {
+        throw new ApiError(404, "No comment found");
+    }
+
+    res.status(200).json({
+        status: "success",
+        data: {
+            id: restoredComment._id,
+            content: restoredComment.content,
+            author: {
+                id: restoredComment.author._id,
+                name: restoredComment.author.name,
+                email: restoredComment.author.email
+            },
+            createdAt: restoredComment.createdAt
         }
     })
 }
