@@ -3,6 +3,7 @@ import { Comment } from "./comment.model";
 import mongoose from "mongoose";
 import { getTaskByIdService } from '../task/task.service'
 import { CommentBody, GetCommentsQuery } from "./comment.validation";
+import { PopulatedComment } from '../../types/comment.types'
 
 export const createCommentService = async (
     taskId: string,
@@ -27,11 +28,11 @@ export const createCommentService = async (
     return comment;
 }
 
-export const getCommentsService = async (
+export const getCommentsByTaskIdService = async (
     taskId: string,
     userId: mongoose.Types.ObjectId,
     query: GetCommentsQuery
-) => {
+): Promise<PopulatedComment[] | null> => {
 
     const { page, limit } = query;
     const skip = Math.max(0, (page - 1) * limit);
@@ -53,7 +54,7 @@ export const getCommentsService = async (
         .skip(skip)
         .limit(limit)
         .populate("author", "name email")
-        .lean()
+        .lean<PopulatedComment[]>()
 
 
     return comments;
