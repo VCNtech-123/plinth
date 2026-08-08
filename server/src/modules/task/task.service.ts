@@ -1,7 +1,7 @@
 
 import { Task } from "./task.model";
-import { Project } from "../project/project.model";
-import mongoose from 'mongoose'
+import { getProjectByIdService } from "../project/project.service";
+import mongoose, { Types } from 'mongoose'
 import { GetTaskResponse, PopulatedTask, TaskFilter } from "../../types/task.types";
 import { TaskBody, GetTasksQuery } from './task.validation';
 
@@ -10,19 +10,21 @@ export const createTaskService = async (
     userId: mongoose.Types.ObjectId
 ) => {
 
-    const project = await Project.findOne({
-        _id: data.project,
-        owner: userId,
-        isDeleted: false
-    });
+    const project = await getProjectByIdService(data.project, userId)
 
     if (!project) {
         return null
     }
 
     const task = await Task.create({
-        ...data,
-        owner: userId
+        project: data.project,
+        owner: userId,
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        priority: data.priority,
+        dueDate: data.dueDate,
+        assignee: data.assignee ? new Types.ObjectId(data.assignee) : undefined
     })
 
     return task;
