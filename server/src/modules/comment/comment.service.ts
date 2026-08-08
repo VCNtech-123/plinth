@@ -97,3 +97,29 @@ export const deleteCommentService = async (
     
       return deletedComment;
 }
+
+export const restoreCommentService = async (
+  id: string, 
+  userId: mongoose.Types.ObjectId
+): Promise<PopulatedComment | null> => {
+
+  const restoredComment = await Comment.findOneAndUpdate(
+    {
+      owner: userId,
+      _id: id,
+      isDeleted: true
+    },
+    {
+      isDeleted: false
+    },
+    { new: true }
+  )
+        .populate("author", "_id name email")
+        .lean<PopulatedComment>();;
+
+  if (!restoredComment) {
+    return null
+  }
+
+  return restoredComment;
+}
