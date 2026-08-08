@@ -28,13 +28,11 @@ export const createComment = async (
         data: {
             id: comment._id,
             content: comment.content,
-            task: comment.task,
             author: {
                 id: comment.author._id,
                 name: comment.author.name,
                 email: comment.author.email
             },
-            owner: comment.owner,
             createdAt: comment.createdAt
         },
     });
@@ -99,13 +97,11 @@ export const deleteComment = async (
         data: {
             id: deletedComment._id,
             content: deletedComment.content,
-            task: deletedComment.task,
             author: {
                 id: deletedComment.author._id,
                 name: deletedComment.author.name,
                 email: deletedComment.author.email
             },
-            owner: deletedComment.owner,
             createdAt: deletedComment.createdAt
         }
     })
