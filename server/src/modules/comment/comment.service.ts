@@ -9,14 +9,13 @@ export const createCommentService = async (
     taskId: string,
     userId: mongoose.Types.ObjectId,
     data: CommentBody
-) => {
+): Promise<PopulatedComment | null> => {
     
     const existingTask = await getTaskByIdService(taskId, userId);
 
     if (!existingTask) {
         return null
     }
-
 
     const comment = await Comment.create({
         content: data.content,
@@ -25,7 +24,15 @@ export const createCommentService = async (
         author: userId,
     });
 
-    return comment;
+    if (!comment) {
+        return null;
+    }
+
+    const populatedComment = await Comment.findById(comment._id)
+        .populate("author", "_id name email")
+        .lean<PopulatedComment>();
+
+    return populatedComment;
 }
 
 export const getCommentsByTaskIdService = async (
@@ -65,4 +72,28 @@ export const getCommentsByTaskIdService = async (
         comments: comments,
         results: total
     };
+}
+
+export const deleteCommentService = async (
+    id: string,
+    userId: mongoose.Types.ObjectId
+):Promise<PopulatedComment | null> => {
+
+      const deletedComment = await Comment.findOneAndUpdate(
+        {
+          _id: id,
+          owner: userId,
+          isDeleted: false
+        },
+        {
+          isDeleted: true
+        },
+        {
+          new: true
+        }
+      )
+            .populate("author", "_id name email")
+            .lean<PopulatedComment>();
+    
+      return deletedComment;
 }
