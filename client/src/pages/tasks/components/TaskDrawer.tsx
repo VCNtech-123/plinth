@@ -7,6 +7,7 @@ import Badge from "../../../components/ui/Badge";
 import { getTaskById, updateTask } from "../../../api/task.api";
 import { useAuthStore } from "../../../store/auth.store";
 import AssigneeSection from "./AssigneeSection";
+import CommentSection from "./CommentSection";
 import type { Task } from "../../../types/task.types";
 
 interface TaskDrawerProps {
@@ -175,6 +176,7 @@ const TaskDrawer = ({ taskId, open, onClose, onUpdate }: TaskDrawerProps) => {
                   loading={assignLoading}
                 />
               )}
+              <CommentSection taskId={task.id} />
             </div>
 
             {/* Footer */}
