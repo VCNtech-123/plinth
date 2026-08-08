@@ -19,9 +19,10 @@ export const createCommentService = async (
 
 
     const comment = await Comment.create({
-        owner: userId,
+        content: data.content,
         task: taskId,
-        ...data
+        owner: userId,
+        author: userId,
     });
 
     return comment;
