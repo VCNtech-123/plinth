@@ -31,7 +31,7 @@ app.use("/api/clients", clientRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/tasks", commentRoutes);
+app.use("/api", commentRoutes);
 
 app.use(errorMiddleware);
 

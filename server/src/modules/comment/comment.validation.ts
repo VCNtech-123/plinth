@@ -22,7 +22,7 @@ export const createCommentSchema = z.object({
 
 export const getCommentsSchema = z.object({
     params: z.object({
-        id: objectIdSchema
+        taskId: objectIdSchema
     }),
     query: getCommentsQuerySchema
 });

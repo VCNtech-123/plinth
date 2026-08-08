@@ -7,8 +7,8 @@ import { createCommentSchema } from "./comment.validation";
 
 const router = Router();
 
-router.post("/:taskId/comments", protect, validate(createCommentSchema), createComment);
-router.get("/:taskId/comments", protect);
+router.post("/tasks/:taskId/comments", protect, validate(createCommentSchema), createComment);
+router.get("/tasks/:taskId/comments", protect);
 router.delete("/comments/:id", protect);
 router.patch("/comments/:id/restore", protect);
 
