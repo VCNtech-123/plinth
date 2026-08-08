@@ -62,7 +62,7 @@ export const getCommentsByTaskId = async (
 
     res.status(200).json({
         status: "success",
-        result: results,
+        results: results,
         data: comments.map((comment) => ({
             id: comment._id,
             content: comment.content,
