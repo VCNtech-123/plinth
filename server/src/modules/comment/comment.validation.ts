@@ -15,7 +15,7 @@ export type CommentBody = z.infer<typeof commentBodySchema>;
 
 export const createCommentSchema = z.object({
     params: z.object({
-        id: objectIdSchema
+        taskId: objectIdSchema
     }),
     body: commentBodySchema.strict()
 });

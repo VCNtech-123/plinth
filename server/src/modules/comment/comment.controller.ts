@@ -8,12 +8,13 @@ export const createComment = async (
     res: Response
 ) => {
 
+    const id = req.params.id as string
     const { body } = res.locals.validated as {
         body: CommentBody
     };
 
     const comment = await createCommentService(
-        req.params.id,
+        id,
         req.user!._id,
         body
     )

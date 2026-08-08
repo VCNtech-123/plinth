@@ -5,12 +5,11 @@ import { getTaskByIdService } from '../task/task.service'
 import { CommentBody } from "./comment.validation";
 
 export const createCommentService = async (
-    taskId: string | string[],
+    taskId: string,
     userId: mongoose.Types.ObjectId,
     data: CommentBody
 ) => {
     
-    taskId = Array.isArray(taskId) ? taskId[0] : taskId;
     const existingTask = await getTaskByIdService(taskId, userId);
 
     if (!existingTask) {

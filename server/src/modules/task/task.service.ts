@@ -1,5 +1,5 @@
 
-import { Task, ITask } from "./task.model";
+import { Task } from "./task.model";
 import { Project } from "../project/project.model";
 import mongoose from 'mongoose'
 import { GetTaskResponse, PopulatedTask, TaskFilter } from "../../types/task.types";
