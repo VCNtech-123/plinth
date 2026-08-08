@@ -46,30 +46,30 @@ export const getCommentsByTaskId = async (
         query: GetCommentsQuery
     }
 
-    const comments = await getCommentsByTaskIdService(
+    const result = await getCommentsByTaskIdService(
         taskId,
         req.user!._id,
         query
     )
 
-    if (!comments) {
+    if (!result) {
         throw new ApiError(404, "Task not found");
     }
 
+    const { comments, results } = result
+
     res.status(200).json({
         status: "success",
+        result: results,
         data: comments.map((comment) => ({
             id: comment._id,
             content: comment.content,
-            task: comment.task,
             author: {
+                id: comment.author._id,
                 name: comment.author.name,
                 email: comment.author.email
             },
-            owner: comment.owner,
             createdAt: comment.createdAt
         }))
     });
-
-    
 }
