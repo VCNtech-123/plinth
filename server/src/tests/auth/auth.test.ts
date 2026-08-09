@@ -1,11 +1,11 @@
 import request from "supertest";
-import app from "../app";
+import app from "../../app";
 import {
   registerUser,
   loginUser,
   createAndLoginUser,
   TestUser,
-} from "./utils/auth.helper";
+} from "../utils/auth.helper";
 
 describe("Auth API", () => {
   it("should register a new user", async () => {
