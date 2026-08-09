@@ -4,25 +4,18 @@ import { WorkspaceMember } from "./workspaceMember.model";
 
 export const createDefaultWorkspaceForUser = async (
   userId: mongoose.Types.ObjectId,
-  userName: string,
-  session?: mongoose.ClientSession
+  userName: string
 ) => {
-  const workspace = await Workspace.create(
-    [{
-      name: `${userName}'s Workspace`,
-      createdBy: userId,
-    }],
-    { session }
-  );
+  const workspace = await Workspace.create({
+    name: `${userName}'s Workspace`,
+    createdBy: userId,
+  });
 
-  await WorkspaceMember.create(
-    [{
-      workspace: workspace[0]._id,
-      user: userId,
-      role: "owner",
-    }],
-    { session }
-  );
+  await WorkspaceMember.create({
+    workspace: workspace._id,
+    user: userId,
+    role: "owner",
+  });
 
-  return workspace[0];
+  return workspace;
 };
