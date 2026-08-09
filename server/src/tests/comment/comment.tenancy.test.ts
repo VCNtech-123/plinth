@@ -38,4 +38,39 @@ describe("Comment Tenancy Isolation", () => {
 
     expect(res.status).toBe(404);
   });
+
+  it("should not allow a user to fetch another user's comments", async () => {
+    const userA: TestUser = {
+        name: "User A2",
+        email: "usera2@example.com",
+        password: "StrongPass123",
+    };
+
+    const cookieA = await createAndLoginUser(userA);
+
+    const clientId = await createClient(cookieA);
+    const projectId = await createProject(cookieA, clientId);
+    const taskId = await createTask(cookieA, projectId);
+
+    // ✅ Create comment as User A
+    await request(app)
+        .post(`/api/tasks/${taskId}/comments`)
+        .set("Cookie", cookieA)
+        .send({ content: "Secret comment" });
+
+    // ✅ User B
+    const userB: TestUser = {
+        name: "User B2",
+        email: "userb2@example.com",
+        password: "StrongPass123",
+    };
+
+    const cookieB = await createAndLoginUser(userB);
+
+    const res = await request(app)
+        .get(`/api/tasks/${taskId}/comments`)
+        .set("Cookie", cookieB);
+
+    expect(res.status).toBe(404);
+    });
 });
