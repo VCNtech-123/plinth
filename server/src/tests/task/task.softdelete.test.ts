@@ -1,12 +1,12 @@
 import request from "supertest";
-import app from "../app";
+import app from "../../app";
 import {
   createAndLoginUser,
   TestUser,
-} from "./utils/auth.helper";
-import { createClient } from "./utils/client.helper";
-import { createProject } from "./utils/project.helper";
-import { createTask } from "./utils/task.helper";
+} from "../utils/auth.helper";
+import { createClient } from "../utils/client.helper";
+import { createProject } from "../utils/project.helper";
+import { createTask } from "../utils/task.helper";
 
 describe("Task Soft Delete Lifecycle", () => {
   it("should soft delete and restore a task independently", async () => {

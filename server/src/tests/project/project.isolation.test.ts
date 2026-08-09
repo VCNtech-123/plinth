@@ -1,11 +1,11 @@
 import request from "supertest";
-import app from "../app";
+import app from "../../app";
 import {
   createAndLoginUser,
   TestUser,
-} from "./utils/auth.helper";
-import { createClient } from "./utils/client.helper";
-import { createProject } from "./utils/project.helper";
+} from "../utils/auth.helper";
+import { createClient } from "../utils/client.helper";
+import { createProject } from "../utils/project.helper";
 
 describe("Project Tenant Isolation", () => {
   it("should prevent one user from accessing another user's project", async () => {

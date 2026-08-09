@@ -1,10 +1,10 @@
 import request from "supertest";
-import app from "../app";
+import app from "../../app";
 import {
   createAndLoginUser,
   TestUser,
-} from "./utils/auth.helper";
-import { createClient } from "./utils/client.helper";
+} from "../utils/auth.helper";
+import { createClient } from "../utils/client.helper";
 
 describe("Client Soft Delete Lifecycle", () => {
   it("should soft delete and restore a client correctly", async () => {
