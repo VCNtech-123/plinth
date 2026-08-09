@@ -1,12 +1,12 @@
 import request from "supertest";
-import app from "../app";
+import app from "../../app";
 import {
   createAndLoginUser,
   TestUser,
-} from "./utils/auth.helper";
-import { createClient } from "./utils/client.helper";
-import { createProject } from "./utils/project.helper";
-import { createTask } from "./utils/task.helper";
+} from "../utils/auth.helper";
+import { createClient } from "../utils/client.helper";
+import { createProject } from "../utils/project.helper";
+import { createTask } from "../utils/task.helper";
 
 describe("Project Soft Delete Cascade", () => {
   it("should soft delete a project and cascade delete its tasks", async () => {
