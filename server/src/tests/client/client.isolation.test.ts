@@ -1,10 +1,10 @@
 import request from "supertest";
-import app from "../app";
+import app from "../../app";
 import {
   createAndLoginUser,
   TestUser,
-} from "./utils/auth.helper";
-import { createClient } from "./utils/client.helper";
+} from "../utils/auth.helper";
+import { createClient } from "../utils/client.helper";
 
 describe("Client Tenant Isolation", () => {
   it("should prevent one user from accessing another user's client", async () => {
