@@ -4,42 +4,30 @@ import { Types } from 'mongoose'
 import { createDefaultWorkspaceForUser } from '../workspace/workspace.service'
 import mongoose from "mongoose";
 
-export const registerUser = async ( 
-    name: string,
-    email: string,
-    password: string
+export const registerUser = async (
+  name: string,
+  email: string,
+  password: string
 ) => {
-    const existingUser = await User.findOne({ email });
+  const existingUser = await User.findOne({ email });
 
-    if (existingUser) {
-        throw new ApiError(401, 'Email already registered!');
-    }
+  if (existingUser) {
+    throw new ApiError(401, "Email already registered!");
+  }
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
+  const user = await User.create({
+    name,
+    email,
+    password,
+  });
 
-    try {
-        const user = await User.create(
-        [{ name, email, password }],
-        { session }
-        );
+  await createDefaultWorkspaceForUser(
+    user._id,
+    user.name
+  );
 
-        await createDefaultWorkspaceForUser(
-        user[0]._id,
-        user[0].name,
-        session
-        );
-
-        await session.commitTransaction();
-        session.endSession();
-
-        return user[0];
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        throw error;
-    }
-}
+  return user;
+};
 
 export const loginUser = async (
     email: string,
