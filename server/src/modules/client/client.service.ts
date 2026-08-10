@@ -86,7 +86,7 @@ export const getClientByIdService = async (
   const [recentProjects, allProjectIds] = await Promise.all([
     Project.find({
       client: id,
-      owner: workspaceId,
+      workspace: workspaceId,
       isDeleted: false,
     })
       .sort({ createdAt: -1 })
@@ -96,7 +96,7 @@ export const getClientByIdService = async (
 
     Project.find({
       client: id,
-      owner: workspaceId,
+      workspace: workspaceId,
       isDeleted: false,
     }).distinct("_id"),
   ]);
@@ -109,25 +109,25 @@ export const getClientByIdService = async (
   ] = await Promise.all([
     Project.countDocuments({
       client: id,
-      owner: workspaceId,
+      workspace: workspaceId,
       isDeleted: false,
     }),
 
     Project.countDocuments({
       client: id,
-      owner: workspaceId,
+      workspace: workspaceId,
       isDeleted: false,
       status: "active",
     }),
 
     Task.countDocuments({
-      owner: workspaceId,
+      workspace: workspaceId,
       project: { $in: allProjectIds },
       isDeleted: false,
     }),
 
     Task.countDocuments({
-      owner: workspaceId,
+      workspace: workspaceId,
       project: { $in: allProjectIds },
       isDeleted: false,
       dueDate: { $lt: now },
