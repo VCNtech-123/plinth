@@ -8,7 +8,7 @@ export interface ITask {
     priority?: "low" | "medium" | "high";
     dueDate?: Date;
     project: mongoose.Types.ObjectId;
-    owner: mongoose.Types.ObjectId;
+    workspace: mongoose.Types.ObjectId;
     assignee: mongoose.Types.ObjectId;
     isDeleted: boolean;
     createdAt: Date;
@@ -43,9 +43,9 @@ const taskSchema = new Schema<ITask>(
             ref: "Project",
             required: true
         },
-        owner: {
+        workspace: {
             type: Schema.Types.ObjectId,
-            ref: "User",
+            ref: "Workspace",
             required: true
         },
         assignee: {
@@ -63,7 +63,7 @@ const taskSchema = new Schema<ITask>(
     }
 );
 
-taskSchema.index({ owner: 1 });
+taskSchema.index({ workspace: 1 });
 taskSchema.index({ project: 1 });
 taskSchema.index({ status: 1 });
 taskSchema.index({ isDeleted: 1 });

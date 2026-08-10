@@ -4,28 +4,30 @@ import { Client } from '../client/client.model';
 import { Task } from '../task/task.model';
 import { ApiError } from '../../utils/ApiError';
 import { ProjectDetailsResult, PopulatedProject, ProjectsFilter } from '../../types/project.types';
+import { getClientByIdService } from '../client/client.service';
 import mongoose from 'mongoose';
 import { GetProjectsQuery, UpdateProjectData } from './project.validation'
 
 
 export const createProjectService = async (
   data: Partial<IProject>,
-  userId: mongoose.Types.ObjectId
-): Promise<IProject> => {
+  workspaceId: mongoose.Types.ObjectId
+): Promise<IProject | null> => {
 
-  const client = await Client.findOne({
-    _id: data.client,
-    owner: userId,
-    isDeleted: false
-  });
+  if (!data.client) {
+    return null
+  }
+
+  const clientId = data.client.toString()
+  const client = await getClientByIdService(clientId, workspaceId)
 
   if (!client) {
-    throw new ApiError(400, "Invalid client");
+    return null
   }
 
   const project = await Project.create({
     ...data,
-    owner: userId
+    workspace: workspaceId
   });
 
   return project;
@@ -33,20 +35,20 @@ export const createProjectService = async (
 
 
 export const getProjectByIdService = async (
-  id: string | string[],
-  userId: mongoose.Types.ObjectId
-): Promise<ProjectDetailsResult> => {
+  id: string,
+  workspaceId: mongoose.Types.ObjectId
+): Promise<ProjectDetailsResult | null> => {
   
   const project = await Project.findOne({
     _id: id,
-    owner: userId,
+    workspace: workspaceId,
     isDeleted: false
   })
   .populate("client", "name")
   .lean<PopulatedProject>();
 
   if (!project) {
-    throw new ApiError(404, "No Project found")
+    return null
   }
 
   const
@@ -58,7 +60,7 @@ export const getProjectByIdService = async (
      ] = await Promise.all([
       Task.find({
         project: id,
-        owner: userId,
+        workspace: workspaceId,
         isDeleted: false,
       })
         .sort({ createdAt: -1 })
@@ -67,20 +69,20 @@ export const getProjectByIdService = async (
 
       Task.countDocuments({
         project: id,
-        owner: userId,
+        workspace: workspaceId,
         isDeleted: false,
       }),
 
       Task.countDocuments({
         project: id,
-        owner: userId,
+        workspace: workspaceId,
         isDeleted: false,
         status: "done",
       }),
 
       Task.countDocuments({
         project: id,
-        owner: userId,
+        workspace: workspaceId,
         isDeleted: false,
         dueDate: { $lt: new Date() },
         status: "in-progress"
@@ -89,7 +91,7 @@ export const getProjectByIdService = async (
 
     const completionRate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
     const progressPercent = totalTasks === 0 ? 0 : (completedTasks / totalTasks) * 100;
-    const inProgressCount = totalTasks === 0 ? 0 : totalTasks - completedTasks - overdueTasks;
+    const inProgressCount = tasks.filter((t) => t.status === "in-progress").length;
 
     return {
       project,
@@ -106,7 +108,7 @@ export const getProjectByIdService = async (
 }
 
 export const getProjectsService = async (
-  userId: mongoose.Types.ObjectId,
+  workspaceId: mongoose.Types.ObjectId,
   query: GetProjectsQuery
 ) => {
 
@@ -114,7 +116,7 @@ export const getProjectsService = async (
   const skip = Math.max(0, (page - 1) * limit);
 
   const filter: ProjectsFilter = {
-    owner: userId,
+    workspace: workspaceId,
     isDeleted: false,
   };
 
@@ -141,7 +143,7 @@ export const getProjectsService = async (
   ])
 
   if (!projects) {
-    throw new ApiError(404, "No projects found");
+    return null
   }
 
   return {
@@ -153,8 +155,8 @@ export const getProjectsService = async (
 };
 
 export const updateProjectService = async (
-  id: string | string[],
-  userId: mongoose.Types.ObjectId,
+  id: string,
+  workspaceId: mongoose.Types.ObjectId,
   data: UpdateProjectData
 ) => {
 
@@ -169,21 +171,17 @@ export const updateProjectService = async (
 
 
     if (updateData.client) {
-    const client = await Client.findOne({
-      _id: updateData.client,
-      owner: userId,
-      isDeleted: false,
-    });
+    const client = await getClientByIdService(updateData.client, workspaceId)
 
     if (!client) {
-      throw new ApiError(400, "Invalid client");
+      return null
     }
   }
 
   const updatedProject = await Project.findOneAndUpdate(
     {
       _id: id,
-      owner: userId,
+      workspace: workspaceId,
       isDeleted: false
     },
     updateData,
@@ -191,7 +189,7 @@ export const updateProjectService = async (
   );
 
   if (!updatedProject) {
-    throw new ApiError(404, "Project not found");
+    return null
   }
 
   return updatedProject;
@@ -199,13 +197,13 @@ export const updateProjectService = async (
 
 export const deleteProjectService = async (
   id: string,
-  userId: mongoose.Types.ObjectId
+  workspaceId: mongoose.Types.ObjectId
 ) => {
 
-  const deletedProject = Project.findOneAndUpdate(
+  const deletedProject = await Project.findOneAndUpdate(
     {
     _id: id,
-      owner: userId,
+      workspace: workspaceId,
       isDeleted: false
     },
     {
@@ -217,13 +215,13 @@ export const deleteProjectService = async (
   );
 
   if (!deletedProject) {
-    throw new ApiError(404, 'Project not found');
+    return null
   }
 
   await Task.updateMany(
     {
       project: id,
-      owner: userId,
+      workspace: workspaceId,
       isDeleted: false
     },
     {
@@ -236,12 +234,12 @@ export const deleteProjectService = async (
 
 export const restoreProjectService = async (
   id: string, 
-  userId: mongoose.Types.ObjectId
+  workspaceId: mongoose.Types.ObjectId
 ) => {
 
   const restoredProject = await Project.findOneAndUpdate(
     {
-      owner: userId,
+      workspace: workspaceId,
       _id: id,
       isDeleted: true
     },
@@ -252,7 +250,7 @@ export const restoreProjectService = async (
   );
 
   if (!restoredProject) {
-    throw new ApiError(404, "Project not found")
+    return null
   }
 
   return restoredProject;

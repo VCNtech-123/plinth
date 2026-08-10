@@ -8,7 +8,7 @@ export interface IProject extends mongoose.Document {
     deadline?: Date;
     budget?: number;
     client: mongoose.Types.ObjectId;
-    owner: mongoose.Types.ObjectId;
+    workspace: mongoose.Types.ObjectId;
     isDeleted: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -40,9 +40,9 @@ const projectSchema = new Schema<IProject>(
       ref: "Client",
       required: true,
     },
-    owner: {
+    workspace: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Workspace",
       required: true,
     },
     isDeleted: {
@@ -55,7 +55,7 @@ const projectSchema = new Schema<IProject>(
   }
 )
 
-projectSchema.index({ owner: 1 });
+projectSchema.index({ workspace: 1 });
 projectSchema.index({ client: 1 });
 projectSchema.index({ status: 1 });
 projectSchema.index({ isDeleted: 1 });

@@ -37,7 +37,7 @@ export type PopulatedProject = Omit<IProject, "client"> & {
 };
 
 export interface ProjectsFilter {
-  owner: Types.ObjectId
+  workspace: Types.ObjectId
   page?: string | number;
   status?: "active" | "completed" | "paused";
   search?: string;

@@ -1,7 +1,6 @@
 
 import { Request, Response } from "express";
 import { createTaskService, getTaskService, getTaskByIdService, updateTaskByIdService, deleteTaskService, restoreTaskService } from "./task.service";
-import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError";
 import { GetTasksQuery, TaskBody } from "./task.validation";
 
@@ -16,7 +15,7 @@ export const createTask = async (
 
     const task = await createTaskService(
         body, 
-        req.user!._id
+        req.workspace!._id
     );
 
     if (!task) {
@@ -48,7 +47,7 @@ export const getTasks = async (
     }
 
     const { tasks, page, pages, total } =  await getTaskService(
-        req.user!._id,
+        req.workspace!._id,
         query
     )
 
@@ -69,11 +68,11 @@ export const getTasks = async (
       status: task.status,
       priority: task.priority,
       dueDate: task.dueDate,
-      project: {
+      project: task.project ? {
             id: task.project._id,
             name: task.project.name
-        },
-      assignee: {
+        } : null,
+      assignee:  {
             id: task.assignee?._id,
             name: task.assignee?.name,
             email: task.assignee?.email
@@ -88,9 +87,10 @@ export const getTaskById = async (
     res: Response
 ) => {
 
+    const id = req.params.id as string
     const task = await getTaskByIdService(
-        req.params.id,
-        req.user!._id
+        id,
+        req.workspace!._id
     );
 
     if (!task) {
@@ -106,15 +106,15 @@ export const getTaskById = async (
         status: task.status,
         priority: task.priority,
         dueDate: task.dueDate,
-        project: {
+        project: task.project ? {
             id: task.project._id,
             name: task.project.name,
-        },
-        assignee: {
+        } : null,
+        assignee: task.assignee ? {
             id: task.assignee?._id,
             name: task.assignee?.name,
             email: task.assignee?.email
-        },
+        } : null,
         createdAt: task.createdAt
         }
     })
@@ -125,10 +125,14 @@ export const updateTaskById = async (
     res: Response
 ) => {
 
+    const id = req.params.id as string
+    const { body } = res.locals.validated as {
+        body: TaskBody
+    }
     const updatedTask = await updateTaskByIdService(
-        req.params.id,
-        req.user!._id,
-        req.body
+        id,
+        req.workspace!._id,
+        body
     )
 
     if (!updatedTask) {
@@ -144,8 +148,8 @@ export const updateTaskById = async (
         status: updatedTask.status,
         priority: updatedTask.priority,
         project: {
-            id: updatedTask.project._id,
-            name: updatedTask.project.name,
+            id: updatedTask.project?._id,
+            name: updatedTask.project?.name,
         },
         assignee: {
             id: updatedTask.assignee?._id,
@@ -163,9 +167,10 @@ export const deleteTask = async (
     res: Response
 ) => {
 
+    const id = req.params.id as string
     const deletedTask = await deleteTaskService(
-        req.params.id, 
-        req.user!._id
+        id, 
+        req.workspace!._id
     );
 
     if (!deletedTask) {
@@ -183,9 +188,10 @@ export const restoreTask = async (
     res: Response
 ) => {
 
+    const id = req.params.id as string
     const restoredTask = await restoreTaskService(
-        req.params.id,
-        req.user!._id
+        id,
+        req.workspace!._id
     );
 
     if (!restoredTask) {
@@ -194,6 +200,6 @@ export const restoreTask = async (
 
     res.status(200).json({
         status: "success",
-        message: "Task restored succesfully"
+        message: "Task restored successfully"
     });
 }

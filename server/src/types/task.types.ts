@@ -26,7 +26,7 @@ export type PopulatedTask = Omit<ITask, "project"> & {
 }
 
 export interface TaskFilter {
-  owner: Types.ObjectId
+  workspace: Types.ObjectId
   priority?: "low" | "medium" | "high"
   status?: "todo" | "in-progress" | "done";
   project?: string;
