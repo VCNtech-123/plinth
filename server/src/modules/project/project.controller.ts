@@ -7,8 +7,12 @@ import { GetProjectsQuery, UpdateProjectData } from './project.validation';
 export const createProject = async (req: Request, res: Response) => {
     const project = await createProjectService(
         req.body,
-        req.user!._id
+        req.workspace!._id
     );
+
+    if (!project) {
+      throw new ApiError(409, "Project already exists")
+    }
 
     res.status(201).json({
         status: "success",
@@ -30,10 +34,15 @@ export const getProjectById = async (
     res: Response,
 ) => {
 
+    const id = req.params.id as string
     const result = await getProjectByIdService(
-        req.params.id,
-        req.user!._id
+        id,
+        req.workspace!._id
     );
+    
+    if (!result) {
+      throw new ApiError(404, "No project found")
+    }
 
     const { project, tasks, stats } = result
 
@@ -65,7 +74,7 @@ export const getProjectById = async (
         id: task._id,
         title: task.title,
         status: task.status,
-        dueDate: task.createdAt,
+        dueDate: task.dueDate,
         priority: task.priority
       }))  
     }
@@ -82,9 +91,13 @@ export const getProjects = async (
   };
 
   const result = await getProjectsService(
-    req.user!._id,
+    req.workspace!._id,
     query
   );
+
+  if (!result) {
+    throw new ApiError(404, "No project found")
+  }
 
   res.status(200).json({
     status: "success",
@@ -116,12 +129,16 @@ export const updateProject = async (
     body: UpdateProjectData
    }
 
+  const id = req.params.id as string
   const updatedProject = await updateProjectService(
-    req.params.id,
-    req.user!._id,
+    id,
+    req.workspace!._id,
     body
   );
-
+  
+  if (!updatedProject) {
+    throw new ApiError(404, "No project found")
+  }
 
 
   res.status(200).json({
@@ -148,12 +165,12 @@ export const deleteProject = async (
 
   await deleteProjectService(
     id,
-    req.user!._id
+    req.workspace!._id
   );
 
   res.status(200).json({
-    status: "successful",
-    message: "Project deleted succesfully"
+    status: "success",
+    message: "Project deleted successfully"
   });
 }
 
@@ -166,12 +183,16 @@ export const restoreProject = async (
 
     const restoredProject = await restoreProjectService(
       id,
-      req.user!._id
+      req.workspace!._id
     )
+
+     if (!restoredProject) {
+      throw new ApiError(404, "No project found")
+    }
 
     res.status(200).json({
       status: "success",
-      message: "Project restored succesfully",
+      message: "Project restored successfully",
       data: {
       id: restoredProject._id,
       name: restoredProject.name,
