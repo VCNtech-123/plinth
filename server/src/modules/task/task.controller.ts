@@ -126,10 +126,13 @@ export const updateTaskById = async (
 ) => {
 
     const id = req.params.id as string
+    const { body } = res.locals.validated as {
+        body: TaskBody
+    }
     const updatedTask = await updateTaskByIdService(
         id,
         req.workspace!._id,
-        req.body
+        body
     )
 
     if (!updatedTask) {
@@ -197,6 +200,6 @@ export const restoreTask = async (
 
     res.status(200).json({
         status: "success",
-        message: "Task restored succesfully"
+        message: "Task restored successfully"
     });
 }
