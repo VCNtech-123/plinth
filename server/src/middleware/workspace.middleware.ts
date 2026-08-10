@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { WorkspaceMember } from "../modules/workspace/workspaceMember.model";
-import { Workspace } from "../modules/workspace/workspace.model";
 import { ApiError } from "../utils/ApiError";
+import { IWorkspace } from "../modules/workspace/workspace.model";
 
 export const attachWorkspace = async (
   req: Request,
@@ -14,20 +14,17 @@ export const attachWorkspace = async (
 
   const membership = await WorkspaceMember.findOne({
     user: req.user._id,
-  });
+  }).populate("workspace");
 
-  if (!membership) {
+  if (!membership || !membership.workspace) {
     return next(
       new ApiError(403, "User is not part of any workspace")
     );
   }
 
-  const workspace = await Workspace.findOne({
-    _id: membership.workspace,
-    isDeleted: false,
-  });
+  const workspace = membership.workspace as IWorkspace;
 
-  if (!workspace) {
+  if (workspace.isDeleted) {
     return next(
       new ApiError(403, "Workspace not found or deleted")
     );

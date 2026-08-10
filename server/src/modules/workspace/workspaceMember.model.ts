@@ -1,11 +1,12 @@
 
 import mongoose, { Schema } from "mongoose";
+import { IWorkspace } from "./workspace.model";
 
 export type WorkspaceRole = "owner" | "admin" | "member" | "viewer";
 
 export interface IWorkspaceMember {
     _id: mongoose.Types.ObjectId
-    workspace: mongoose.Types.ObjectId;
+    workspace: mongoose.Types.ObjectId | IWorkspace;
     user: mongoose.Types.ObjectId;
     role: WorkspaceRole;
     joinedAt: Date;
