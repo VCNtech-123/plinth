@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
+import { Workspace } from '../workspace/workspace.model';
 
 export interface IClient extends mongoose.Document {
     name: string;
@@ -7,7 +8,7 @@ export interface IClient extends mongoose.Document {
     company?: string;
     notes?: string;
     status: 'active' | 'inactive';
-    owner: mongoose.Types.ObjectId;
+    workspace: mongoose.Types.ObjectId;
     isDeleted: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -42,9 +43,9 @@ const clientSchema = new Schema<IClient>(
             enum: ["active", "inactive"],
             default: "active"
         },
-        owner: {
+        workspace: {
             type: Schema.Types.ObjectId,
-            ref: 'User',
+            ref: 'Workspace',
             required: true
         },
         isDeleted: {
@@ -57,7 +58,7 @@ const clientSchema = new Schema<IClient>(
     }
 )
 
-clientSchema.index({ owner: 1 });
+clientSchema.index({ Workspace: 1 });
 clientSchema.index({ isDeleted: 1 });
 
 export const Client = mongoose.model<IClient>("Client", clientSchema)
