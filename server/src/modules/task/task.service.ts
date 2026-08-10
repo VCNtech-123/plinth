@@ -7,10 +7,10 @@ import { TaskBody, GetTasksQuery } from './task.validation';
 
 export const createTaskService = async (
     data: TaskBody,
-    userId: mongoose.Types.ObjectId
+    workspaceId: mongoose.Types.ObjectId
 ) => {
 
-    const project = await getProjectByIdService(data.project, userId)
+    const project = await getProjectByIdService(data.project, workspaceId)
 
     if (!project) {
         return null
@@ -18,7 +18,7 @@ export const createTaskService = async (
 
     const task = await Task.create({
         project: data.project,
-        owner: userId,
+        workspace: workspaceId,
         title: data.title,
         description: data.description,
         status: data.status,
@@ -31,7 +31,7 @@ export const createTaskService = async (
 }
 
 export const getTaskService = async (
-    userId: mongoose.Types.ObjectId,
+    workspaceId: mongoose.Types.ObjectId,
     query: GetTasksQuery
 ): Promise<GetTaskResponse> => {
 
@@ -39,7 +39,7 @@ export const getTaskService = async (
     const skip = Math.max(0, (page - 1) * limit);
 
     const filter: TaskFilter = {
-        owner: userId,
+        workspace: workspaceId,
         isDeleted: false
     }
 
@@ -78,13 +78,13 @@ export const getTaskService = async (
 }
 
 export const getTaskByIdService = async (
-    id: string | string[],
-    userId: mongoose.Types.ObjectId
+    id: string,
+    workspaceId: mongoose.Types.ObjectId
 ): Promise<PopulatedTask | null> => {
     
     const task = await Task.findOne({
         _id: id,
-        owner: userId,
+        workspace: workspaceId,
         isDeleted: false
     })
     .populate("project", "name")
@@ -99,8 +99,8 @@ export const getTaskByIdService = async (
 }
 
 export const updateTaskByIdService = async (
-    id: string | string[],
-    userId: mongoose.Types.ObjectId,
+    id: string,
+    workspaceId: mongoose.Types.ObjectId,
     data: TaskBody
 ): Promise<PopulatedTask | null> => {
 
@@ -116,7 +116,7 @@ export const updateTaskByIdService = async (
   const updatedTask = await Task.findOneAndUpdate(
     {
     _id: id,
-    owner: userId,
+    workspace: workspaceId,
     isDeleted: false
   },
     updateData,
@@ -134,14 +134,14 @@ export const updateTaskByIdService = async (
 }
 
 export const deleteTaskService = async (
-    id: string | string[],
-    userId: mongoose.Types.ObjectId
+    id: string,
+    workspaceId: mongoose.Types.ObjectId
 ) => {
 
     const deletedTask = await Task.findOneAndUpdate(
         {
             _id: id,
-            owner: userId,
+            workspace: workspaceId,
             isDeleted: false
         },
         {
@@ -158,13 +158,13 @@ export const deleteTaskService = async (
 }
 
 export const restoreTaskService = async (
-    id: string | string[],
-    userId: mongoose.Types.ObjectId
+    id: string,
+    workspaceId: mongoose.Types.ObjectId
 ) => {
     
     const restoredTask = await Task.findOneAndUpdate(
         {
-            owner: userId,
+            workspace: workspaceId,
             _id: id,
             isDeleted: true
         },
