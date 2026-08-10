@@ -11,7 +11,7 @@ export const createProject = async (req: Request, res: Response) => {
     );
 
     if (!project) {
-      throw new ApiError(409, "Project already exists")
+      throw new ApiError(400, "Failed to create project")
     }
 
     res.status(201).json({
@@ -56,10 +56,10 @@ export const getProjectById = async (
         status: project.status,
         deadline: project.deadline,
         budget: project.budget,
-        client: {
+        client: project.client ? {
           name: project.client.name,
           id: project.client._id
-        },
+        } : null,
         createdAt: project.createdAt
       },
       stats: {

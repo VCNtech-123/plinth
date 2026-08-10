@@ -68,11 +68,11 @@ export const getTasks = async (
       status: task.status,
       priority: task.priority,
       dueDate: task.dueDate,
-      project: {
+      project: task.project ? {
             id: task.project._id,
             name: task.project.name
-        },
-      assignee: {
+        } : null,
+      assignee:  {
             id: task.assignee?._id,
             name: task.assignee?.name,
             email: task.assignee?.email
@@ -106,15 +106,15 @@ export const getTaskById = async (
         status: task.status,
         priority: task.priority,
         dueDate: task.dueDate,
-        project: {
+        project: task.project ? {
             id: task.project._id,
             name: task.project.name,
-        },
-        assignee: {
+        } : null,
+        assignee: task.assignee ? {
             id: task.assignee?._id,
             name: task.assignee?.name,
             email: task.assignee?.email
-        },
+        } : null,
         createdAt: task.createdAt
         }
     })
@@ -148,8 +148,8 @@ export const updateTaskById = async (
         status: updatedTask.status,
         priority: updatedTask.priority,
         project: {
-            id: updatedTask.project._id,
-            name: updatedTask.project.name,
+            id: updatedTask.project?._id,
+            name: updatedTask.project?.name,
         },
         assignee: {
             id: updatedTask.assignee?._id,
