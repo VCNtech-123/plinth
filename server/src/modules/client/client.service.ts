@@ -178,12 +178,12 @@ export const updateClientService = async (
 
 export const deleteClientService = async (
  id: string,
- workpsaceId: mongoose.Types.ObjectId,
+ workspaceId: mongoose.Types.ObjectId,
 ) => {
   const deletedClient = await Client.findOneAndUpdate(
     {
       _id: id,
-      workspace: workpsaceId,
+      workspace: workspaceId,
       isDeleted: false
     },
     {
@@ -199,12 +199,12 @@ export const deleteClientService = async (
 
 export const restoreClientService = async (
   id: string | string[], 
-  workpsaceId: mongoose.Types.ObjectId
+  workspaceId: mongoose.Types.ObjectId
 ) => {
 
   const restoredClient = await Client.findOneAndUpdate(
     {
-      workspace: workpsaceId,
+      workspace: workspaceId,
       _id: id,
       isDeleted: true
     },
