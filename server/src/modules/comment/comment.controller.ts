@@ -2,6 +2,19 @@ import { Request, Response } from "express";
 import { createCommentService, getCommentsByTaskIdService, deleteCommentService, restoreCommentService } from "./comment.service";
 import { CommentBody, GetCommentsQuery } from "./comment.validation";
 import { ApiError } from "../../utils/ApiError";
+import { PopulatedComment } from "../../types/comment.types";
+
+const formatComment = (comment: PopulatedComment) => ({
+  id: comment._id,
+  content: comment.content,
+  author: {
+    id: comment.author._id,
+    name: comment.author.name,
+    email: comment.author.email,
+  },
+  createdAt: comment.createdAt,
+});
+
 
 export const createComment = async (
     req: Request,
@@ -10,12 +23,13 @@ export const createComment = async (
 
     const taskId = req.params.taskId as string
     const { body } = res.locals.validated as {
-        body: CommentBody
+        body: CommentBody,
     };
 
     const comment = await createCommentService(
         taskId,
         req.user!._id,
+        req.workspace!._id,
         body
     )
 
@@ -25,16 +39,7 @@ export const createComment = async (
 
     res.status(201).json({
         status: "success",
-        data: {
-            id: comment._id,
-            content: comment.content,
-            author: {
-                id: comment.author._id,
-                name: comment.author.name,
-                email: comment.author.email
-            },
-            createdAt: comment.createdAt
-        },
+        data: formatComment(comment)
     });
 }
 
@@ -50,7 +55,7 @@ export const getCommentsByTaskId = async (
 
     const result = await getCommentsByTaskIdService(
         taskId,
-        req.user!._id,
+        req.workspace!._id,
         query
     )
 
@@ -63,16 +68,7 @@ export const getCommentsByTaskId = async (
     res.status(200).json({
         status: "success",
         results: results,
-        data: comments.map((comment) => ({
-            id: comment._id,
-            content: comment.content,
-            author: {
-                id: comment.author._id,
-                name: comment.author.name,
-                email: comment.author.email
-            },
-            createdAt: comment.createdAt
-        }))
+        data: comments.map(formatComment)
     });
 }
 
@@ -85,7 +81,7 @@ export const deleteComment = async (
 
     const deletedComment = await deleteCommentService(
         id,
-        req.user!._id
+        req.workspace!._id
     )
 
     if (!deletedComment) {
@@ -94,16 +90,7 @@ export const deleteComment = async (
 
     res.status(200).json({
         status: "success",
-        data: {
-            id: deletedComment._id,
-            content: deletedComment.content,
-            author: {
-                id: deletedComment.author._id,
-                name: deletedComment.author.name,
-                email: deletedComment.author.email
-            },
-            createdAt: deletedComment.createdAt
-        }
+        data: formatComment(deletedComment)
     })
 }
 
@@ -116,7 +103,7 @@ export const restoreComment = async (
 
     const restoredComment = await restoreCommentService(
         id,
-        req.user!._id
+        req.workspace!._id
     )
 
     if (!restoredComment) {
@@ -125,15 +112,6 @@ export const restoreComment = async (
 
     res.status(200).json({
         status: "success",
-        data: {
-            id: restoredComment._id,
-            content: restoredComment.content,
-            author: {
-                id: restoredComment.author._id,
-                name: restoredComment.author.name,
-                email: restoredComment.author.email
-            },
-            createdAt: restoredComment.createdAt
-        }
+        data: formatComment(restoredComment)
     })
 }

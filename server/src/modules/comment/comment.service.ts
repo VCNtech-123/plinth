@@ -8,10 +8,11 @@ import { GetCommentsResponse, PopulatedComment } from '../../types/comment.types
 export const createCommentService = async (
     taskId: string,
     userId: mongoose.Types.ObjectId,
+    workspaceId: mongoose.Types.ObjectId,
     data: CommentBody
 ): Promise<PopulatedComment | null> => {
     
-    const existingTask = await getTaskByIdService(taskId, userId);
+    const existingTask = await getTaskByIdService(taskId, workspaceId);
 
     if (!existingTask) {
         return null
@@ -20,13 +21,9 @@ export const createCommentService = async (
     const comment = await Comment.create({
         content: data.content,
         task: taskId,
-        owner: userId,
+        workspace: workspaceId,
         author: userId,
     });
-
-    if (!comment) {
-        return null;
-    }
 
     const populatedComment = await Comment.findById(comment._id)
         .populate("author", "_id name email")
@@ -37,17 +34,16 @@ export const createCommentService = async (
 
 export const getCommentsByTaskIdService = async (
     taskId: string,
-    userId: mongoose.Types.ObjectId,
+    workspaceId: mongoose.Types.ObjectId,
     query: GetCommentsQuery
 ): Promise<GetCommentsResponse | null> => {
 
     const { page, limit } = query;
     const skip = Math.max(0, (page - 1) * limit);
 
-    const existingTask = await getTaskByIdService(taskId, userId);
+    const existingTask = await getTaskByIdService(taskId, workspaceId);
     const filter = {
-        owner: userId,
-        author: userId,
+        workspace: workspaceId,
         task: taskId,
         isDeleted: false
     }
@@ -76,13 +72,13 @@ export const getCommentsByTaskIdService = async (
 
 export const deleteCommentService = async (
     id: string,
-    userId: mongoose.Types.ObjectId
+    workspaceId: mongoose.Types.ObjectId
 ):Promise<PopulatedComment | null> => {
 
       const deletedComment = await Comment.findOneAndUpdate(
         {
           _id: id,
-          owner: userId,
+          workspace: workspaceId,
           isDeleted: false
         },
         {
@@ -100,12 +96,12 @@ export const deleteCommentService = async (
 
 export const restoreCommentService = async (
   id: string, 
-  userId: mongoose.Types.ObjectId
+  workspaceId: mongoose.Types.ObjectId
 ): Promise<PopulatedComment | null> => {
 
   const restoredComment = await Comment.findOneAndUpdate(
     {
-      owner: userId,
+      workspace: workspaceId,
       _id: id,
       isDeleted: true
     },
