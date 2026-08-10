@@ -9,7 +9,7 @@ export interface GetClientsQuery {
 }
 
 export interface GetClientsFilter {
-  owner: mongoose.Types.ObjectId;
+  workspace: mongoose.Types.ObjectId;
   isDeleted: boolean;
   name?: {
     $regex: string;
@@ -21,7 +21,7 @@ export interface GetClientsFilter {
 export interface LeanClient {
   _id: mongoose.Types.ObjectId | string;
   name: string;
-  owner: mongoose.Types.ObjectId | string;
+  workspace: mongoose.Types.ObjectId | string;
   isDeleted: boolean;
   status: "active" | "inactive";
   email?: string;
