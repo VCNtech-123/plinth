@@ -16,7 +16,7 @@ export const createClientService = async (
   });
 
   if (existingClient) {
-    throw new ApiError(400, "Client already exists");
+    return null;
   }
 
   const client = await Client.create({
