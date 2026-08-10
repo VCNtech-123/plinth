@@ -1,17 +1,20 @@
 import { Request, Response } from "express";
 import { createClientService } from "./client.service";
 import { getClientsService } from "./client.service";
-import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError";
-import { getClientByIdService, updateClientService, deleteClientService, restoreProjectService } from "./client.service";
+import { getClientByIdService, updateClientService, deleteClientService, restoreClientService } from "./client.service";
 import { GetClientsQuery } from "./client.validation";
 
 
 export const createClient = async (req: Request, res: Response) => {
   const client = await createClientService(
     req.body,
-    req.user!._id
+    req.workspace!._id
   );
+
+  if (!client) {
+    throw new ApiError(409, "Client already exists")
+  }
 
   res.status(201).json({
     status: "success",
@@ -35,7 +38,7 @@ export const getClients = async (req: Request, res: Response) => {
   };
 
   const result = await getClientsService(
-    req.user!._id,
+    req.workspace!._id,
     query
   );
 
@@ -63,8 +66,12 @@ export const getClientById = async (req: Request, res: Response) => {
 
   const result = await getClientByIdService(
     id,
-    req.user!._id
+    req.workspace!._id
   );
+
+  if (!result) {
+    throw new ApiError(404, "Client not found")
+  }
 
   const { client, projects, stats } = result;
 
@@ -97,7 +104,7 @@ export const updateClient = async (req: Request, res: Response) => {
 
   const updatedClient = await updateClientService(
     id,
-    req.user!._id,
+    req.workspace!._id,
     req.body
   );
 
@@ -126,12 +133,12 @@ export const deleteClient = async (req: Request, res: Response) => {
 
    await deleteClientService(
     id, 
-    req.user!._id
+    req.workspace!._id
   );
 
   res.status(200).json({
     status: "success",
-    message: "Client deleted succesfully"
+    message: "Client deleted successfully"
   });
 }
 
@@ -140,14 +147,18 @@ export const restoreClient = async (
     res: Response
 ) => {
 
-    const restoredClient = await restoreProjectService(
+    const restoredClient = await restoreClientService(
       req.params.id,
-      req.user!._id
+      req.workspace!._id
     )
+
+    if (!restoredClient) {
+      throw new ApiError(404, "Client not found");
+    }
 
     res.status(200).json({
       status: "success",
-      message: "Project restored succesfully",
+      message: "Client restored succesfully",
       data: {
       id: restoredClient._id,
       name: restoredClient.name,

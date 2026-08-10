@@ -197,7 +197,7 @@ export const deleteClientService = async (
   return deletedClient;
 }
 
-export const restoreProjectService = async (
+export const restoreClientService = async (
   id: string | string[], 
   workpsaceId: mongoose.Types.ObjectId
 ) => {
