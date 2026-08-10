@@ -1,7 +1,6 @@
 
 import { Request, Response } from "express";
 import { createTaskService, getTaskService, getTaskByIdService, updateTaskByIdService, deleteTaskService, restoreTaskService } from "./task.service";
-import mongoose from "mongoose";
 import { ApiError } from "../../utils/ApiError";
 import { GetTasksQuery, TaskBody } from "./task.validation";
 
@@ -16,7 +15,7 @@ export const createTask = async (
 
     const task = await createTaskService(
         body, 
-        req.user!._id
+        req.workspace!._id
     );
 
     if (!task) {
@@ -48,7 +47,7 @@ export const getTasks = async (
     }
 
     const { tasks, page, pages, total } =  await getTaskService(
-        req.user!._id,
+        req.workspace!._id,
         query
     )
 
@@ -88,9 +87,10 @@ export const getTaskById = async (
     res: Response
 ) => {
 
+    const id = req.params.id as string
     const task = await getTaskByIdService(
-        req.params.id,
-        req.user!._id
+        id,
+        req.workspace!._id
     );
 
     if (!task) {
@@ -125,9 +125,10 @@ export const updateTaskById = async (
     res: Response
 ) => {
 
+    const id = req.params.id as string
     const updatedTask = await updateTaskByIdService(
-        req.params.id,
-        req.user!._id,
+        id,
+        req.workspace!._id,
         req.body
     )
 
@@ -163,9 +164,10 @@ export const deleteTask = async (
     res: Response
 ) => {
 
+    const id = req.params.id as string
     const deletedTask = await deleteTaskService(
-        req.params.id, 
-        req.user!._id
+        id, 
+        req.workspace!._id
     );
 
     if (!deletedTask) {
@@ -183,9 +185,10 @@ export const restoreTask = async (
     res: Response
 ) => {
 
+    const id = req.params.id as string
     const restoredTask = await restoreTaskService(
-        req.params.id,
-        req.user!._id
+        id,
+        req.workspace!._id
     );
 
     if (!restoredTask) {
