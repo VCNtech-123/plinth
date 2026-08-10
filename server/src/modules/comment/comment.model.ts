@@ -1,12 +1,13 @@
 
 import mongoose, { Schema } from "mongoose";
+import { Workspace } from "../workspace/workspace.model";
 
 export interface IComment {
   _id: mongoose.Types.ObjectId;
   content: string;
   task: mongoose.Types.ObjectId;
   author: mongoose.Types.ObjectId;
-  owner: mongoose.Types.ObjectId;
+  workspace: mongoose.Types.ObjectId;
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -29,9 +30,9 @@ const commentSchema = new Schema<IComment>(
       ref: "User",
       required: true,
     },
-    owner: {
+    workspace: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Workspace",
       required: true,
     },
     isDeleted: {
@@ -44,7 +45,7 @@ const commentSchema = new Schema<IComment>(
   }
 );
 
-commentSchema.index({ owner: 1 });
+commentSchema.index({ workspace: 1 });
 commentSchema.index({ task: 1 });
 commentSchema.index({ author: 1 });
 commentSchema.index({ isDeleted: 1 });
