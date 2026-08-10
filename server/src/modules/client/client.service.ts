@@ -7,28 +7,28 @@ import { GetClientsQuery, GetClientsFilter, GetClientByIdResponse } from '../../
 
 export const createClientService = async (
   data: Partial<IClient>,
-  userId: mongoose.Types.ObjectId
+  workspaceId: mongoose.Types.ObjectId
 ) => {
   const existingClient = await Client.findOne({
     email: data.email,
-    owner: userId,
+    workspace: workspaceId,
     isDeleted: false,
   });
 
   if (existingClient) {
-    throw new ApiError(400, "Client already exists");
+    return null;
   }
 
   const client = await Client.create({
     ...data,
-    owner: userId,
+    workspace: workspaceId,
   });
 
   return client;
 };
 
 export const getClientsService = async (
-  userId: mongoose.Types.ObjectId,
+  workspaceId: mongoose.Types.ObjectId,
   query: GetClientsQuery
 ) => {
 
@@ -36,7 +36,7 @@ export const getClientsService = async (
     const skip = Math.max(0, (page - 1) * limit);
 
     const filter: GetClientsFilter = {
-      owner: userId,
+      workspace: workspaceId,
       isDeleted: false,
     };
 
@@ -69,16 +69,16 @@ export const getClientsService = async (
 
 export const getClientByIdService = async (
   id: string,
-  userId: mongoose.Types.ObjectId
-): Promise<GetClientByIdResponse> => {
+  workspaceId: mongoose.Types.ObjectId
+): Promise<GetClientByIdResponse | null> => {
   const client = await Client.findOne({
     _id: id,
-    owner: userId,
+    workspace: workspaceId,
     isDeleted: false,
   }).lean();
 
   if (!client) {
-    throw new ApiError(404, "No client found")
+    return null
   }
 
   const now = new Date();
@@ -86,7 +86,7 @@ export const getClientByIdService = async (
   const [recentProjects, allProjectIds] = await Promise.all([
     Project.find({
       client: id,
-      owner: userId,
+      owner: workspaceId,
       isDeleted: false,
     })
       .sort({ createdAt: -1 })
@@ -96,7 +96,7 @@ export const getClientByIdService = async (
 
     Project.find({
       client: id,
-      owner: userId,
+      owner: workspaceId,
       isDeleted: false,
     }).distinct("_id"),
   ]);
@@ -109,25 +109,25 @@ export const getClientByIdService = async (
   ] = await Promise.all([
     Project.countDocuments({
       client: id,
-      owner: userId,
+      owner: workspaceId,
       isDeleted: false,
     }),
 
     Project.countDocuments({
       client: id,
-      owner: userId,
+      owner: workspaceId,
       isDeleted: false,
       status: "active",
     }),
 
     Task.countDocuments({
-      owner: userId,
+      owner: workspaceId,
       project: { $in: allProjectIds },
       isDeleted: false,
     }),
 
     Task.countDocuments({
-      owner: userId,
+      owner: workspaceId,
       project: { $in: allProjectIds },
       isDeleted: false,
       dueDate: { $lt: now },
@@ -149,7 +149,7 @@ export const getClientByIdService = async (
 
 export const updateClientService = async (
   id: string,
-  userId: mongoose.Types.ObjectId,
+  workspaceId: mongoose.Types.ObjectId,
   data: Partial<IClient>
 ) => {
     const updateData: Partial<
@@ -166,7 +166,7 @@ export const updateClientService = async (
     const updatedClient = await Client.findOneAndUpdate(
       {
         _id: id,
-        owner: userId,
+        workspace: workspaceId,
         isDeleted: false,
       },
       updateData,
@@ -178,12 +178,12 @@ export const updateClientService = async (
 
 export const deleteClientService = async (
  id: string,
- userId: mongoose.Types.ObjectId,
+ workpsaceId: mongoose.Types.ObjectId,
 ) => {
   const deletedClient = await Client.findOneAndUpdate(
     {
       _id: id,
-      owner: userId,
+      workspace: workpsaceId,
       isDeleted: false
     },
     {
@@ -197,14 +197,14 @@ export const deleteClientService = async (
   return deletedClient;
 }
 
-export const restoreProjectService = async (
+export const restoreClientService = async (
   id: string | string[], 
-  userId: mongoose.Types.ObjectId
+  workpsaceId: mongoose.Types.ObjectId
 ) => {
 
   const restoredClient = await Client.findOneAndUpdate(
     {
-      owner: userId,
+      workspace: workpsaceId,
       _id: id,
       isDeleted: true
     },
@@ -215,7 +215,7 @@ export const restoreProjectService = async (
   );
 
   if (!restoredClient) {
-    throw new ApiError(404, "Client not found")
+    return null
   }
 
   return restoredClient;

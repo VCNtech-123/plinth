@@ -23,7 +23,7 @@ const workspaceSchema = new Schema<IWorkspace>(
         },
         isDeleted: {
             type: Boolean,
-            default: true
+            default: false
         }
     },
     {
