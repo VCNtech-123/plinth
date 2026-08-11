@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { Workspace } from "./workspace.model";
 import { WorkspaceMember, IWorkspaceMember, WorkspaceRole } from "./workspaceMember.model";
-import { WorkspaceResponse, PopulatedWorkspace, PopulatedMember } from "../../types/workspace.types";
+import { WorkspaceResponse, PopulatedWorkspace, PopulatedMember, PopulatedInvite } from "../../types/workspace.types";
 import { findUserByEmailService } from "../auth/auth.service";
 import { ApiError } from "../../utils/ApiError";
 
@@ -111,11 +111,11 @@ export const addWorkspaceMemberService = async (
 
 export const getInvitesService = async (
   userId: mongoose.Types.ObjectId
-): Promise<PopulatedWorkspace[]> => {
+): Promise<PopulatedInvite[]> => {
     return await WorkspaceMember.find({
         user: userId,
         status: "pending"
-    }).populate<PopulatedWorkspace>("workspace", "_id name createdBy");
+    }).populate<PopulatedInvite>("workspace", "_id name createdBy");
 };
 
 export const acceptInviteService = async (
@@ -133,7 +133,8 @@ export const acceptInviteService = async (
       joinedAt: new Date() 
     },
     { new: true }
-  ).lean<PopulatedMember>();
+  )
+  .populate<PopulatedMember>("user", "_id name email")
 
   if (!membership) {
     throw new ApiError(404, "Invite not found or already accepted");
