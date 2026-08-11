@@ -59,3 +59,15 @@ export const getCurrentUserService = async (userId: Types.ObjectId ) => {
 
     return user
 }
+
+export const findUserByEmailService = async (email: string) => {
+  const user = await User.findOne({
+    email: email
+  })
+
+   if (!user) {
+    throw new ApiError(401, 'No user found')
+  }
+
+  return user
+}

@@ -9,6 +9,7 @@ export interface IWorkspaceMember {
     workspace: mongoose.Types.ObjectId | IWorkspace;
     user: mongoose.Types.ObjectId;
     role: WorkspaceRole;
+    status: "pending" | "active";
     joinedAt: Date;
 }
 
@@ -27,6 +28,11 @@ const workspaceMemberSchema = new Schema<IWorkspaceMember>(
         role: {
             type: String,
             enum: ["owner", "admin", "member", "viewer"]
+        },
+        status: {
+           type: String, 
+            enum: ["pending", "active"], 
+            default: "pending" 
         },
         joinedAt: {
             type: Date,
