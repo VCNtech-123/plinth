@@ -6,14 +6,14 @@ import { getCurrentWorkspace, getWorkspaceMembers, addWorkspaceMember, getInvite
 import { validate } from "../../middleware/validate.middleware";
 import { addWorkspaceMemberSchema, acceptInviteSchema } from "./workspace.validation";
 
+
 const router = Router()
 
+router.patch("/me/invites/:id/accept", protect, validate(acceptInviteSchema), acceptInvite)
 router.use(protect, attachWorkspace)
 router.get("/me", getCurrentWorkspace);
 router.get("/me/members", getWorkspaceMembers);
-router.get("/me/invites", getInvites);
 router.post("/me/members", validate(addWorkspaceMemberSchema), addWorkspaceMember);
-router.patch("/me/:id/accept-invite", validate(acceptInviteSchema), acceptInvite)
-
+router.get("/me/invites", getInvites);
 
 export default router;
