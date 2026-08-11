@@ -5,8 +5,6 @@ export interface IWorkspace {
   name: string;
   createdBy: mongoose.Types.ObjectId;
   isDeleted: boolean;
-  status: "pending" | "active";
-  joinedAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,16 +24,7 @@ const workspaceSchema = new Schema<IWorkspace>(
         isDeleted: {
             type: Boolean,
             default: false
-        },
-        status: {
-           type: String, 
-            enum: ["pending", "active"], 
-            default: "pending" 
-        },
-        joinedAt: { 
-            type: Date, 
-            default: Date.now 
-        },
+        }
     },
     {
         timestamps: true,
