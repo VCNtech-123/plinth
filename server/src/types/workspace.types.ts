@@ -17,3 +17,11 @@ export interface WorkspaceResponse {
     role: WorkspaceRole;
     membersCount: number;
 }
+
+export type PopulatedMember = Omit<IWorkspaceMember, "user"> & {
+  user: {
+    _id: Types.ObjectId
+    name: string,
+    email: string
+  }
+};
