@@ -25,3 +25,13 @@ export interface PopulatedMember extends Omit<IWorkspaceMember, 'user'>, Documen
     email: string;
   };
 }
+
+export interface PopulatedInvite {
+    workspace: {
+        _id: Types.ObjectId,
+        name: string,
+        createdBy: Types.ObjectId
+    },
+    role: WorkspaceRole,
+    status: string
+}
