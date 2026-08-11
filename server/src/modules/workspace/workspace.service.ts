@@ -70,37 +70,35 @@ export const getWorkspaceMembersService = async (
   return members
 }
 
-  export const addWorkspaceMemberService = async (
-    workspaceId: mongoose.Types.ObjectId,
-    email: string,
-    role: WorkspaceRole,
-    requesterMembership: IWorkspaceMember
-  ) => {
+export const addWorkspaceMemberService = async (
+  workspaceId: mongoose.Types.ObjectId,
+  email: string,
+  role: WorkspaceRole,
+  requesterMembership: IWorkspaceMember
+): Promise<PopulatedMember> => {
 
-      if (requesterMembership.role === "admin" && (role === "admin" || role === "owner")) {
-        throw new ApiError(403, "Admins can only invite members and viewers");
-      }
-      
-      const userToAdd = await findUserByEmailService(email);
-
-      if (role === 'admin' || role === "owner") {
-        throw new ApiError(403, "Admins can only create members and viewers")
-      }
-
-      const existingMember = await WorkspaceMember.findOne({
-        workspace: workspaceId,
-        user: userToAdd._id
-      });
-
-      if (existingMember) {
-        throw new ApiError(400, "User is already a member of this workspace");
-      }
-
-      const addedUser = await WorkspaceMember.create({
-        workspace: workspaceId,
-        user: userToAdd._id,
-        role: role
-      })
-
-      return addedUser
+  if (requesterMembership.role === "admin" && (role === "admin" || role === "owner")) {
+    throw new ApiError(403, "Admins can only invite members and viewers");
   }
+      
+  const userToAdd = await findUserByEmailService(email);
+  
+  const existingMember = await WorkspaceMember.findOne({
+    workspace: workspaceId,
+    user: userToAdd._id
+  });
+
+  if (existingMember) {
+    throw new ApiError(400, "User is already a member of this workspace");
+  }
+
+  const addedUser = await WorkspaceMember.create({
+    workspace: workspaceId,
+    user: userToAdd._id,
+    role: role
+  })  
+
+  const fullyPopulatedMember = await addedUser.populate<PopulatedMember>("user", "_id name email");
+
+  return fullyPopulatedMember.toObject() as PopulatedMember;
+}
