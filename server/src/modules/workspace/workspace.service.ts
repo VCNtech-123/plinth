@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { Workspace } from "./workspace.model";
 import { WorkspaceMember } from "./workspaceMember.model";
-import { WorkspaceResponse, PopulatedWorkspace } from "../../types/workspace.types";
+import { WorkspaceResponse, PopulatedWorkspace, PopulatedMember } from "../../types/workspace.types";
 
 export const createDefaultWorkspaceForUser = async (
   userId: mongoose.Types.ObjectId,
@@ -53,4 +53,17 @@ export const getCurrentWorkspaceService = async (
     role: membership.role,
     membersCount
   }
+}
+
+export const getWorkspaceMembersService = async (
+  workspaceId: mongoose.Types.ObjectId
+): Promise<PopulatedMember[]> => {
+
+  const members = await WorkspaceMember.find({
+    workspace: workspaceId
+  }).populate("user", "_id name email")
+    .select("role joinedAt user")
+    .lean<PopulatedMember[]>()
+
+  return members
 }
