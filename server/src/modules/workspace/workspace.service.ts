@@ -82,7 +82,7 @@ export const addWorkspaceMemberService = async (
   }
       
   const userToAdd = await findUserByEmailService(email);
-  
+
   const existingMember = await WorkspaceMember.findOne({
     workspace: workspaceId,
     user: userToAdd._id
@@ -102,3 +102,31 @@ export const addWorkspaceMemberService = async (
 
   return fullyPopulatedMember.toObject() as PopulatedMember;
 }
+
+export const getMyInvitesService = async (userId: mongoose.Types.ObjectId) => {
+    return await WorkspaceMember.find({
+        user: userId,
+        status: "pending"
+    }).populate("workspace", "name");
+};
+
+export const acceptInviteService = async (workspaceId: string, userId: mongoose.Types.ObjectId) => {
+  const membership = await WorkspaceMember.findOneAndUpdate(
+    { 
+      workspace: workspaceId, 
+      user: userId, 
+      status: "pending" 
+    },
+    { 
+      status: "active", 
+      joinedAt: new Date() 
+    },
+    { new: true }
+  );
+
+  if (!membership) {
+    throw new ApiError(404, "Invite not found or already accepted");
+  }
+
+  return membership;
+};
