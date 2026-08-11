@@ -3,11 +3,7 @@ import { IWorkspaceMember, WorkspaceRole } from "../modules/workspace/workspaceM
 import { Types } from "mongoose";
 
 export type PopulatedWorkspace = Omit<IWorkspaceMember, "workspace"> & {
-  workspace: {
-    _id: Types.ObjectId;
-    name: string;
-    createdBy: string;
-  };
+  workspace: LeanWorkspace
 };
 
 export interface LeanWorkspace {
