@@ -18,6 +18,7 @@ export const createDefaultWorkspaceForUser = async (
     workspace: workspace._id,
     user: userId,
     role: "owner",
+    status: "active"
   });
 
   return workspace;
@@ -31,7 +32,8 @@ export const getCurrentWorkspaceService = async (
   const[membership, membersCount] = await Promise.all([
     WorkspaceMember.findOne({ 
       workspace: workspaceId,
-      user: userId
+      user: userId,
+      status: "active"
     })
       .populate({
         path: "workspace",
@@ -41,7 +43,8 @@ export const getCurrentWorkspaceService = async (
       .lean<PopulatedWorkspace>(),
 
     WorkspaceMember.countDocuments({
-      workspace: workspaceId
+      workspace: workspaceId,
+      status: "active"
     })
   ])
 
@@ -62,7 +65,8 @@ export const getWorkspaceMembersService = async (
 ): Promise<PopulatedMember[]> => {
 
   const members = await WorkspaceMember.find({
-    workspace: workspaceId
+    workspace: workspaceId,
+    status: "active"
   }).populate("user", "_id name email")
     .select("role joinedAt user")
     .lean<PopulatedMember[]>()
@@ -85,7 +89,8 @@ export const addWorkspaceMemberService = async (
 
   const existingMember = await WorkspaceMember.findOne({
     workspace: workspaceId,
-    user: userToAdd._id
+    user: userToAdd._id,
+    status: "active"
   });
 
   if (existingMember) {
@@ -95,7 +100,8 @@ export const addWorkspaceMemberService = async (
   const addedUser = await WorkspaceMember.create({
     workspace: workspaceId,
     user: userToAdd._id,
-    role: role
+    role: role,
+    status: "pending"
   })  
 
   const fullyPopulatedMember = await addedUser.populate<PopulatedMember>("user", "_id name email");
@@ -103,14 +109,19 @@ export const addWorkspaceMemberService = async (
   return fullyPopulatedMember.toObject() as PopulatedMember;
 }
 
-export const getMyInvitesService = async (userId: mongoose.Types.ObjectId) => {
+export const getInvitesService = async (
+  userId: mongoose.Types.ObjectId
+): Promise<PopulatedWorkspace[]> => {
     return await WorkspaceMember.find({
         user: userId,
         status: "pending"
-    }).populate("workspace", "name");
+    }).populate<PopulatedWorkspace>("workspace", "_id name createdBy");
 };
 
-export const acceptInviteService = async (workspaceId: string, userId: mongoose.Types.ObjectId) => {
+export const acceptInviteService = async (
+  workspaceId: string, 
+  userId: mongoose.Types.ObjectId
+): Promise<PopulatedMember> => {
   const membership = await WorkspaceMember.findOneAndUpdate(
     { 
       workspace: workspaceId, 
@@ -122,7 +133,7 @@ export const acceptInviteService = async (workspaceId: string, userId: mongoose.
       joinedAt: new Date() 
     },
     { new: true }
-  );
+  ).lean<PopulatedMember>();
 
   if (!membership) {
     throw new ApiError(404, "Invite not found or already accepted");
