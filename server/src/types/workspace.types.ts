@@ -1,6 +1,6 @@
 
 import { IWorkspaceMember, WorkspaceRole } from "../modules/workspace/workspaceMember.model";
-import { Types } from "mongoose";
+import { Types, Document } from "mongoose";
 
 export type PopulatedWorkspace = Omit<IWorkspaceMember, "workspace"> & {
   workspace: LeanWorkspace
@@ -18,10 +18,10 @@ export interface WorkspaceResponse {
     membersCount: number;
 }
 
-export type PopulatedMember = Omit<IWorkspaceMember, "user"> & {
+export interface PopulatedMember extends Omit<IWorkspaceMember, 'user'>, Document {
   user: {
-    _id: Types.ObjectId
-    name: string,
-    email: string
-  }
-};
+    _id: Types.ObjectId;
+    name: string;
+    email: string;
+  };
+}
