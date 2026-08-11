@@ -7,6 +7,7 @@ import projectRoutes from './modules/project/project.routes';
 import taskRoutes from './modules/task/task.routes';
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
 import commentRoutes from './modules/comment/comment.routes'
+import workspaceRoutes from './modules/workspace/workspace.routes'
 import { globalRateLimiter } from "./middleware/rateLimit.middleware";
 import { securityMiddleware } from "./middleware/security.middleware";
 import cookieParser from "cookie-parser";
@@ -31,6 +32,7 @@ app.use("/api/clients", clientRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/workspaces", workspaceRoutes)
 app.use("/api", commentRoutes);
 
 app.use(errorMiddleware);
