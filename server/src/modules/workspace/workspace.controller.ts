@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
-import { getCurrentWorkspaceService, getWorkspaceMembersService } from './workspace.service'
+import { getCurrentWorkspaceService, getWorkspaceMembersService, addWorkspaceMemberService } from './workspace.service'
 import { ApiError } from '../../utils/ApiError'
+import { MemberBody } from './workspace.validation'
 
 export const getCurrentWorkspace = async ( 
     req: Request,
@@ -56,3 +57,37 @@ export const getWorkspaceMembers = async (
         }))
     })
 }
+
+export const addWorkspaceMember = async (
+    req: Request,
+    res: Response
+) => {
+    
+    const { body } = res.locals.validated as {
+        body: MemberBody
+    }
+
+    const { email, role } = body
+
+    const addedMember = await addWorkspaceMemberService(
+        req.workspace!._id,
+        email,
+        role,
+        req.membership!
+    )
+
+    res.status(201).json({
+        status: "success",
+        message: "Member added successfully",
+        data: {
+            user: {
+                id: addedMember.user._id,
+                name: addedMember.user.name,
+                email: addedMember.user.email
+            },
+            role: addedMember.role,
+            joinedAt: addedMember.joinedAt
+            }
+        }
+    )
+}   
