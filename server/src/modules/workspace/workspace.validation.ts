@@ -9,7 +9,7 @@ const memberBodySchema = z.object({
 
 export type MemberBody = z.infer<typeof memberBodySchema>
 
-export const InviteMemberSchema = z.object({
+export const inviteMemberSchema = z.object({
     body: memberBodySchema
 })
 
