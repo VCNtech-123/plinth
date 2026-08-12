@@ -5,15 +5,16 @@ import { createClientSchema, getClientByIdSchema, getClientsSchema, updateClient
 import { getClients, getClientById, updateClient, deleteClient, restoreClient } from './client.controller'
 import { validate } from "../../middleware/validate.middleware";
 import { attachWorkspace } from "../../middleware/workspace.middleware";
+import { authorize } from "../../middleware/authorize.middleware";
 
 const router = Router();
 
 router.use(protect, attachWorkspace)
-router.post("/", validate(createClientSchema), createClient);
+router.post("/", validate(createClientSchema), authorize("owner", "admin", "member"),createClient);
 router.get("/", validate(getClientsSchema), getClients);
 router.get("/:id", validate(getClientByIdSchema), getClientById);
-router.put("/:id", validate(updateClientSchema), updateClient);
-router.delete("/:id", validate(deleteClientSchema), deleteClient);
-router.patch("/:id/restore", validate(restoreClientSchema), restoreClient)
+router.put("/:id", validate(updateClientSchema), authorize("owner", "admin"), updateClient);
+router.delete("/:id", validate(deleteClientSchema), authorize("owner"), deleteClient);
+router.patch("/:id/restore", validate(restoreClientSchema), authorize("owner"), restoreClient)
 
 export default router;
