@@ -4,6 +4,7 @@ import { WorkspaceMember, IWorkspaceMember, WorkspaceRole } from "./workspaceMem
 import { WorkspaceResponse, PopulatedWorkspace, PopulatedMember, PopulatedInvite } from "../../types/workspace.types";
 import { findUserByEmailService } from "../auth/auth.service";
 import { ApiError } from "../../utils/ApiError";
+import { setCurrentWorkspace } from "../user/user.service";
 
 export const createDefaultWorkspaceForUser = async (
   userId: mongoose.Types.ObjectId,
@@ -179,3 +180,27 @@ export const declineInviteService = async (
 
   return membership;
 };
+
+export const srtCurrentWorkplaceService = async (
+  workspaceId: string,
+  userId: mongoose.Types.ObjectId
+) => {
+
+  const membership = await WorkspaceMember.findOne({
+    workspace: workspaceId,
+    user: userId,
+    status: "active"
+  })
+
+  if (!membership) {
+    throw new ApiError(403, "You are not an active member of this workspace");
+  }
+
+  const updatedUser = await setCurrentWorkspace(userId, workspaceId)
+
+   if (!updatedUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return updatedUser
+}

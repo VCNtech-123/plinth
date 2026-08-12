@@ -7,6 +7,7 @@ export interface IUser extends mongoose.Document {
   password: string;
   role: "user" | "admin";
   comparePassword(enteredPassword: string): Promise<boolean>;
+  currentWorkspace: mongoose.Types.ObjectId
 }
 
 const userSchema = new Schema<IUser>(
@@ -33,6 +34,10 @@ const userSchema = new Schema<IUser>(
       enum: ["user", "admin"],
       default: "user",
     },
+    currentWorkspace: {
+      type: Schema.Types.ObjectId,
+      ref: "Workspace"
+    }
   },
   {
     timestamps: true,

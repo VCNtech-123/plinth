@@ -2,7 +2,6 @@ import { User } from "../user/user.model";
 import { ApiError } from '../../utils/ApiError';
 import { Types } from 'mongoose'
 import { createDefaultWorkspaceForUser } from '../workspace/workspace.service'
-import mongoose from "mongoose";
 
 export const registerUser = async (
   name: string,
@@ -21,10 +20,13 @@ export const registerUser = async (
     password,
   });
 
-  await createDefaultWorkspaceForUser(
+  const workspace = await createDefaultWorkspaceForUser(
     user._id,
     user.name
   );
+
+  user.currentWorkspace = workspace._id
+  await user.save();
 
   return user;
 };
@@ -50,7 +52,7 @@ export const loginUser = async (
 
 export const getCurrentUserService = async (userId: Types.ObjectId ) => {
     const user = await User.findById(userId)
-                .select("_id name email")
+                .select("_id name email currentWorkspace")
                 .lean();
 
     if (!user) {
