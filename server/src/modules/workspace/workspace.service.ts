@@ -142,3 +142,16 @@ export const acceptInviteService = async (
 
   return membership;
 };
+
+export const getUserWorkspacesService = async (
+  userId: mongoose.Types.ObjectId
+): Promise<PopulatedWorkspace[]> => {
+    const workspaces = await WorkspaceMember.find({
+      user: userId,
+      status: "active"
+    }).populate("workspace", "_id name createdBy")
+      .select("joinedAt role workspace")
+      .lean<PopulatedWorkspace[]>()
+
+    return workspaces
+}
