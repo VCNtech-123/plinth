@@ -121,10 +121,10 @@ export const acceptInvite = async (
     res.status(200).json({
         status: "success",
         data: {
-            user: {
-                id: workspace.user._id,
-                name: workspace.user.name,
-                email: workspace.user.email
+            workspace: {
+                id: workspace.workspace._id,
+                name: workspace.workspace.name,
+                createdBy: workspace.workspace.createdBy
             },
             role: workspace.role,
             joinedAt: workspace.joinedAt
@@ -147,9 +147,13 @@ export const getUserWorkspaces = async (
     res.status(200).json({
         status: "success",
         data: workspaces.map((workspace) => ({
-            id: workspace.workspace._id,
-            name: workspace.workspace.name,
-            createdBy: workspace.workspace.createdBy
+            workspace: {
+                id: workspace.workspace._id,
+                name: workspace.workspace.name,
+                createdBy: workspace.workspace.createdBy
+            },
+            role: workspace.role,
+            joinedAt: workspace.joinedAt
         }))
     })
 }
