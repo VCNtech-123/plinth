@@ -27,6 +27,7 @@ export interface PopulatedMember extends Omit<IWorkspaceMember, 'user'>, Documen
 }
 
 export interface PopulatedInvite {
+    _id: string;
     workspace: {
         _id: Types.ObjectId,
         name: string,

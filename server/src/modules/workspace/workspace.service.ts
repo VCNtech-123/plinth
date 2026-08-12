@@ -119,12 +119,12 @@ export const getInvitesService = async (
 };
 
 export const acceptInviteService = async (
-  workspaceId: string, 
+  inviteId: string, 
   userId: mongoose.Types.ObjectId
 ): Promise<PopulatedWorkspace> => {
   const membership = await WorkspaceMember.findOneAndUpdate(
     { 
-      workspace: workspaceId, 
+      _id: inviteId, 
       user: userId, 
       status: "pending" 
     },
@@ -134,7 +134,7 @@ export const acceptInviteService = async (
     },
     { new: true }
   )
-  .populate<PopulatedWorkspace>("workspace", "_id name email")
+  .populate<PopulatedWorkspace>("workspace", "_id name created")
 
   if (!membership) {
     throw new ApiError(404, "Invite not found or already accepted");
@@ -155,3 +155,27 @@ export const getUserWorkspacesService = async (
 
     return workspaces
 }
+
+export const declineInviteService = async (
+  inviteId: string, 
+  userId: mongoose.Types.ObjectId
+): Promise<PopulatedInvite> => {
+  const membership = await WorkspaceMember.findOneAndUpdate(
+    { 
+      _id: inviteId, 
+      user: userId, 
+      status: "pending" 
+    },
+    { 
+      status: "declined"
+    },
+    { new: true }
+  )
+  .populate<PopulatedInvite>("workspace", "name createdBy")
+
+  if (!membership) {
+    throw new ApiError(404, "Invite not found or already declined");
+  }
+
+  return membership;
+};

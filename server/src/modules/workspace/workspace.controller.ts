@@ -1,5 +1,8 @@
 import { Request, Response } from 'express'
-import { getCurrentWorkspaceService, getWorkspaceMembersService, inviteUserService, getInvitesService, acceptInviteService, getUserWorkspacesService } from './workspace.service'
+import { getCurrentWorkspaceService, getWorkspaceMembersService, inviteUserService, 
+         getInvitesService, acceptInviteService, getUserWorkspacesService,
+         declineInviteService
+        } from './workspace.service'
 import { ApiError } from '../../utils/ApiError'
 import { MemberBody } from './workspace.validation'
 
@@ -103,9 +106,14 @@ export const getInvites = async (
     res.status(200).json({
         status: "success",
         data: invites.map((invite) => ({
-                id: invite.workspace._id,
-                name: invite.workspace.name,
-                createdBy: invite.workspace.createdBy
+                id: invite._id,
+                workspace: {
+                    id: invite.workspace._id,
+                    name: invite.workspace.name,
+                    createdBy: invite.workspace.createdBy
+                },
+               role: invite.role,
+               status: invite.status
         }))
     })
 }
@@ -120,6 +128,7 @@ export const acceptInvite = async (
 
     res.status(200).json({
         status: "success",
+        message: "Invite accepted",
         data: {
             workspace: {
                 id: workspace.workspace._id,
@@ -158,3 +167,29 @@ export const getUserWorkspaces = async (
         }))
     })
 }
+
+
+export const declineInvite = async (
+    req: Request,
+    res: Response 
+) => {
+
+    const id = req.params.id as string
+    const declinedInvitation = await declineInviteService(id, req.user!._id);
+
+    res.status(200).json({
+        status: "declined",
+        message: "Invite declined",
+        data: {
+            id: declinedInvitation._id,
+            workspace: {
+                id: declinedInvitation.workspace._id,
+                name: declinedInvitation.workspace.name,
+                createdBy: declinedInvitation.workspace.createdBy
+            },
+            role: declinedInvitation.role
+            }
+        }
+    )
+}
+

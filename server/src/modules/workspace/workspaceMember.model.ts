@@ -31,7 +31,7 @@ const workspaceMemberSchema = new Schema<IWorkspaceMember>(
         },
         status: {
            type: String, 
-            enum: ["pending", "active"], 
+            enum: ["pending", "active", "declined"], 
             default: "pending" 
         },
         joinedAt: {
