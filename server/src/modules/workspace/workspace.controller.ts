@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { getCurrentWorkspaceService, getWorkspaceMembersService, addWorkspaceMemberService, getInvitesService, acceptInviteService } from './workspace.service'
+import { getCurrentWorkspaceService, getWorkspaceMembersService, inviteUserService, getInvitesService, acceptInviteService, getUserWorkspacesService } from './workspace.service'
 import { ApiError } from '../../utils/ApiError'
 import { MemberBody } from './workspace.validation'
 
@@ -45,7 +45,8 @@ export const getWorkspaceMembers = async (
     }
 
     res.status(200).json({
-        status: "success",
+        status: "success",  
+        results: members.length,
         data: members.map((member) => ({
             user: {
                 id: member.user._id,
@@ -58,7 +59,7 @@ export const getWorkspaceMembers = async (
     })
 }
 
-export const addWorkspaceMember = async (
+export const inviteUser = async (
     req: Request,
     res: Response
 ) => {
@@ -69,7 +70,7 @@ export const addWorkspaceMember = async (
 
     const { email, role } = body
 
-    const addedMember = await addWorkspaceMemberService(
+    const addedMember = await inviteUserService(
         req.workspace!._id,
         email,
         role,
@@ -120,14 +121,40 @@ export const acceptInvite = async (
     res.status(200).json({
         status: "success",
         data: {
-            user: {
-                id: workspace.user._id,
-                name: workspace.user.name,
-                email: workspace.user.email
+            workspace: {
+                id: workspace.workspace._id,
+                name: workspace.workspace.name,
+                createdBy: workspace.workspace.createdBy
             },
             role: workspace.role,
             joinedAt: workspace.joinedAt
             }
         }
     )
+}
+
+export const getUserWorkspaces = async (
+    req: Request,
+    res: Response
+) => {
+
+    const workspaces = await getUserWorkspacesService(req.user!._id)
+
+    if (!workspaces) {
+        throw new ApiError(404, "No workspaces found")
+    }
+
+    res.status(200).json({
+        status: "success",
+        results: workspaces.length,
+        data: workspaces.map((workspace) => ({
+            workspace: {
+                id: workspace.workspace._id,
+                name: workspace.workspace.name,
+                createdBy: workspace.workspace.createdBy
+            },
+            role: workspace.role,
+            joinedAt: workspace.joinedAt
+        }))
+    })
 }
