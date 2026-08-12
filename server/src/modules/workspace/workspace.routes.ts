@@ -12,10 +12,11 @@ const router = Router()
 
 router.patch("/me/invites/:id/accept", protect, validate(acceptInviteSchema), acceptInvite)
 router.use(protect, attachWorkspace)
+router.get("/", getUserWorkspaces)
 router.get("/me", getCurrentWorkspace);
 router.get("/me/members", getWorkspaceMembers);
-router.post("/me/members", validate(addWorkspaceMemberSchema), authorize("admin"), inviteUser);
+router.post("/me/members", validate(addWorkspaceMemberSchema), authorize("admin", "admin"), inviteUser);
 router.get("/me/invites", getInvites);
-router.get("/", getUserWorkspaces)
+
 
 export default router;
