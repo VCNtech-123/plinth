@@ -2,7 +2,7 @@
 import { Router } from "express";
 import { protect } from "../../middleware/auth.middleware";
 import { attachWorkspace } from "../../middleware/workspace.middleware";
-import { getCurrentWorkspace, getWorkspaceMembers, addWorkspaceMember, getInvites, acceptInvite } from "./workspace.controller";
+import { getCurrentWorkspace, getWorkspaceMembers, inviteUser, getInvites, acceptInvite } from "./workspace.controller";
 import { validate } from "../../middleware/validate.middleware";
 import { addWorkspaceMemberSchema, acceptInviteSchema } from "./workspace.validation";
 
@@ -13,7 +13,7 @@ router.patch("/me/invites/:id/accept", protect, validate(acceptInviteSchema), ac
 router.use(protect, attachWorkspace)
 router.get("/me", getCurrentWorkspace);
 router.get("/me/members", getWorkspaceMembers);
-router.post("/me/members", validate(addWorkspaceMemberSchema), addWorkspaceMember);
+router.post("/me/members", validate(addWorkspaceMemberSchema), inviteUser);
 router.get("/me/invites", getInvites);
 
 export default router;

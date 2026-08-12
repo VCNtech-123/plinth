@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { getCurrentWorkspaceService, getWorkspaceMembersService, addWorkspaceMemberService, getInvitesService, acceptInviteService } from './workspace.service'
+import { getCurrentWorkspaceService, getWorkspaceMembersService, inviteUserService, getInvitesService, acceptInviteService } from './workspace.service'
 import { ApiError } from '../../utils/ApiError'
 import { MemberBody } from './workspace.validation'
 
@@ -45,7 +45,7 @@ export const getWorkspaceMembers = async (
     }
 
     res.status(200).json({
-        status: "success",
+        status: "success",  
         data: members.map((member) => ({
             user: {
                 id: member.user._id,
@@ -58,7 +58,7 @@ export const getWorkspaceMembers = async (
     })
 }
 
-export const addWorkspaceMember = async (
+export const inviteUser = async (
     req: Request,
     res: Response
 ) => {
@@ -69,7 +69,7 @@ export const addWorkspaceMember = async (
 
     const { email, role } = body
 
-    const addedMember = await addWorkspaceMemberService(
+    const addedMember = await inviteUserService(
         req.workspace!._id,
         email,
         role,

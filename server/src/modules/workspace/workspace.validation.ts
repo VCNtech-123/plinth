@@ -14,5 +14,7 @@ export const addWorkspaceMemberSchema = z.object({
 })
 
 export const acceptInviteSchema = z.object({
-    params: objectIdSchema
+    params: z.object({
+        id: objectIdSchema
+    })
 })

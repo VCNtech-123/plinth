@@ -74,7 +74,7 @@ export const getWorkspaceMembersService = async (
   return members
 }
 
-export const addWorkspaceMemberService = async (
+export const inviteUserService = async (
   workspaceId: mongoose.Types.ObjectId,
   email: string,
   role: WorkspaceRole,
