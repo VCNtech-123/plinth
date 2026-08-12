@@ -1,10 +1,10 @@
-import { Client } from '../client/client.model';
+
 import { Project } from '../project/project.model';
 import { Task } from '../task/task.model';
 import mongoose from 'mongoose';
 import { DashboardResponse } from '../../types/dashboard.types';
 
-const getSummaryStats = async (userId: mongoose.Types.ObjectId) => {
+const getSummaryStats = async (workspaceId: mongoose.Types.ObjectId) => {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
   const endOfToday = new Date();
@@ -21,21 +21,21 @@ const getSummaryStats = async (userId: mongoose.Types.ObjectId) => {
     completedThisWeek,
     createdThisWeek,
   ] = await Promise.all([
-    Project.countDocuments({ owner: userId, isDeleted: false }),
+    Project.countDocuments({ workspace: workspaceId, isDeleted: false }),
     Project.countDocuments({
-      owner: userId,
+      workspace: workspaceId,
       status: 'active',
       isDeleted: false,
     }),
     Task.countDocuments({
-      owner: userId,
+      workspace: workspaceId,
       isDeleted: false,
       dueDate: { $lt: startOfToday },
       status: { $ne: 'done' },
     }),
-    Task.countDocuments({ owner: userId, isDeleted: false }),
+    Task.countDocuments({ workspace: workspaceId, isDeleted: false }),
     Task.countDocuments({
-      owner: userId,
+      workspace: workspaceId,
       status: { $ne: 'done' },
       dueDate: {
         $gte: startOfToday,
@@ -44,13 +44,13 @@ const getSummaryStats = async (userId: mongoose.Types.ObjectId) => {
       isDeleted: false,
     }),
     Task.countDocuments({
-      owner: userId,
+      workspace: workspaceId,
       status: 'done',
       updatedAt: { $gte: sevenDaysAgo },
       isDeleted: false,
     }),
     Task.countDocuments({
-      owner: userId,
+      workspace: workspaceId,
       createdAt: { $gte: sevenDaysAgo },
       isDeleted: false,
     }),
@@ -71,7 +71,7 @@ const getSummaryStats = async (userId: mongoose.Types.ObjectId) => {
   };
 };
 
-const get7DayTrends = async (userId: mongoose.Types.ObjectId) => {
+const get7DayTrends = async (workspaceId: mongoose.Types.ObjectId) => {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
   sevenDaysAgo.setHours(0, 0, 0, 0);
@@ -92,7 +92,7 @@ const get7DayTrends = async (userId: mongoose.Types.ObjectId) => {
     Task.aggregate<TrendAggregationResult>([
       {
         $match: {
-          owner: userId,
+          workspace: workspaceId,
           isDeleted: false,
           status: 'done',
           updatedAt: { $gte: sevenDaysAgo },
@@ -108,7 +108,7 @@ const get7DayTrends = async (userId: mongoose.Types.ObjectId) => {
     Task.aggregate<TrendAggregationResult>([
       {
         $match: {
-          owner: userId,
+          workspace: workspaceId,
           isDeleted: false,
           createdAt: { $gte: sevenDaysAgo },
         },
@@ -131,14 +131,14 @@ const get7DayTrends = async (userId: mongoose.Types.ObjectId) => {
   };
 };
 
-const getAtRiskProjects = async (userId: mongoose.Types.ObjectId) => {
+const getAtRiskProjects = async (workspaceId: mongoose.Types.ObjectId) => {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
   return Task.aggregate<{ id: string; name: string; overdueTasks: number }>([
     {
       $match: {
-        owner: userId,
+        workspace: workspaceId,
         isDeleted: false,
         status: { $ne: 'done' },
         dueDate: { $lt: startOfToday },
@@ -179,20 +179,20 @@ const getAtRiskProjects = async (userId: mongoose.Types.ObjectId) => {
   ]);
 };
 
-const getRecentActivity = async (userId: mongoose.Types.ObjectId) => {
+const getRecentActivity = async (workspaceId: mongoose.Types.ObjectId) => {
   interface PopulatedProject {
     _id: mongoose.Types.ObjectId;
     name: string;
   }
 
   const [completedTasks, createdTasks] = await Promise.all([
-    Task.find({ owner: userId, isDeleted: false, status: 'done' })
+    Task.find({ workspace: workspaceId, isDeleted: false, status: 'done' })
       .sort({ updatedAt: -1 })
       .limit(5)
       .populate<{ project?: PopulatedProject }>('project', 'name')
       .lean(),
 
-    Task.find({ owner: userId, isDeleted: false })
+    Task.find({ workspace: workspaceId, isDeleted: false })
       .sort({ createdAt: -1 })
       .limit(5)
       .populate<{ project?: PopulatedProject }>('project', 'name')
@@ -220,13 +220,13 @@ const getRecentActivity = async (userId: mongoose.Types.ObjectId) => {
 };
 
 export const getDashboardService = async (
-  userId: mongoose.Types.ObjectId
+  workspaceId: mongoose.Types.ObjectId
 ): Promise<DashboardResponse> => {
   const [summary, trends, atRiskProjects, recentActivity] = await Promise.all([
-    getSummaryStats(userId),
-    get7DayTrends(userId),
-    getAtRiskProjects(userId),
-    getRecentActivity(userId),
+    getSummaryStats(workspaceId),
+    get7DayTrends(workspaceId),
+    getAtRiskProjects(workspaceId),
+    getRecentActivity(workspaceId),
   ]);
 
   return {
