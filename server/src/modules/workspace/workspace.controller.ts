@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
-import { getCurrentWorkspaceService, getWorkspaceMembersService, inviteUserService, getInvitesService, acceptInviteService } from './workspace.service'
+import { getCurrentWorkspaceService, getWorkspaceMembersService, inviteUserService, getInvitesService, acceptInviteService, getUserWorkspacesService } from './workspace.service'
 import { ApiError } from '../../utils/ApiError'
 import { MemberBody } from './workspace.validation'
+import { Workspace } from './workspace.model'
 
 export const getCurrentWorkspace = async ( 
     req: Request,
@@ -130,4 +131,25 @@ export const acceptInvite = async (
             }
         }
     )
+}
+
+export const getUserWorkspaces = async (
+    req: Request,
+    res: Response
+) => {
+
+    const workspaces = await getUserWorkspacesService(req.user!._id)
+
+    if (!workspaces) {
+        throw new ApiError(404, "No workspaces found")
+    }
+
+    res.status(200).json({
+        status: "success",
+        data: workspaces.map((workspace) => ({
+            id: workspace.workspace._id,
+            name: workspace.workspace.name,
+            createdBy: workspace.workspace.createdBy
+        }))
+    })
 }
