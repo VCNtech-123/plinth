@@ -9,7 +9,7 @@ export const getDashboard = async (
 ) => {
 
     const stats = await getDashboardService(
-        req.user!._id
+        req.workspace!._id
     )
 
     if (!stats) {
