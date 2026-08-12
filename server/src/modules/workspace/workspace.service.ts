@@ -121,7 +121,7 @@ export const getInvitesService = async (
 export const acceptInviteService = async (
   workspaceId: string, 
   userId: mongoose.Types.ObjectId
-): Promise<PopulatedMember> => {
+): Promise<PopulatedWorkspace> => {
   const membership = await WorkspaceMember.findOneAndUpdate(
     { 
       workspace: workspaceId, 
@@ -134,7 +134,7 @@ export const acceptInviteService = async (
     },
     { new: true }
   )
-  .populate<PopulatedMember>("user", "_id name email")
+  .populate<PopulatedWorkspace>("workspace", "_id name email")
 
   if (!membership) {
     throw new ApiError(404, "Invite not found or already accepted");
