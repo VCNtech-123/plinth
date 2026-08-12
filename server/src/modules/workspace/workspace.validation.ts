@@ -9,11 +9,17 @@ const memberBodySchema = z.object({
 
 export type MemberBody = z.infer<typeof memberBodySchema>
 
-export const addWorkspaceMemberSchema = z.object({
+export const InviteMemberSchema = z.object({
     body: memberBodySchema
 })
 
 export const acceptInviteSchema = z.object({
+    params: z.object({
+        id: objectIdSchema
+    })
+})
+
+export const declineInviteSchema = z.object({
     params: z.object({
         id: objectIdSchema
     })
