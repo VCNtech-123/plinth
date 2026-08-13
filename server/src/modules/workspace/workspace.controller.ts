@@ -1,10 +1,10 @@
 import { Request, Response } from 'express'
 import { getCurrentWorkspaceService, getWorkspaceMembersService, inviteUserService, 
          getInvitesService, acceptInviteService, getUserWorkspacesService,
-         declineInviteService
+         declineInviteService, setCurrentWorkplaceService
         } from './workspace.service'
 import { ApiError } from '../../utils/ApiError'
-import { MemberBody } from './workspace.validation'
+import { MemberBody, WorkspaceBody } from './workspace.validation'
 
 export const getCurrentWorkspace = async ( 
     req: Request,
@@ -193,3 +193,27 @@ export const declineInvite = async (
     )
 }
 
+export const setCurrentWorkspace = async (
+    req: Request,
+    res: Response
+) => {
+
+    const { body } = res.locals.validated as {
+        body: WorkspaceBody
+    }
+
+    const { id } = body
+
+    const workspace = await setCurrentWorkplaceService(
+        id,
+        req.user!._id
+    )
+
+    res.status(200).json({
+        status: "success",
+        message: "Workspace switched",
+        data: {
+            workspace: workspace.currentWorkspace
+        }
+    })
+}
