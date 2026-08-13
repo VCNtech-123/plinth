@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { getCurrentWorkspaceService, getWorkspaceMembersService, inviteUserService, 
          getInvitesService, acceptInviteService, getUserWorkspacesService,
-         declineInviteService, setCurrentWorkplaceService
+         declineInviteService, setCurrentWorkplaceService, removeMemberService
         } from './workspace.service'
 import { ApiError } from '../../utils/ApiError'
 import { MemberBody, WorkspaceBody } from './workspace.validation'
@@ -51,6 +51,7 @@ export const getWorkspaceMembers = async (
         status: "success",  
         results: members.length,
         data: members.map((member) => ({
+            id: member._id,
             user: {
                 id: member.user._id,
                 name: member.user.name,
@@ -217,3 +218,25 @@ export const setCurrentWorkspace = async (
         }
     })
 }
+
+export const removeMember = async (req: Request, res: Response) => {
+  const membershipId = req.params.id as string;
+
+  const removed = await removeMemberService(
+    req.workspace!._id,
+    membershipId,
+    req.user!._id
+  );
+
+  res.status(200).json({
+    message: "Member removed",
+    data: {
+      id: removed!._id,
+      status: removed!.status,          
+      removedAt: removed!.removedAt,
+      removedBy: removed!.removedBy,
+      user: removed!.user,              
+      role: removed!.role,
+    },
+  });
+};
