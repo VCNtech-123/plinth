@@ -4,7 +4,7 @@ import { WorkspaceMember, IWorkspaceMember, WorkspaceRole } from "./workspaceMem
 import { WorkspaceResponse, PopulatedWorkspace, PopulatedMember, PopulatedInvite } from "../../types/workspace.types";
 import { findUserByEmailService } from "../auth/auth.service";
 import { ApiError } from "../../utils/ApiError";
-import { setCurrentWorkspace } from "../user/user.service";
+import { setCurrentWorkspace, clearCurrentWorkspaceIfMatches } from "../user/user.service";
 
 export const createDefaultWorkspaceForUser = async (
   userId: mongoose.Types.ObjectId,
@@ -204,3 +204,41 @@ export const setCurrentWorkplaceService = async (
 
   return updatedUser
 }
+
+export const removeMemberService = async (
+  workspaceId: mongoose.Types.ObjectId,
+  membershipId: string,
+  actorUserId: mongoose.Types.ObjectId
+) => {
+  const membership = await WorkspaceMember.findOne({
+    _id: membershipId,
+    workspace: workspaceId,
+    status: "active",
+  });
+
+  if (!membership) {
+    throw new ApiError(404, "Member not found");
+  }
+
+  if (membership.role === "owner") {
+    throw new ApiError(400, "Owner cannot be removed");
+  }
+
+  if (membership.user.toString() === actorUserId.toString()) {
+    throw new ApiError(400, "You cannot remove yourself");
+  }
+
+  const removed = await WorkspaceMember.findByIdAndUpdate(
+    membership._id,
+    {
+      status: "removed",
+      removedAt: new Date(),
+      removedBy: actorUserId,
+    },
+    { new: true }
+  ).populate("user", "_id name email");
+
+  await clearCurrentWorkspaceIfMatches(membership.user, workspaceId)
+
+  return removed;
+};
