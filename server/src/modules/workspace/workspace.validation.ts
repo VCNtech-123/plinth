@@ -32,5 +32,11 @@ export const setCurrentWorkplaceSchema =  z.object({
     body: workspaceBodySchema
 })
 
+export const removeMemberSchema = z.object({
+    params: z.object({
+        id: objectIdSchema
+    })
+})
+
 export type MemberBody = z.infer<typeof memberBodySchema>
 export type WorkspaceBody =  z.infer<typeof workspaceBodySchema>
