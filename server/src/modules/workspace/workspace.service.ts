@@ -81,34 +81,60 @@ export const inviteUserService = async (
   role: WorkspaceRole,
   requesterMembership: IWorkspaceMember
 ): Promise<PopulatedMember> => {
-
-  if (requesterMembership.role === "admin" && (role === "admin" || role === "owner")) {
+  if (
+    requesterMembership.role === "admin" &&
+    (role === "admin" || role === "owner")
+  ) {
     throw new ApiError(403, "Admins can only invite members and viewers");
   }
-      
+
   const userToAdd = await findUserByEmailService(email);
 
-  const existingMember = await WorkspaceMember.findOne({
+  const existing = await WorkspaceMember.findOne({
     workspace: workspaceId,
     user: userToAdd._id,
-    status: "active"
   });
 
-  if (existingMember) {
-    throw new ApiError(400, "User is already a member of this workspace");
+  if (existing) {
+    if (existing.status === "active") {
+      throw new ApiError(400, "User is already a member");
+    }
+
+    if (existing.status === "pending") {
+      throw new ApiError(400, "Invite already sent");
+    }
+
+    existing.status = "pending";
+    existing.role = role;         
+    existing.joinedAt = undefined;
+
+    existing.removedAt = undefined;
+    existing.removedBy = undefined;
+
+    await existing.save();
+
+    const populated = await existing.populate<PopulatedMember>(
+      "user",
+      "_id name email"
+    );
+
+    return populated.toObject() as PopulatedMember;
   }
 
   const addedUser = await WorkspaceMember.create({
     workspace: workspaceId,
     user: userToAdd._id,
-    role: role,
-    status: "pending"
-  })  
+    role,
+    status: "pending",
+  });
 
-  const fullyPopulatedMember = await addedUser.populate<PopulatedMember>("user", "_id name email");
+  const fullyPopulatedMember = await addedUser.populate<PopulatedMember>(
+    "user",
+    "_id name email"
+  );
 
   return fullyPopulatedMember.toObject() as PopulatedMember;
-}
+};
 
 export const getInvitesService = async (
   userId: mongoose.Types.ObjectId
