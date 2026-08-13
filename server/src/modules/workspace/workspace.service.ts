@@ -181,7 +181,7 @@ export const declineInviteService = async (
   return membership;
 };
 
-export const srtCurrentWorkplaceService = async (
+export const setCurrentWorkplaceService = async (
   workspaceId: string,
   userId: mongoose.Types.ObjectId
 ) => {
