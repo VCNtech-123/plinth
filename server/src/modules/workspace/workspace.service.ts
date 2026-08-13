@@ -268,3 +268,22 @@ export const removeMemberService = async (
 
   return removed;
 };
+
+
+export const updateWorkspaceService = async (
+  workspaceId: mongoose.Types.ObjectId,
+  updates: { name?: string }
+) => {
+  const workspace = await Workspace.findByIdAndUpdate(
+    workspaceId,
+    { $set: updates },
+    { new: true }
+  ).select("_id name");
+
+  if (!workspace) {
+    throw new ApiError(404, "Workspace not found");
+  }
+
+  return workspace;
+};
+
