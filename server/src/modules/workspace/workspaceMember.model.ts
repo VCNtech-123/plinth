@@ -9,8 +9,10 @@ export interface IWorkspaceMember {
     workspace: mongoose.Types.ObjectId | IWorkspace;
     user: mongoose.Types.ObjectId;
     role: WorkspaceRole;
-    status: "pending" | "active";
-    joinedAt: Date;
+    status: "pending" | "active" | "declined" | "removed";
+    joinedAt?: Date;
+    removedAt?: Date;
+    removedBy?: mongoose.Types.ObjectId;
 }
 
 const workspaceMemberSchema = new Schema<IWorkspaceMember>(
@@ -31,20 +33,28 @@ const workspaceMemberSchema = new Schema<IWorkspaceMember>(
         },
         status: {
            type: String, 
-            enum: ["pending", "active", "declined"], 
+            enum: ["pending", "active", "declined", "removed"], 
             default: "pending" 
         },
         joinedAt: {
             type: Date,
-            default: Date.now,
         },
-    }
+        removedAt: {
+            type: Date
+        },
+        removedBy: {
+            type: mongoose.Types.ObjectId,
+            ref: "User"
+        }
+    },
+    { timestamps: true }
 )
 
 workspaceMemberSchema.index(
   { workspace: 1, user: 1 },
   { unique: true }
 );
-workspaceMemberSchema.index({ user: 1 });
+workspaceMemberSchema.index({ workspace: 1, status: 1 });
+workspaceMemberSchema.index({ user: 1, status: 1 });
 
 export const WorkspaceMember = mongoose.model<IWorkspaceMember>("WorkspaceMember", workspaceMemberSchema);
