@@ -287,3 +287,35 @@ export const updateWorkspaceService = async (
   return workspace;
 };
 
+export const leaveWorkspaceService = async (
+  workspaceId: mongoose.Types.ObjectId,
+  userId: mongoose.Types.ObjectId
+) => {
+  const membership = await WorkspaceMember.findOne({
+    workspace: workspaceId,
+    user: userId,
+    status: "active",
+  });
+
+  if (!membership) {
+    throw new ApiError(404, "Membership not found");
+  }
+
+  if (membership.role === "owner") {
+    throw new ApiError(400, "Owner cannot leave the workspace");
+  }
+
+  const updated = await WorkspaceMember.findByIdAndUpdate(
+    membership._id,
+    {
+      status: "removed",
+      removedAt: new Date(),
+      removedBy: userId,
+    },
+    { new: true }
+  );
+
+  await clearCurrentWorkspaceIfMatches(userId, workspaceId);
+
+  return updated;
+};
