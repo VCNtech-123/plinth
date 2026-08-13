@@ -12,6 +12,10 @@ const workspaceBodySchema = z.object({
     id: objectIdSchema
 }).strict()
 
+const workspaceUpdateBodySchema = z.object({
+    name: z.string().trim().min(1, "Workspace name required")
+})
+
 export const inviteMemberSchema = z.object({
     body: memberBodySchema
 })
@@ -38,5 +42,10 @@ export const removeMemberSchema = z.object({
     })
 })
 
+export const updateWorkspaceSchema = z.object({
+    body: workspaceUpdateBodySchema
+})
+
 export type MemberBody = z.infer<typeof memberBodySchema>
 export type WorkspaceBody =  z.infer<typeof workspaceBodySchema>
+export type WorkspaceUpdateBody = z.infer<typeof workspaceUpdateBodySchema>
