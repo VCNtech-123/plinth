@@ -11,3 +11,8 @@ export const setCurrentWorkspace = async (
     { new: true }
   );
 };
+
+export const clearCurrentWorkspaceIfMatches = async (
+  userId:  mongoose.Types.ObjectId,
+  workspaceId:  mongoose.Types.ObjectId
+) => User.updateOne({ _id: userId, currentWorkspace: workspaceId }, { $set: { currentWorkspace: null } });
