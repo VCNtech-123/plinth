@@ -1,10 +1,10 @@
 import { Request, Response } from 'express'
 import { getCurrentWorkspaceService, getWorkspaceMembersService, inviteUserService, 
          getInvitesService, acceptInviteService, getUserWorkspacesService,
-         declineInviteService
+         declineInviteService, setCurrentWorkplaceService, removeMemberService
         } from './workspace.service'
 import { ApiError } from '../../utils/ApiError'
-import { MemberBody } from './workspace.validation'
+import { MemberBody, WorkspaceBody } from './workspace.validation'
 
 export const getCurrentWorkspace = async ( 
     req: Request,
@@ -51,6 +51,7 @@ export const getWorkspaceMembers = async (
         status: "success",  
         results: members.length,
         data: members.map((member) => ({
+            id: member._id,
             user: {
                 id: member.user._id,
                 name: member.user.name,
@@ -193,3 +194,49 @@ export const declineInvite = async (
     )
 }
 
+export const setCurrentWorkspace = async (
+    req: Request,
+    res: Response
+) => {
+
+    const { body } = res.locals.validated as {
+        body: WorkspaceBody
+    }
+
+    const { id } = body
+
+    const workspace = await setCurrentWorkplaceService(
+        id,
+        req.user!._id
+    )
+
+    res.status(200).json({
+        status: "success",
+        message: "Workspace switched",
+        data: {
+            workspace: workspace.currentWorkspace
+        }
+    })
+}
+
+export const removeMember = async (req: Request, res: Response) => {
+  const membershipId = req.params.id as string;
+
+  const removed = await removeMemberService(
+    req.workspace!._id,
+    membershipId,
+    req.user!._id
+  );
+
+  res.status(200).json({
+    message: "Member removed",
+    data: {
+      id: removed!._id,
+      status: removed!.status,          
+      removedAt: removed!.removedAt,
+      removedBy: removed!.removedBy,
+      user: removed!.user,              
+      role: removed!.role,
+    },
+  });
+};

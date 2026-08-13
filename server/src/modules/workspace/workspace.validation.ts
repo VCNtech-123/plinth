@@ -7,7 +7,10 @@ const memberBodySchema = z.object({
     role: z.enum(["owner", "admin", "member", "viewer"])
 }).strict()
 
-export type MemberBody = z.infer<typeof memberBodySchema>
+
+const workspaceBodySchema = z.object({
+    id: objectIdSchema
+}).strict()
 
 export const inviteMemberSchema = z.object({
     body: memberBodySchema
@@ -24,3 +27,16 @@ export const declineInviteSchema = z.object({
         id: objectIdSchema
     })
 })
+
+export const setCurrentWorkplaceSchema =  z.object({
+    body: workspaceBodySchema
+})
+
+export const removeMemberSchema = z.object({
+    params: z.object({
+        id: objectIdSchema
+    })
+})
+
+export type MemberBody = z.infer<typeof memberBodySchema>
+export type WorkspaceBody =  z.infer<typeof workspaceBodySchema>
