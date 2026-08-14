@@ -1,10 +1,13 @@
-// client/src/layouts/sidebar/components/SidebarNav.tsx
+
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
   FolderKanban,
   CheckSquare,
+  UsersRound,
+  Mail,
+  Settings,
 } from "lucide-react";
 
 interface SidebarNavProps {
@@ -13,35 +16,33 @@ interface SidebarNavProps {
 
 const SidebarNav = ({ onClose }: SidebarNavProps) => {
   return (
-    <nav className="flex flex-col space-y-1.5 px-4 py-6">
-      <NavItem
-        to="/"
-        icon={LayoutDashboard}
-        label="Dashboard"
-        onClick={onClose}
-      />
+    <nav className="px-4 py-5">
+      <Section title="Main">
+        <NavItem to="/" icon={LayoutDashboard} label="Dashboard" onClick={onClose} />
+        <NavItem to="/clients" icon={Users} label="Clients" onClick={onClose} />
+        <NavItem to="/projects" icon={FolderKanban} label="Projects" onClick={onClose} />
+        <NavItem to="/tasks" icon={CheckSquare} label="Tasks" onClick={onClose} />
+      </Section>
 
-      <NavItem
-        to="/clients"
-        icon={Users}
-        label="Clients"
-        onClick={onClose}
-      />
+      <div className="my-4 border-t border-app" />
 
-      <NavItem
-        to="/projects"
-        icon={FolderKanban}
-        label="Projects"
-        onClick={onClose}
-      />
-
-      <NavItem
-        to="/tasks"
-        icon={CheckSquare}
-        label="Tasks"
-        onClick={onClose}
-      />
+      <Section title="Workspace">
+        <NavItem to="/workspace/members" icon={UsersRound} label="Members" onClick={onClose} />
+        <NavItem to="/workspace/invites" icon={Mail} label="Invites" onClick={onClose} />
+        <NavItem to="/workspace" icon={Settings} label="Settings" onClick={onClose} />
+      </Section>
     </nav>
+  );
+};
+
+const Section = ({ title, children }: { title: string; children: React.ReactNode }) => {
+  return (
+    <div>
+      <div className="px-2 mb-2 text-xs font-medium text-app/60">
+        {title}
+      </div>
+      <div className="space-y-1.5">{children}</div>
+    </div>
   );
 };
 
@@ -59,24 +60,19 @@ const NavItem = ({ to, label, icon: Icon, onClick }: NavItemProps) => {
       end={to === "/"}
       onClick={onClick}
       className={({ isActive }) =>
-        `
-        flex items-center gap-3
-        px-3 py-2.5
-        rounded-md
-        text-sm font-medium
-        transition-all duration-200
-        w-full
-
-        ${
+        [
+          "flex items-center gap-3",
+          "px-3 py-2.5 rounded-md",
+          "text-sm font-medium",
+          "transition-colors duration-150",
           isActive
-            ? "bg-primary/10 text-primary font-semibold"
-            : "text-text/60 hover:bg-text/5 hover:text-text"
-        }
-        `
+            ? "bg-primary/10 text-primary"
+            : "text-app/70 hover:bg-app hover:text-app",
+        ].join(" ")
       }
     >
       <Icon size={18} className="shrink-0" />
-      <span>{label}</span>
+      <span className="truncate">{label}</span>
     </NavLink>
   );
 };
