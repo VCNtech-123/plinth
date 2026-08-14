@@ -16,11 +16,9 @@ const WorkspaceSwitcher = () => {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    // hydrate once if not loaded yet
     if (workspaces.length === 0 && !current.workspace) {
       hydrate();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const currentWorkspaceId = current.workspace?.id;
