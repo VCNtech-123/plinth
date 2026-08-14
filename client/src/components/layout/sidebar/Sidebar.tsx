@@ -1,7 +1,6 @@
-// client/src/layouts/sidebar/Sidebar.tsx
+
 import Logo from "../../../assets/logo.png";
 import SidebarNav from "./components/SidebarNav";
-import SidebarStats from "./components/SideBarStats";
 import SidebarProfile from "./components/SidebarProfile";
 import WorkspaceSwitcher from "./components/WorkspaceSwitcher";
 

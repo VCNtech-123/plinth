@@ -52,7 +52,7 @@ const Topbar = ({ onToggleSidebar }: TopbarProps) => {
 
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm font-semibold text-app truncate max-w-[200px] sm:max-w-[320px]">
+          <span className="text-sm font-semibold text-app truncate max-w-50 sm:max-w-[320px]">
             {workspaceName}
           </span>
 
