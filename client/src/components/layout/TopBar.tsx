@@ -14,7 +14,6 @@ const Topbar = ({ onToggleSidebar }: TopbarProps) => {
     document.documentElement.classList.contains("dark")
   );
 
-  // Only read current workspace name (not the whole store, not the list)
   const workspaceName = useWorkspaceStore(
     (s) => s.current.workspace?.name ?? "Workspace"
   );
