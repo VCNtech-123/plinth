@@ -1,4 +1,4 @@
-// client/src/pages/tasks/Tasks.tsx
+
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import TaskBoard from "./components/TaskBoard";
