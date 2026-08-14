@@ -1,4 +1,5 @@
 import { api } from "./axios";
+import type { WorkspaceRole } from "../types/workspace.types";
 
 interface UpdateWorkspaceBody {
   name: string;
@@ -6,7 +7,7 @@ interface UpdateWorkspaceBody {
 
 interface InviteMemberBody {
   email: string;
-  role: "owner" | "admin" | "member" | "viewer";
+  role: WorkspaceRole;
 }
 
 export const getUserWorkspaces = async () => {
