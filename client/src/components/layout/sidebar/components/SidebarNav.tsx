@@ -29,7 +29,7 @@ const SidebarNav = ({ onClose }: SidebarNavProps) => {
       <Section title="Workspace">
         <NavItem to="/workspace/members" icon={UsersRound} label="Members" onClick={onClose} />
         <NavItem to="/workspace/invites" icon={Mail} label="Invites" onClick={onClose} />
-        <NavItem to="/workspace" icon={Settings} label="Settings" onClick={onClose} />
+        <NavItem to="/workspace/settings" icon={Settings} label="Settings" onClick={onClose} />
       </Section>
     </nav>
   );
