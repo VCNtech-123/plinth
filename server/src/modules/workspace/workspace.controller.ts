@@ -59,7 +59,8 @@ export const getWorkspaceMembers = async (
                 email: member.user.email
             },
             role: member.role,
-            joinedAt: member.joinedAt
+            joinedAt: member.joinedAt,
+            status: member.status
         }))
     })
 }
