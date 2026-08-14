@@ -22,7 +22,6 @@ const WorkspaceSwitcher = () => {
   }, []);
 
   const currentWorkspaceId = current.workspace?.id;
-
   const items = useMemo(() => workspaces, [workspaces]);
 
   const onSelect = async (workspaceId: string) => {
@@ -32,47 +31,68 @@ const WorkspaceSwitcher = () => {
     }
     await switchWorkspace(workspaceId);
     setOpen(false);
-    // optional: you can navigate to /dashboard here if you want
   };
 
   return (
     <div className="px-4 py-4 border-b border-app">
-      <div className="text-xs uppercase tracking-wide text-app/70 mb-2">
-        Workspace
+      {/* Header row */}
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="text-xs font-medium uppercase tracking-wide text-app/70">
+          Workspace
+        </div>
+
+        <a
+          href="/workspace"
+          className="text-xs font-medium text-primary hover:underline"
+          onClick={() => setOpen(false)}
+        >
+          Manage
+        </a>
       </div>
 
+      {/* Selector */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={clsx(
-          "w-full flex items-center justify-between gap-3",
-          "rounded-md border border-app bg-card px-3 py-2",
-          "text-left text-app",
-          "hover:bg-app transition-colors"
-        )}
         disabled={loadingCurrent || switching}
+        className={clsx(
+          "w-full rounded-md border border-app bg-card px-3 py-2 text-left",
+          "hover:bg-app transition-colors",
+          "disabled:opacity-60 disabled:cursor-not-allowed"
+        )}
+        aria-haspopup="menu"
+        aria-expanded={open}
       >
-        <div className="min-w-0">
-          <div className="font-semibold truncate">
-            {loadingCurrent ? "Loading..." : current.workspace?.name ?? "No workspace"}
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-sm font-semibold text-app truncate">
+              {loadingCurrent
+                ? "Loading…"
+                : current.workspace?.name ?? "No workspace"}
+            </div>
+            <div className="text-xs text-app/70 truncate">
+              {current.role ?? " "}
+            </div>
           </div>
-          <div className="text-xs text-app/70 truncate">
-            {current.role ? `Role: ${current.role}` : ""}
-          </div>
-        </div>
 
-        <div className="text-app/70 text-sm">
-          {switching ? "..." : open ? "▲" : "▼"}
+          <div className="text-xs text-app/70">
+            {switching ? "Switching…" : open ? "▲" : "▼"}
+          </div>
         </div>
       </button>
 
+      {/* Menu */}
       {open && (
         <div className="mt-2 rounded-md border border-app bg-card overflow-hidden animate-fadeIn">
-          <div className="max-h-56 overflow-auto">
+          <div className="max-h-60 overflow-auto">
             {loadingWorkspaces ? (
-              <div className="px-3 py-2 text-sm text-app/70">Loading workspaces...</div>
+              <div className="px-3 py-2 text-sm text-app/70">
+                Loading workspaces…
+              </div>
             ) : items.length === 0 ? (
-              <div className="px-3 py-2 text-sm text-app/70">No workspaces</div>
+              <div className="px-3 py-2 text-sm text-app/70">
+                No workspaces found.
+              </div>
             ) : (
               items.map((m) => {
                 const id = m.workspace.id;
@@ -84,23 +104,24 @@ const WorkspaceSwitcher = () => {
                     type="button"
                     onClick={() => onSelect(id)}
                     className={clsx(
-                      "w-full px-3 py-2 text-left text-sm",
+                      "w-full px-3 py-2 text-left",
                       "hover:bg-app transition-colors",
                       active ? "bg-app" : "bg-card"
                     )}
+                    role="menuitem"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="truncate font-medium text-app">
+                        <div className="text-sm font-medium text-app truncate">
                           {m.workspace.name}
                         </div>
-                        <div className="text-xs text-app/70">
+                        <div className="text-xs text-app/70 truncate">
                           {m.role}
                         </div>
                       </div>
 
                       {active && (
-                        <span className="text-xs text-primary font-semibold">
+                        <span className="text-xs font-semibold text-primary shrink-0">
                           Current
                         </span>
                       )}
@@ -109,16 +130,6 @@ const WorkspaceSwitcher = () => {
                 );
               })
             )}
-          </div>
-
-          <div className="border-t border-app px-3 py-2">
-            <a
-              href="/workspace"
-              className="text-sm text-primary hover:underline"
-              onClick={() => setOpen(false)}
-            >
-              Manage workspace
-            </a>
           </div>
         </div>
       )}
