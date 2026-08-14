@@ -45,10 +45,6 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           <SidebarNav onClose={onClose} />
         </div>
 
-        <div className="border-b border-app shrink-0">
-          <SidebarStats />
-        </div>
-
         <div className="flex-1 overflow-hidden" />
 
         <div className="shrink-0 border-t border-app">

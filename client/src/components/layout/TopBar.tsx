@@ -32,7 +32,6 @@ const Topbar = ({ onToggleSidebar }: TopbarProps) => {
     }
   };
 
-  // Breadcrumb second part = section from URL (simple, no memo)
   const seg = location.pathname.split("/")[1] || "";
   const pageTitle =
     seg === "" ? "Dashboard" : seg.charAt(0).toUpperCase() + seg.slice(1);
