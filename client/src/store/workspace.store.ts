@@ -23,6 +23,7 @@ interface WorkspaceState {
   loadingWorkspaces: boolean;
   loadingCurrent: boolean;
   switching: boolean;
+  version: number;
 
   fetchWorkspaces: () => Promise<void>;
   fetchCurrent: () => Promise<void>;
@@ -38,6 +39,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   loadingWorkspaces: false,
   loadingCurrent: false,
   switching: false,
+  version: 0,
 
   fetchWorkspaces: async () => {
     set({ loadingWorkspaces: true });
@@ -75,6 +77,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     try {
       await switchWorkspaceApi(workspaceId);
       await get().fetchCurrent();
+      set((s) => ({ version: s.version + 1 }));
     } finally {
       set({ switching: false });
     }
