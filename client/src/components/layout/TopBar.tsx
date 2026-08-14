@@ -32,7 +32,6 @@ const Topbar = ({ onToggleSidebar }: TopbarProps) => {
     }
   };
 
-  // Breadcrumb second part = section from URL (simple, no memo)
   const seg = location.pathname.split("/")[1] || "";
   const pageTitle =
     seg === "" ? "Dashboard" : seg.charAt(0).toUpperCase() + seg.slice(1);
@@ -53,7 +52,7 @@ const Topbar = ({ onToggleSidebar }: TopbarProps) => {
 
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm font-semibold text-app truncate max-w-[200px] sm:max-w-[320px]">
+          <span className="text-sm font-semibold text-app truncate max-w-50 sm:max-w-[320px]">
             {workspaceName}
           </span>
 

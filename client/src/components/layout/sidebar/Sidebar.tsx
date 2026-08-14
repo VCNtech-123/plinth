@@ -1,7 +1,6 @@
-// client/src/layouts/sidebar/Sidebar.tsx
+
 import Logo from "../../../assets/logo.png";
 import SidebarNav from "./components/SidebarNav";
-import SidebarStats from "./components/SideBarStats";
 import SidebarProfile from "./components/SidebarProfile";
 import WorkspaceSwitcher from "./components/WorkspaceSwitcher";
 
@@ -43,10 +42,6 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
 
         <div className="border-b border-app shrink-0">
           <SidebarNav onClose={onClose} />
-        </div>
-
-        <div className="border-b border-app shrink-0">
-          <SidebarStats />
         </div>
 
         <div className="flex-1 overflow-hidden" />

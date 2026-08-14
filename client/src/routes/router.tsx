@@ -15,6 +15,8 @@ import Projects from "../pages/projects/Projects";
 import ProjectDetails from "../pages/projects/ProjectDetails";
 import Tasks from "../pages/tasks/Tasks";
 import Register from "../pages/auth/Register";
+import WorkspaceMembers from "../pages/workspaces/members/WorkspaceMembers";
+import WorkspaceInvites from "../pages/workspaces/invites/WorkspaceInvites";
 
 const router = createBrowserRouter([
   {
@@ -48,6 +50,13 @@ const router = createBrowserRouter([
       {
         path: "tasks",
         element: <Tasks />
+      },
+      {
+        path: "workspace",
+        children: [
+          { path: "members", element: <WorkspaceMembers /> },
+          { path: "invites" , element: <WorkspaceInvites />}
+        ],
       }
     ],
   },

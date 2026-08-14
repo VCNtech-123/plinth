@@ -69,7 +69,7 @@ export const getWorkspaceMembersService = async (
     workspace: workspaceId,
     status: "active"
   }).populate("user", "_id name email")
-    .select("role joinedAt user")
+    .select("role joinedAt user status")
     .lean<PopulatedMember[]>()
 
   return members
