@@ -10,6 +10,7 @@ import TaskDrawer from "./components/TaskDrawer";
 import TasksHeader from "./components/TasksHeader";
 import DeleteTaskModal from "./modals/DeleteModalTask";
 import AddTaskModal from "./modals/AddTaskModal";
+import { useWorkspaceStore } from "../../store/workspace.store";
 
 const Tasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -24,6 +25,7 @@ const Tasks = () => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [projectFilter, setProjectFilter] = useState<string | undefined>();
+  const workspaceVersion = useWorkspaceStore((s) => s.version)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -52,7 +54,7 @@ const Tasks = () => {
     };
 
     fetchTasks();
-  }, [debouncedSearch, projectFilter]);
+  }, [debouncedSearch, projectFilter, workspaceVersion]);
 
   useEffect(() => {
     const fetchProjects = async () => {

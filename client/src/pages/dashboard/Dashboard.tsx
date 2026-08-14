@@ -7,10 +7,12 @@ import DashboardSummary from "./DashboardSummary";
 import DashboardTrends from "./DashboardTrends";
 import DashboardRisk from "./DashboardRisk";
 import DashboardActivity from "./DashboardActivity";
+import { useWorkspaceStore } from "../../store/workspace.store";
 
 const Dashboard = () => {
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const workspaceVersion = useWorkspaceStore((s) => s.version)
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -23,7 +25,7 @@ const Dashboard = () => {
     };
 
     fetchDashboard();
-  }, []);
+  }, [workspaceVersion]);
 
   if (loading || !data) {
     return (
