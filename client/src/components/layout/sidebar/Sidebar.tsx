@@ -3,6 +3,7 @@ import Logo from "../../../assets/logo.png";
 import SidebarNav from "./components/SidebarNav";
 import SidebarStats from "./components/SideBarStats";
 import SidebarProfile from "./components/SidebarProfile";
+import WorkspaceSwitcher from "./components/WorkspaceSwitcher";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -12,7 +13,6 @@ interface SidebarProps {
 const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   return (
     <>
-      {/* Mobile Overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 md:hidden"
@@ -24,7 +24,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
         className={`
           fixed top-0 left-0 z-40
           w-64 h-screen
-          bg-card border-r border-border
+          bg-card border-r border-app
           transform transition-transform duration-300 ease-out
           flex flex-col
           overflow-hidden
@@ -34,33 +34,24 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           md:h-screen
         `}
       >
-        {/* Logo */}
-        <div className="hidden md:flex items-center gap-3 px-4 py-6 border-b border-border shrink-0">
-          <img
-            src={Logo}
-            alt="Plinth Logo"
-            className="w-8 h-8 object-contain"
-          />
-          <h2 className="text-lg font-bold tracking-wide text-text">
-            Plinth
-          </h2>
+        <div className="hidden md:flex items-center gap-3 px-4 py-6 border-b border-app shrink-0">
+          <img src={Logo} alt="Plinth Logo" className="w-8 h-8 object-contain" />
+          <h2 className="text-lg font-bold tracking-wide text-app">Plinth</h2>
         </div>
 
-        {/* Navigation */}
-        <div className="border-b border-border shrink-0">
+        <WorkspaceSwitcher />
+
+        <div className="border-b border-app shrink-0">
           <SidebarNav onClose={onClose} />
         </div>
 
-        {/* Stats */}
-        <div className="border-b border-border shrink-0">
+        <div className="border-b border-app shrink-0">
           <SidebarStats />
         </div>
 
-        {/* Spacer */}
         <div className="flex-1 overflow-hidden" />
 
-        {/* Profile */}
-        <div className="shrink-0 border-t border-border">
+        <div className="shrink-0 border-t border-app">
           <SidebarProfile />
         </div>
       </aside>

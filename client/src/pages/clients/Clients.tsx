@@ -12,6 +12,7 @@ import ClientsTable from "./components/ClientsTable";
 import EditClientModal from "./modals/EditClientModal";
 import Dropdown from "../../components/ui/Dropdown";
 import type { Client } from "../../types/client.types";
+import { useWorkspaceStore } from "../../store/workspace.store";
 
 const Clients = () => {
 
@@ -28,6 +29,7 @@ const Clients = () => {
     const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [editClient, setEditClient] = useState<Client | null>(null);
+    const workspaceVersion = useWorkspaceStore((s) => s.version);
 
     useEffect(() => {
       const timer = setTimeout(() => {
@@ -53,7 +55,7 @@ const Clients = () => {
         }
         
         getClientsData();
-    }, [page, limit, debouncedSearch]);
+    }, [page, limit, debouncedSearch, workspaceVersion]);
 
     const handleCreateClient = async (data: {
       name: string;

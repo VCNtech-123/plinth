@@ -12,6 +12,7 @@ import DeleteProjectModal from "./modals/DeleteProjectModal";
 import { useProjectsActions } from "./hooks/useProjectsActions";
 import type { Column } from "../../components/ui/table/DataTable";
 import type { Project } from "../../types/project.types";
+import { useWorkspaceStore } from "../../store/workspace.store";
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ const Projects = () => {
     handleUpdateProject,
     handleDeleteProject,
   } = useProjectsActions();
+  const workspaceVersion = useWorkspaceStore((s) => s.version)
 
   // Debounce search
   useEffect(() => {
@@ -57,7 +59,7 @@ const Projects = () => {
       client: clientFilter,
       status: statusFilter,
     });
-  }, [page, limit, debouncedSearch, clientFilter, statusFilter, fetchProjects]);
+  }, [page, limit, debouncedSearch, clientFilter, statusFilter, fetchProjects, workspaceVersion]);
 
   // Fetch clients for filters
   useEffect(() => {
