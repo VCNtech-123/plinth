@@ -17,6 +17,7 @@ import Tasks from "../pages/tasks/Tasks";
 import Register from "../pages/auth/Register";
 import WorkspaceMembers from "../pages/workspaces/members/WorkspaceMembers";
 import WorkspaceInvites from "../pages/workspaces/invites/WorkspaceInvites";
+import WorkspaceSettings from "../pages/workspaces/settings/WorkspaceSettings";
 
 const router = createBrowserRouter([
   {
@@ -55,7 +56,8 @@ const router = createBrowserRouter([
         path: "workspace",
         children: [
           { path: "members", element: <WorkspaceMembers /> },
-          { path: "invites" , element: <WorkspaceInvites />}
+          { path: "invites" , element: <WorkspaceInvites />},
+          { path: "settings", element: <WorkspaceSettings />}
         ],
       }
     ],
