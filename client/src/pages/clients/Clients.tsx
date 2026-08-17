@@ -13,6 +13,7 @@ import EditClientModal from "./modals/EditClientModal";
 import Dropdown from "../../components/ui/Dropdown";
 import type { Client } from "../../types/client.types";
 import { useWorkspaceStore } from "../../store/workspace.store";
+import EmptyState from "../../components/ui/EmptyState";
 
 const Clients = () => {
 
@@ -30,6 +31,8 @@ const Clients = () => {
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [editClient, setEditClient] = useState<Client | null>(null);
     const workspaceVersion = useWorkspaceStore((s) => s.version);
+    const hasSearch = debouncedSearch.trim().length > 0 || search.trim().length > 0;
+    const isEmpty = !loading && clients.length === 0;
 
     useEffect(() => {
       const timer = setTimeout(() => {
@@ -186,15 +189,31 @@ const Clients = () => {
           onAddClick={() => setIsAddOpen(true)}
         />
 
-        <ClientsTable
-          clients={clients}
-          loading={loading}
-          page={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          columns={columns}
-        />
-
+       {isEmpty ? (
+          <EmptyState
+            title={hasSearch ? "No results" : "No clients yet"}
+            description={
+              hasSearch
+                ? "Try a different search term or clear your search."
+                : "Create your first client to get started."
+            }
+            action={{
+              label: "Add client",
+              onClick: () => setIsAddOpen(true),
+              variant: "primary",
+            }}
+          />
+        ) : (
+          <ClientsTable
+            clients={clients}
+            loading={loading}
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            columns={columns}
+          />
+        )}
+        
         <AddClientModal
           open={isAddOpen}
           onClose={() => setIsAddOpen(false)}
