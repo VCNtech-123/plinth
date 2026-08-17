@@ -13,6 +13,7 @@ import { useProjectsActions } from "./hooks/useProjectsActions";
 import type { Column } from "../../components/ui/table/DataTable";
 import type { Project } from "../../types/project.types";
 import { useWorkspaceStore } from "../../store/workspace.store";
+import EmptyState from "../../components/ui/EmptyState";
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -24,13 +25,11 @@ const Projects = () => {
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
 
-  // Modal states
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editProject, setEditProject] = useState<Project | null>(null);
   const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
   const [deleteProjectName, setDeleteProjectName] = useState("");
 
-  // Custom hook for actions
   const {
     projects,
     loading,
@@ -42,7 +41,17 @@ const Projects = () => {
   } = useProjectsActions();
   const workspaceVersion = useWorkspaceStore((s) => s.version)
 
-  // Debounce search
+  const role = useWorkspaceStore((s) => s.current.role);
+  const canCreate = role === "owner" || role === "admin" || role === "member";
+
+  const hasFilters =
+    debouncedSearch.trim().length > 0 ||
+    search.trim().length > 0 ||
+    !!clientFilter ||
+    !!statusFilter;
+
+  const isEmpty = !loading && projects.length === 0;
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -159,16 +168,37 @@ const Projects = () => {
         }}
         onAddClick={() => setIsAddOpen(true)}
         clients={clients}
+         canCreate={canCreate}
       />
 
-      <ProjectsTable
-        projects={projects}
-        loading={loading}
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
-        columns={columns}
-      />
+      {isEmpty ? (
+        <EmptyState
+          title={hasFilters ? "No results" : "No projects yet"}
+          description={
+            hasFilters
+              ? "Try clearing filters or changing your search."
+              : "Create your first project to start tracking work."
+          }
+          action={
+            canCreate
+              ? {
+                  label: "Add project",
+                  onClick: () => setIsAddOpen(true),
+                  variant: "primary",
+                }
+              : undefined
+          }
+        />
+      ) : (
+        <ProjectsTable
+          projects={projects}
+          loading={loading}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          columns={columns}
+        />
+      )}
 
       <AddProjectModal
         open={isAddOpen}
