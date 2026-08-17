@@ -33,6 +33,8 @@ const Clients = () => {
     const workspaceVersion = useWorkspaceStore((s) => s.version);
     const hasSearch = debouncedSearch.trim().length > 0 || search.trim().length > 0;
     const isEmpty = !loading && clients.length === 0;
+    const role = useWorkspaceStore((s) => s.current.role);
+    const canCreate = role === "owner" || role === "admin" || role === "member";
 
     useEffect(() => {
       const timer = setTimeout(() => {
@@ -187,6 +189,7 @@ const Clients = () => {
             setSearch(value);
           }}
           onAddClick={() => setIsAddOpen(true)}
+          canCreate={canCreate}
         />
 
        {isEmpty ? (
@@ -197,11 +200,11 @@ const Clients = () => {
                 ? "Try a different search term or clear your search."
                 : "Create your first client to get started."
             }
-            action={{
-              label: "Add client",
-              onClick: () => setIsAddOpen(true),
-              variant: "primary",
-            }}
+            action={
+              canCreate
+                ? { label: "Add client", onClick: () => setIsAddOpen(true), variant: "primary" }
+                : undefined
+            }
           />
         ) : (
           <ClientsTable
