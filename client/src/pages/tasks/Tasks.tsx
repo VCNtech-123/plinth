@@ -11,6 +11,7 @@ import TasksHeader from "./components/TasksHeader";
 import DeleteTaskModal from "./modals/DeleteModalTask";
 import AddTaskModal from "./modals/AddTaskModal";
 import { useWorkspaceStore } from "../../store/workspace.store";
+import EmptyState from "../../components/ui/EmptyState";
 
 const Tasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -26,6 +27,15 @@ const Tasks = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [projectFilter, setProjectFilter] = useState<string | undefined>();
   const workspaceVersion = useWorkspaceStore((s) => s.version)
+  const role = useWorkspaceStore((s) => s.current.role);
+  const canCreate = role === "owner" || role === "admin" || role === "member";
+
+  const hasFilters =
+    debouncedSearch.trim().length > 0 ||
+    search.trim().length > 0 ||
+    !!projectFilter;
+
+  const isEmpty = !loading && tasks.length === 0;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -127,10 +137,8 @@ const Tasks = () => {
     }
   };
 
-  // ✅ NEW: Handle task update from drawer (assignee, status, etc.)
   const handleTaskUpdate = async (updatedTask: Task) => {
     try {
-      // Update local state immediately
       setTasks((prev) =>
         prev.map((t) =>
           t.id === updatedTask.id ? updatedTask : t
@@ -169,10 +177,29 @@ const Tasks = () => {
         }}
         projects={projects}
         onAddClick={() => setIsAddOpen(true)}
+        canCreate={canCreate}
       />
 
       {loading ? (
-        <p className="text-sm opacity-60">Loading tasks...</p>
+        <p className="text-sm text-app/60">Loading tasks...</p>
+      ) : isEmpty ? (
+        <EmptyState
+          title={hasFilters ? "No results" : "No tasks yet"}
+          description={
+            hasFilters
+              ? "Try clearing filters or changing your search."
+              : "Create your first task to start tracking work."
+          }
+          action={
+            canCreate
+              ? {
+                  label: "Add task",
+                  onClick: () => setIsAddOpen(true),
+                  variant: "primary",
+                }
+              : undefined
+          }
+        />
       ) : (
         <>
           <TaskBoard
@@ -190,7 +217,7 @@ const Tasks = () => {
             taskId={activeTaskId}
             open={!!activeTaskId}
             onClose={() => setActiveTaskId(null)}
-            onUpdate={handleTaskUpdate}  // ✅ Pass the handler
+            onUpdate={handleTaskUpdate}
           />
 
           <DeleteTaskModal
@@ -210,8 +237,8 @@ const Tasks = () => {
           />
         </>
       )}
-    </div>
-  );
-};
+          </div>
+        );
+      };
 
 export default Tasks;
