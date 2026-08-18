@@ -1,5 +1,3 @@
-import Card from "../../components/ui/Card";
-import { CardContent, CardHeader } from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import { useNavigate } from "react-router-dom";
 
@@ -14,35 +12,34 @@ interface Props {
 const DashboardRisk = ({ projects }: Props) => {
   const navigate = useNavigate();
 
-  return (
-    <Card variant="elevated">
-      <CardHeader>
-        <h3 className="text-lg font-semibold">
-          At Risk Projects
-        </h3>
-      </CardHeader>
+  if (projects.length === 0) {
+    return <div className="text-sm text-app/60">No projects at risk.</div>;
+  }
 
-      <CardContent className="space-y-4">
-        {projects.length === 0 ? (
-          <p className="text-sm opacity-60">
-            No projects at risk 🎉
-          </p>
-        ) : (
-          projects.map((project) => (
-            <div
-              onClick={() => navigate(`projects/${project.id}`)}
-              key={project.id}
-              className="flex justify-between items-center border-b border-app pb-2 cursor-pointer"
-            >
-              <span>{project.name}</span>
-              <Badge variant="danger">
-                {project.overdueTasks} overdue
-              </Badge>
+  return (
+    <div className="divide-y divide-(--color-border)">
+      {projects.map((project) => (
+        <button
+          key={project.id}
+          type="button"
+          onClick={() => navigate(`/projects/${project.id}`)}
+          className="w-full py-3 flex items-center justify-between gap-4 text-left hover:bg-app transition-colors rounded-md px-2 -mx-2"
+        >
+          <div className="min-w-0">
+            <div className="text-sm font-medium text-app truncate">
+              {project.name}
             </div>
-          ))
-        )}
-      </CardContent>
-    </Card>
+            <div className="text-xs text-app/60">
+              Requires attention
+            </div>
+          </div>
+
+          <Badge variant="danger">
+            {project.overdueTasks} overdue
+          </Badge>
+        </button>
+      ))}
+    </div>
   );
 };
 
