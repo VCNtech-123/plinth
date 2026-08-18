@@ -1,4 +1,3 @@
-// client/src/pages/clients/components/ClientProjectsList.tsx
 import { Plus } from "lucide-react";
 import Button from "../../../components/ui/Button";
 import Card, { CardContent, CardHeader } from "../../../components/ui/Card";
@@ -13,6 +12,19 @@ interface ClientProjectsListProps {
   onViewAll: (clientId: string) => void;
 }
 
+const getStatusVariant = (status: string) => {
+  switch (status) {
+    case "active":
+      return "success";
+    case "paused":
+      return "warning";
+    case "completed":
+      return "default";
+    default:
+      return "default";
+  }
+};
+
 const ClientProjectsList = ({
   client,
   projects,
@@ -20,122 +32,116 @@ const ClientProjectsList = ({
   onAddProject,
   onViewAll,
 }: ClientProjectsListProps) => {
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(value);
-
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case "active":
-        return "success";
-      case "completed":
-        return "default";
-      case "paused":
-        return "warning";
-      default:
-        return "default";
-    }
-  };
+  const recent = projects.slice(0, 5);
 
   return (
     <Card className="animate-slideUp">
       <CardHeader>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold">Recent Projects</h2>
-          {stats.totalProjects > 0 && (
-            <p className="text-xs opacity-60">
-              Showing {Math.min(5, projects.length)} of {stats.totalProjects}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-app">Projects</h2>
+            <p className="text-sm text-app/60 mt-1">
+              Recent projects for this client.
             </p>
-          )}
+          </div>
+
+          <Button variant="secondary" size="sm" onClick={onAddProject} className="shrink-0">
+            <Plus size={16} />
+            <span className="hidden sm:inline">New project</span>
+          </Button>
         </div>
+
+        {stats.totalProjects > 0 && (
+          <div className="mt-3 text-xs text-app/60">
+            Showing {Math.min(5, projects.length)} of {stats.totalProjects}
+          </div>
+        )}
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        {projects.length === 0 ? (
-          // Empty State
+      <CardContent className="space-y-3">
+        {recent.length === 0 ? (
           <div className="py-8 text-center">
-            <p className="text-sm opacity-60 mb-4">No projects yet</p>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={onAddProject}
-              className="inline-flex items-center gap-2"
-            >
-              <Plus size={16} />
-              Create Your First Project
+            <p className="text-sm text-app/60 mb-4">No projects yet.</p>
+            <Button variant="primary" size="sm" onClick={onAddProject}>
+              Create project
             </Button>
           </div>
         ) : (
-          <div className="space-y-3">
-            {/* Table Header (Desktop Only) */}
-            <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-4 py-2 text-xs font-semibold opacity-60">
-              <div className="col-span-4">Project</div>
-              <div className="col-span-2">Status</div>
-              <div className="col-span-3">Budget</div>
-              <div className="col-span-3">Due Date</div>
+          <>
+            {/* Desktop header */}
+            <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-app/60 border-b border-app">
+              <div className="col-span-6">Project</div>
+              <div className="col-span-3">Status</div>
+              <div className="col-span-3">Created</div>
             </div>
 
-            {/* Project Cards/Rows */}
-            {projects.map((project) => (
-              <div
-                key={project.id}
-                className="grid grid-cols-2 sm:grid-cols-12 gap-2 sm:gap-4 p-3 sm:p-4 rounded-lg bg-app border border-app hover:border-primary/30 transition-all duration-200"
-              >
-                {/* Project Name */}
-                <div className="col-span-2 sm:col-span-4">
-                  <p className="text-xs opacity-60 mb-1 sm:hidden font-medium">
-                    Project
-                  </p>
-                  <p className="font-medium text-sm truncate">
-                    {project.name}
-                  </p>
-                </div>
+            {/* Rows */}
+            <div className="space-y-2 sm:space-y-0">
+              {recent.map((project) => (
+                <div
+                  key={project.id}
+                  className="rounded-lg border border-app bg-card sm:bg-transparent sm:border-none"
+                >
+                  {/* Mobile card layout */}
+                  <div className="p-4 sm:hidden space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-app truncate">
+                          {project.name}
+                        </div>
+                        <div className="text-xs text-app/60 mt-1">
+                          Created{" "}
+                          {new Date(project.createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </div>
+                      </div>
 
-                {/* Status */}
-                <div className="col-span-1 sm:col-span-2 flex items-end sm:items-start">
-                  <p className="text-xs opacity-60 mb-1 sm:hidden font-medium">
-                    Status
-                  </p>
-                  <Badge variant={getStatusVariant(project.status)}>
-                    {project.status}
-                  </Badge>
-                </div>
+                      <Badge variant={getStatusVariant(project.status)}>
+                        {project.status}
+                      </Badge>
+                    </div>
+                  </div>
 
-                {/* Budget (Hidden on mobile, shown on tablet+) */}
-                <div className="col-span-1 sm:col-span-3 hidden sm:flex sm:flex-col">
-                  <p className="text-xs opacity-60 mb-1">Budget</p>
-                  <p className="text-sm font-medium">
-                    {formatCurrency(Math.random() * 20000)}
-                  </p>
-                </div>
+                  {/* Desktop row layout */}
+                  <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-4 py-3 border-b border-app last:border-b-0 hover:bg-app transition-colors">
+                    <div className="col-span-6 min-w-0">
+                      <div className="text-sm font-medium text-app truncate">
+                        {project.name}
+                      </div>
+                    </div>
 
-                {/* Due Date (Hidden on mobile, shown on tablet+) */}
-                <div className="col-span-1 sm:col-span-3 hidden sm:flex sm:flex-col">
-                  <p className="text-xs opacity-60 mb-1">Due Date</p>
-                  <p className="text-sm font-medium">
-                    {new Date(project.createdAt).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </p>
+                    <div className="col-span-3">
+                      <Badge variant={getStatusVariant(project.status)}>
+                        {project.status}
+                      </Badge>
+                    </div>
+
+                    <div className="col-span-3 text-sm text-app/70">
+                      {new Date(project.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
 
-        {/* View All Button */}
         {stats.totalProjects > 5 && (
-          <div className="pt-4 border-t border-app">
+          <div className="pt-3 border-t border-app">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onViewAll(client.id)}
               className="w-full"
             >
-              View All {stats.totalProjects} Projects →
+              View all projects ({stats.totalProjects})
             </Button>
           </div>
         )}

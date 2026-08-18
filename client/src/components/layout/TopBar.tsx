@@ -33,14 +33,11 @@ const Topbar = ({ onToggleSidebar }: TopbarProps) => {
   };
 
   const seg = location.pathname.split("/")[1] || "";
-  const pageTitle =
-    seg === "" ? "Dashboard" : seg.charAt(0).toUpperCase() + seg.slice(1);
+  const pageTitle = seg === "" ? "Dashboard" : seg.charAt(0).toUpperCase() + seg.slice(1);
 
   return (
-    <header className="h-16 flex items-center justify-between px-4 sm:px-6 bg-card border-b border-app sticky top-0 z-30">
-      {/* Left Section */}
-      <div className="flex items-center gap-4 min-w-0">
-        {/* Mobile Sidebar Toggle */}
+    <header className="h-16 flex items-center justify-between px-3 sm:px-6 bg-card border-b border-app sticky top-0 z-30">
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
         <button
           onClick={onToggleSidebar}
           className="md:hidden p-2 rounded-lg hover:bg-app transition-colors"
@@ -50,23 +47,21 @@ const Topbar = ({ onToggleSidebar }: TopbarProps) => {
           <Menu size={20} className="text-app" />
         </button>
 
-        {/* Breadcrumbs */}
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm font-semibold text-app truncate max-w-50 sm:max-w-[320px]">
+          <span className="hidden xs:inline text-sm font-semibold text-app truncate max-w-35 sm:max-w-65">
             {workspaceName}
           </span>
 
-          <ChevronRight size={16} className="text-app/40 shrink-0" />
+          <ChevronRight size={16} className="hidden xs:block text-app/40 shrink-0" />
 
-          <span className="text-sm font-medium text-app/80 truncate">
+          <span className="text-sm font-medium text-app truncate max-w-40 sm:max-w-none">
             {pageTitle}
           </span>
         </div>
       </div>
 
-      {/* Right Section */}
-      <div className="flex items-center gap-2">
-        {/* Theme Toggle */}
+      {/* Right */}
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
         <button
           onClick={toggleTheme}
           className="p-2 rounded-lg hover:bg-app transition-colors"
