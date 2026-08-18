@@ -1,7 +1,7 @@
-// client/src/pages/clients/components/ClientHeader.tsx
 import { ArrowLeft, Plus, Edit2, Trash2 } from "lucide-react";
 import Button from "../../../components/ui/Button";
 import Badge from "../../../components/ui/Badge";
+import Dropdown from "../../../components/ui/Dropdown";
 import type { Client } from "../../../types/client.types";
 
 interface ClientHeaderProps {
@@ -20,9 +20,9 @@ const ClientDetailsHeader = ({
   onDelete,
 }: ClientHeaderProps) => {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-slideUp">
-      {/* Left: Back + Title */}
-      <div className="flex items-start gap-3 sm:items-center">
+    <div className="animate-slideUp space-y-4 min-w-0">
+      {/* Top row: back + actions (mobile) */}
+      <div className="flex items-center justify-between gap-3">
         <Button
           variant="ghost"
           size="sm"
@@ -33,8 +33,55 @@ const ClientDetailsHeader = ({
           <span className="hidden sm:inline">Back</span>
         </Button>
 
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold text-app truncate">
+        {/* Mobile actions: single dropdown */}
+        <div className="sm:hidden">
+          <Dropdown
+            items={[
+              { label: "Add project", onClick: onAddProject },
+              { label: "Edit client", onClick: onEdit },
+              { label: "Delete client", onClick: onDelete, danger: true },
+            ]}
+          />
+        </div>
+
+        {/* Desktop actions */}
+        <div className="hidden sm:flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onAddProject}
+            className="flex items-center gap-2"
+          >
+            <Plus size={16} />
+            Project
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onEdit}
+            className="flex items-center gap-2"
+          >
+            <Edit2 size={16} />
+            Edit
+          </Button>
+
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={onDelete}
+            className="flex items-center gap-2"
+          >
+            <Trash2 size={16} />
+            Delete
+          </Button>
+        </div>
+      </div>
+
+      {/* Title row */}
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <h1 className="text-xl sm:text-2xl font-semibold text-app truncate">
             {client.name}
           </h1>
           {client.status && (
@@ -43,39 +90,11 @@ const ClientDetailsHeader = ({
             </Badge>
           )}
         </div>
-      </div>
 
-      {/* Right: Action Buttons (mobile: stacked, desktop: row) */}
-      <div className="flex gap-2 flex-wrap sm:flex-nowrap">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onAddProject}
-          className="flex items-center justify-center gap-2 flex-1 sm:flex-none"
-        >
-          <Plus size={16} />
-          <span className="hidden sm:inline">Project</span>
-        </Button>
-
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onEdit}
-          className="flex items-center justify-center gap-2 flex-1 sm:flex-none"
-        >
-          <Edit2 size={16} />
-          <span className="hidden sm:inline">Edit</span>
-        </Button>
-
-        <Button
-          variant="danger"
-          size="sm"
-          onClick={onDelete}
-          className="flex items-center justify-center gap-2 flex-1 sm:flex-none"
-        >
-          <Trash2 size={16} />
-          <span className="hidden sm:inline">Delete</span>
-        </Button>
+        {/* Optional subtext placeholder (keeps hierarchy nice) */}
+        {client.email && (
+          <p className="text-sm text-app/60 truncate mt-1">{client.email}</p>
+        )}
       </div>
     </div>
   );
