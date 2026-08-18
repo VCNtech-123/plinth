@@ -11,6 +11,7 @@ interface TasksHeaderProps {
     name: string;
   }[];
   onAddClick: () => void;
+  canCreate?: boolean;
 }
 
 const TasksHeader = ({
@@ -20,21 +21,18 @@ const TasksHeader = ({
   onProjectChange,
   projects,
   onAddClick,
+  canCreate = true,
 }: TasksHeaderProps) => {
   return (
     <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-
       <div>
-        <h1 className="text-xl sm:text-2xl font-semibold">
-          Tasks
-        </h1>
-        <p className="text-sm opacity-70 mt-1">
+        <h1 className="text-xl sm:text-2xl font-semibold text-app">Tasks</h1>
+        <p className="text-sm text-app/70 mt-1">
           Manage and track your workflow.
         </p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-
         <Input
           placeholder="Search tasks..."
           value={search}
@@ -45,7 +43,7 @@ const TasksHeader = ({
         <select
           value={projectFilter || ""}
           onChange={(e) => onProjectChange(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-app bg-card text-sm"
+          className="px-3 py-2 rounded-lg border border-app bg-card text-sm text-app"
         >
           <option value="">All Projects</option>
           {projects.map((project) => (
@@ -58,12 +56,12 @@ const TasksHeader = ({
         <Button
           onClick={onAddClick}
           className="w-full sm:w-auto"
+          disabled={!canCreate}
+          variant={canCreate ? "primary" : "secondary"}
         >
           Add Task
         </Button>
-
       </div>
-
     </div>
   );
 };
