@@ -220,23 +220,25 @@ const Tasks = () => {
             onUpdate={handleTaskUpdate}
           />
 
-          <DeleteTaskModal
-            open={!!deleteTaskId}
-            onClose={() => setDeleteTaskId(null)}
-            onConfirm={handleConfirmDelete}
-            taskTitle={deleteTaskTitle}
-            loading={deleteLoading}
-          />
-
-          <AddTaskModal
-            open={isAddOpen}
-            onClose={() => setIsAddOpen(false)}
-            onCreate={handleCreateTask}
-            projects={projects}
-            defaultProjectId={projectFilter}
-          />
+          
         </>
       )}
+
+          <DeleteTaskModal
+              open={!!deleteTaskId}
+              onClose={() => setDeleteTaskId(null)}
+              onConfirm={handleConfirmDelete}
+              taskTitle={deleteTaskTitle}
+              loading={deleteLoading}
+            />
+
+            <AddTaskModal
+              open={isAddOpen}
+              onClose={() => setIsAddOpen(false)}
+              onCreate={handleCreateTask}
+              projects={projects}
+              defaultProjectId={projectFilter}
+            />
           </div>
         );
       };

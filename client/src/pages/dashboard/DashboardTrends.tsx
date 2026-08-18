@@ -7,8 +7,6 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import Card from "../../components/ui/Card";
-import { CardContent, CardHeader } from "../../components/ui/Card";
 
 interface Props {
   trends: {
@@ -17,69 +15,78 @@ interface Props {
   };
 }
 
-const DashboardTrends = ({ trends }: Props) => {
+const getDayLabel = (index: number) => {
 
+  return `D${index + 1}`;
+};
+
+const DashboardTrends = ({ trends }: Props) => {
   const completedData = trends.tasksCompletedLast7Days.map((value, index) => ({
-    day: `Day ${index + 1}`,
+    day: getDayLabel(index),
     value,
   }));
 
   const createdData = trends.tasksCreatedLast7Days.map((value, index) => ({
-    day: `Day ${index + 1}`,
+    day: getDayLabel(index),
     value,
   }));
 
+  const primary = "var(--color-primary)";
+  const success = "var(--color-success)";
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="rounded-xl border border-app bg-card p-4">
+        <div className="mb-3">
+          <div className="text-sm font-semibold text-app">Tasks completed</div>
+          <div className="text-xs text-app/60">Last 7 days</div>
+        </div>
 
-      <Card variant="elevated">
-        <CardHeader>
-          <h3 className="text-lg font-semibold">
-            Tasks Completed (7 Days)
-          </h3>
-        </CardHeader>
-        <CardContent className="h-64">
+        <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={completedData}>
-              <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
-              <XAxis dataKey="day" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#6366F1"
-                strokeWidth={2}
+              <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.08} />
+              <XAxis dataKey="day" tick={{ fill: "var(--color-text)", fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fill: "var(--color-text)", fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{
+                  background: "var(--color-card)",
+                  border: `1px solid var(--color-border)`,
+                  color: "var(--color-text)",
+                  borderRadius: 12,
+                }}
               />
+              <Line type="monotone" dataKey="value" stroke={primary} strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card variant="elevated">
-        <CardHeader>
-          <h3 className="text-lg font-semibold">
-            Tasks Created (7 Days)
-          </h3>
-        </CardHeader>
-        <CardContent className="h-64">
+      <div className="rounded-xl border border-app bg-card p-4">
+        <div className="mb-3">
+          <div className="text-sm font-semibold text-app">Tasks created</div>
+          <div className="text-xs text-app/60">Last 7 days</div>
+        </div>
+
+        <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={createdData}>
-              <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
-              <XAxis dataKey="day" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#10B981"
-                strokeWidth={2}
+              <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.08} />
+              <XAxis dataKey="day" tick={{ fill: "var(--color-text)", fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fill: "var(--color-text)", fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{
+                  background: "var(--color-card)",
+                  border: `1px solid var(--color-border)`,
+                  color: "var(--color-text)",
+                  borderRadius: 12,
+                }}
               />
+              <Line type="monotone" dataKey="value" stroke={success} strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
+        </div>
+      </div>
     </div>
   );
 };
