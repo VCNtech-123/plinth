@@ -1,4 +1,4 @@
-import { Users, FolderKanban, CheckSquare, AlertTriangle } from "lucide-react";
+import { FolderKanban, CheckSquare, AlertTriangle, CalendarClock } from "lucide-react";
 import StatCard from "../../components/ui/StatCard";
 
 interface Props {
@@ -13,35 +13,39 @@ interface Props {
 }
 
 const DashboardSummary = ({ summary }: Props) => {
+  const weeklyRate =
+    typeof summary.weeklyCompletionRate === "number"
+      ? `${summary.weeklyCompletionRate}%`
+      : summary.weeklyCompletionRate;
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+      <StatCard
+        title="Active projects"
+        value={summary.activeProjects}
+        icon={FolderKanban}
+        accent="success"
+      />
 
-     <StatCard
-      title="Active Projects"
-      value={summary.activeProjects}
-      icon={FolderKanban}
-      accent="success"
-    />
+      <StatCard
+        title="Overdue tasks"
+        value={summary.overdueTasks}
+        icon={AlertTriangle}
+        accent={summary.overdueTasks > 0 ? "danger" : "success"}
+      />
 
-    <StatCard
-      title="Overdue Tasks"
-      value={summary.overdueTasks}
-      icon={AlertTriangle}
-      accent={summary.overdueTasks > 0 ? "danger" : "success"}
-    />
+      <StatCard
+        title="Weekly completion"
+        value={weeklyRate as any}
+        icon={CheckSquare}
+      />
 
-    <StatCard
-      title="Weekly Completion"
-      value={summary.weeklyCompletionRate}
-      icon={CheckSquare}
-    />
-
-    <StatCard
-      title="Tasks Due Today"
-      value={summary.tasksDueToday}
-      icon={Users}
-    />
-
+      <StatCard
+        title="Due today"
+        value={summary.tasksDueToday}
+        icon={CalendarClock}
+        accent={summary.tasksDueToday > 0 ? "warning" : "success"}
+      />
     </div>
   );
 };
