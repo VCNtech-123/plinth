@@ -10,29 +10,24 @@ describe("Workspace Creation on Registration", () => {
     const userData: TestUser = {
       name: "Workspace User",
       email: "workspace@example.com",
-      password: "StrongPass123",
+      password: "StrongPass1234", // safer: >=12 chars
     };
 
-    // ✅ Explicit registration request
     const res = await request(app)
-    .post("/api/auth/register")
-    .send(userData);
-
-    console.log(res.body);
+      .post("/api/auth/register")
+      .send({
+        ...userData,
+        confirmPassword: userData.password,
+      });
 
     expect(res.status).toBe(201);
-    
+
     const user = await User.findOne({ email: userData.email });
     expect(user).toBeTruthy();
 
-    const workspace = await Workspace.findOne({
-      createdBy: user!._id,
-    });
-
+    const workspace = await Workspace.findOne({ createdBy: user!._id });
     expect(workspace).toBeTruthy();
-    expect(workspace!.name).toBe(
-      `${userData.name}'s Workspace`
-    );
+    expect(workspace!.name).toBe(`${userData.name}'s Workspace`);
 
     const membership = await WorkspaceMember.findOne({
       workspace: workspace!._id,
@@ -41,5 +36,6 @@ describe("Workspace Creation on Registration", () => {
 
     expect(membership).toBeTruthy();
     expect(membership!.role).toBe("owner");
+    expect(membership!.status).toBe("active"); // if your model defaults to pending, adjust
   });
 });
