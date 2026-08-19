@@ -42,11 +42,8 @@ const Register = () => {
 
     setLoading(true);
     try {
-      // Frontend-only confirm password:
-      // When you later add backend confirmPassword validation,
-      // you can safely extend this to:
-      // await register({ name, email, password, confirmPassword })
-      await register({ name: name.trim(), email: email.trim(), password });
+  
+      await register({ name: name.trim(), email: email.trim(), password, confirmPassword});
       navigate("/");
     } catch (err: any) {
       setError(
