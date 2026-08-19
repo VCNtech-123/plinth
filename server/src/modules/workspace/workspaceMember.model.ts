@@ -3,13 +3,14 @@ import mongoose, { Schema } from "mongoose";
 import { IWorkspace } from "./workspace.model";
 
 export type WorkspaceRole = "owner" | "admin" | "member" | "viewer";
+export type MemberStatus = "pending" | "active" | "declined" | "removed";
 
 export interface IWorkspaceMember {
     _id: mongoose.Types.ObjectId
     workspace: mongoose.Types.ObjectId | IWorkspace;
     user: mongoose.Types.ObjectId;
     role: WorkspaceRole;
-    status: "pending" | "active" | "declined" | "removed";
+    status: MemberStatus;
     joinedAt?: Date;
     removedAt?: Date;
     removedBy?: mongoose.Types.ObjectId;

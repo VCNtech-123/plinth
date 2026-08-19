@@ -7,6 +7,12 @@ const memberBodySchema = z.object({
     role: z.enum(["owner", "admin", "member", "viewer"])
 }).strict()
 
+const workspaceNameSchema = z.object({
+    name: z.string()
+      .trim()
+      .min(2, "Workspace name must be at least 2 characters")
+      .max(60, "Workspace name must be at most 60 characters"),
+  }).strict()
 
 const workspaceBodySchema = z.object({
     id: objectIdSchema
@@ -46,6 +52,11 @@ export const updateWorkspaceSchema = z.object({
     body: workspaceUpdateBodySchema
 })
 
+export const createWorkspaceSchema = z.object({
+    body: workspaceNameSchema
+})
+
 export type MemberBody = z.infer<typeof memberBodySchema>
 export type WorkspaceBody =  z.infer<typeof workspaceBodySchema>
 export type WorkspaceUpdateBody = z.infer<typeof workspaceUpdateBodySchema>
+export type WorkspaceNameBody = z.infer<typeof workspaceNameSchema>

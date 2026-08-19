@@ -2,10 +2,12 @@ import { Request, Response } from 'express'
 import { getCurrentWorkspaceService, getWorkspaceMembersService, inviteUserService, 
          getInvitesService, acceptInviteService, getUserWorkspacesService,
          declineInviteService, setCurrentWorkplaceService, removeMemberService,
-         updateWorkspaceService, leaveWorkspaceService
+         updateWorkspaceService, leaveWorkspaceService, createWorkspaceService
         } from './workspace.service'
 import { ApiError } from '../../utils/ApiError'
-import { MemberBody, WorkspaceBody, WorkspaceUpdateBody } from './workspace.validation'
+import { MemberBody, WorkspaceBody, WorkspaceUpdateBody,
+         WorkspaceNameBody
+ } from './workspace.validation'
 
 export const getCurrentWorkspace = async ( 
     req: Request,
@@ -275,3 +277,35 @@ export const leaveWorkspace = async (req: Request, res: Response) => {
     message: "Left workspace",
   });
 };
+
+export const createWorkspace = async (
+    req: Request, 
+    res: Response 
+) => {
+
+    const { body } = res.locals.validated as {
+        body: WorkspaceNameBody
+    }
+
+    const { name } =  body
+
+    const membership = await createWorkspaceService(name, req.user!._id)
+
+    res.status(201).json({
+    status: "success",
+    message: "Workspace created",
+    data: {
+      workspace: {
+        id: membership.workspace._id,
+        name: membership.workspace.name,
+        createdBy: membership.workspace.createdBy,
+      },
+      membership: {
+        id: membership._id,
+        role: membership.role,
+        status: membership.status,
+        joinedAt: membership.joinedAt,
+      },
+    },
+  });
+}
