@@ -1,5 +1,6 @@
 
 import { IWorkspaceMember, WorkspaceRole } from "../modules/workspace/workspaceMember.model";
+import { IWorkspace } from "../modules/workspace/workspace.model";
 import { Types, Document } from "mongoose";
 
 export type PopulatedWorkspace = Omit<IWorkspaceMember, "workspace"> & {
@@ -27,7 +28,7 @@ export interface PopulatedMember extends Omit<IWorkspaceMember, 'user'>, Documen
 }
 
 export interface PopulatedInvite {
-    _id: string;
+    _id: Types.ObjectId;
     workspace: {
         _id: Types.ObjectId,
         name: string,
@@ -36,3 +37,7 @@ export interface PopulatedInvite {
     role: WorkspaceRole,
     status: string
 }
+
+export type WorkspaceMemberWithWorkspace = Omit<IWorkspaceMember, "workspace"> & {
+  workspace: Pick<IWorkspace, "_id" | "name" | "createdBy">;
+};
