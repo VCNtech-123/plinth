@@ -5,10 +5,11 @@ import { attachWorkspace } from "../../middleware/workspace.middleware";
 import { getCurrentWorkspace, getWorkspaceMembers, inviteUser, 
          getInvites, acceptInvite, getUserWorkspaces, declineInvite, 
          setCurrentWorkspace, removeMember, updateWorkspace,
-         leaveWorkspace } from "./workspace.controller";
+         leaveWorkspace, createWorkspace } from "./workspace.controller";
 import { validate } from "../../middleware/validate.middleware";
 import { inviteMemberSchema, acceptInviteSchema, declineInviteSchema, 
-         setCurrentWorkplaceSchema, removeMemberSchema, updateWorkspaceSchema } from "./workspace.validation";
+         setCurrentWorkplaceSchema, removeMemberSchema, updateWorkspaceSchema,
+         createWorkspaceSchema } from "./workspace.validation";
 import { emptySchema } from "../../utils/empty";
 import { authorize } from "../../middleware/authorize.middleware";
 
@@ -20,6 +21,7 @@ router.patch("/me/invites/:id/accept", protect, validate(acceptInviteSchema), ac
 router.patch("/me/invites/:id/decline", protect, validate(declineInviteSchema), declineInvite)
 
 router.get("/", protect, validate(emptySchema), getUserWorkspaces)
+router.post("/", protect, validate(createWorkspaceSchema), createWorkspace)
 router.patch("/me/switch", protect, validate(setCurrentWorkplaceSchema), setCurrentWorkspace)
 
 router.use(protect, attachWorkspace)
