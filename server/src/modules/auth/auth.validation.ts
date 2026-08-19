@@ -18,17 +18,18 @@ const passwordSchema = z
   );
 
 export const registerSchema = z.object({
-  body: z.object({
-    name: z.string().min(1).max(80),
-    email: z.string().email(),
-    password: z.string().min(8).max(100),
-    confirmPassword: z.string().min(8).max(100),
-  })
-  .strict()
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  }),
+  body: z
+    .object({
+      name: z.string().min(1).max(80),
+      email: z.string().trim().toLowerCase().email("Invalid email"),
+      password: passwordSchema,
+      confirmPassword: z.string().min(1, "Confirm password is required"),
+    })
+    .strict()
+    .refine((data) => data.password === data.confirmPassword, {
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    }),
 });
 
 export const loginSchema = z.object({
