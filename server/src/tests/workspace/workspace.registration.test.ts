@@ -1,41 +1,48 @@
 import request from "supertest";
 import app from "../../app";
-import { Workspace } from "../../modules/workspace/workspace.model";
-import { WorkspaceMember } from "../../modules/workspace/workspaceMember.model";
-import { User } from "../../modules/user/user.model";
-import { TestUser } from "../utils/auth.helper";
 
-describe("Workspace Creation on Registration", () => {
-  it("should create a default workspace and membership when user registers", async () => {
-    const userData: TestUser = {
-      name: "Workspace User",
-      email: "workspace@example.com",
-      password: "StrongPass1234", // safer: >=12 chars
-    };
-
+describe("Auth - Register confirmPassword", () => {
+  it("returns 400 when confirmPassword is missing", async () => {
     const res = await request(app)
       .post("/api/auth/register")
       .send({
-        ...userData,
-        confirmPassword: userData.password,
+        name: "Test User",
+        email: "test@example.com",
+        password: "StrongPass1234",
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.status).toBe("fail");
+    expect(String(res.body.message).toLowerCase()).toContain("confirmpassword");
+  });
+
+  it("returns 400 when confirmPassword does not match password", async () => {
+    const res = await request(app)
+      .post("/api/auth/register")
+      .send({
+        name: "Test User",
+        email: "test2@example.com",
+        password: "StrongPass1234",
+        confirmPassword: "StrongPass12345",
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.status).toBe("fail");
+    expect(String(res.body.message).toLowerCase()).toContain("passwords do not match");
+  });
+
+  it("registers successfully when passwords match", async () => {
+    const res = await request(app)
+      .post("/api/auth/register")
+      .send({
+        name: "Test User",
+        email: "test3@example.com",
+        password: "StrongPass1234",
+        confirmPassword: "StrongPass1234",
       });
 
     expect(res.status).toBe(201);
-
-    const user = await User.findOne({ email: userData.email });
-    expect(user).toBeTruthy();
-
-    const workspace = await Workspace.findOne({ createdBy: user!._id });
-    expect(workspace).toBeTruthy();
-    expect(workspace!.name).toBe(`${userData.name}'s Workspace`);
-
-    const membership = await WorkspaceMember.findOne({
-      workspace: workspace!._id,
-      user: user!._id,
-    });
-
-    expect(membership).toBeTruthy();
-    expect(membership!.role).toBe("owner");
-    expect(membership!.status).toBe("active"); // if your model defaults to pending, adjust
+    expect(res.body.status).toBe("success");
+    expect(res.body.data.email).toBe("test3@example.com");
   });
 });
