@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { Workspace } from "./workspace.model";
 import { WorkspaceMember, IWorkspaceMember, WorkspaceRole } from "./workspaceMember.model";
-import { WorkspaceResponse, PopulatedWorkspace, PopulatedMember, PopulatedInvite } from "../../types/workspace.types";
+import { WorkspaceResponse, PopulatedWorkspace, PopulatedMember, PopulatedInvite, WorkspaceMemberWithWorkspace } from "../../types/workspace.types";
 import { findUserByEmailService } from "../auth/auth.service";
 import { ApiError } from "../../utils/ApiError";
 import { setCurrentWorkspace, clearCurrentWorkspaceIfMatches } from "../user/user.service";
@@ -319,3 +319,26 @@ export const leaveWorkspaceService = async (
 
   return updated;
 };
+
+export const createWorkspaceService = async (
+  name: string,
+  userId: mongoose.Types.ObjectId
+): Promise<WorkspaceMemberWithWorkspace> => {
+
+  const newWorkspace = await Workspace.create({
+    name: name,
+    createdBy: userId,
+  })
+
+  const membership = await WorkspaceMember.create({
+    workspace: newWorkspace._id,
+    user: userId,
+    role: 'owner',
+    status: 'active',
+    joinedAt: new Date(),
+  })
+
+  await membership.populate("workspace", "_id name createdBy");
+  await setCurrentWorkspace(userId, newWorkspace._id.toString())
+  return membership.toObject() as WorkspaceMemberWithWorkspace;
+}
