@@ -8,8 +8,15 @@ export interface TestUser {
 }
 
 export const registerUser = async (user: TestUser) => {
-  return request(app).post("/api/auth/register").send(user);
-}
+  return request(app)
+    .post("/api/auth/register")
+    .send({
+      name: user.name,
+      email: user.email,
+      password: user.password,
+      confirmPassword: user.password,
+    });
+};
 
 export async function loginUser(user: TestUser) {
   const res = await request(app)
@@ -20,6 +27,15 @@ export async function loginUser(user: TestUser) {
 }
 
 export async function createAndLoginUser(user: TestUser) {
-  await registerUser(user);
-  return loginUser(user);
+  const reg = await registerUser(user);
+  if (reg.status !== 201) {
+    throw new Error(`Register failed: ${reg.status} ${JSON.stringify(reg.body)}`);
+  }
+
+  const cookie = await loginUser(user);
+  if (!cookie) {
+    throw new Error(`Login failed: no cookie returned`);
+  }
+
+  return cookie;
 }
