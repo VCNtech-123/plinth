@@ -49,9 +49,9 @@ export const useWorkspaceMembers = () => {
     }
   };
 
-  const updateRole = async (membershipId: string, role: WorkspaceRole) => {
+  const updateRole = async (membershipId: string, role: "admin" | "member" | "viewer") => {
     try {
-      await changeMemberRole(membershipId, role as any); // role should exclude owner in UI
+      await changeMemberRole(membershipId, role); 
       toast.success("Role updated");
       await fetchMembers();
     } catch (e: any) {
