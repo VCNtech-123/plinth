@@ -72,3 +72,8 @@ export const changeMemberRole = async (
   const response = await api.patch(`/workspaces/me/members/${membershipId}/role`, { role });
   return response.data;
 };
+
+export const createWorkspace = async (name: string) => {
+  const res = await api.post("/workspaces", { name });
+  return res.data;
+};
