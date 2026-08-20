@@ -69,6 +69,6 @@ export const changeMemberRole = async (
   membershipId: string,
   role: "admin" | "member" | "viewer"
 ) => {
-  const response = await api.patch(`/me/members/${membershipId}/role`, { role });
+  const response = await api.patch(`/workspaces/me/members/${membershipId}/role`, { role });
   return response.data;
 };
