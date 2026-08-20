@@ -342,3 +342,48 @@ export const createWorkspaceService = async (
   await setCurrentWorkspace(userId, newWorkspace._id.toString())
   return membership.toObject() as WorkspaceMemberWithWorkspace;
 }
+
+const ALLOWED_ROLES: WorkspaceRole[] = ["admin", "member", "viewer"];
+
+export const changeMemberRoleService = async (
+  workspaceId: mongoose.Types.ObjectId,
+  membershipId: string,
+  newRole: WorkspaceRole,
+  actorUserId: mongoose.Types.ObjectId
+): Promise<PopulatedMember> => {
+  if (!ALLOWED_ROLES.includes(newRole)) {
+    throw new ApiError(400, "Invalid role");
+  }
+
+  const membership = await WorkspaceMember.findOne({
+    _id: membershipId,
+    workspace: workspaceId,
+    status: "active",
+  });
+
+  if (!membership) {
+    throw new ApiError(404, "Member not found");
+  }
+
+  if (membership.role === "owner") {
+    throw new ApiError(400, "Owner role cannot be changed");
+  }
+
+  if (membership.user.toString() === actorUserId.toString()) {
+    throw new ApiError(400, "You cannot change your own role");
+  }
+
+  const updatedMember = await WorkspaceMember.findByIdAndUpdate(
+    membershipId,
+    { role: newRole },
+    { new: true }
+  )
+    .populate<{ user: PopulatedMember["user"] }>("user", "_id name email")
+    .lean<PopulatedMember>();
+
+  if (!updatedMember) {
+    throw new ApiError(404, "Member not found after update");
+  }
+
+  return updatedMember;
+};
