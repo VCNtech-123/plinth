@@ -5,11 +5,11 @@ import { attachWorkspace } from "../../middleware/workspace.middleware";
 import { getCurrentWorkspace, getWorkspaceMembers, inviteUser, 
          getInvites, acceptInvite, getUserWorkspaces, declineInvite, 
          setCurrentWorkspace, removeMember, updateWorkspace,
-         leaveWorkspace, createWorkspace } from "./workspace.controller";
+         leaveWorkspace, createWorkspace, changeMemberRole } from "./workspace.controller";
 import { validate } from "../../middleware/validate.middleware";
 import { inviteMemberSchema, acceptInviteSchema, declineInviteSchema, 
          setCurrentWorkplaceSchema, removeMemberSchema, updateWorkspaceSchema,
-         createWorkspaceSchema } from "./workspace.validation";
+         createWorkspaceSchema, changeMemberRoleSchema } from "./workspace.validation";
 import { emptySchema } from "../../utils/empty";
 import { authorize } from "../../middleware/authorize.middleware";
 
@@ -32,6 +32,7 @@ router.post("/me/leave", validate(emptySchema), leaveWorkspace)
 router.get("/me/members", validate(emptySchema), getWorkspaceMembers);
 router.post("/me/members", validate(inviteMemberSchema), authorize("owner", "admin"), inviteUser);
 router.delete("/me/members/:id", validate(removeMemberSchema), authorize("owner"), removeMember);
+router.patch("/me/members/:id/role", validate(changeMemberRoleSchema), authorize("owner"), changeMemberRole)
 
 
 

@@ -2,11 +2,11 @@ import { Request, Response } from 'express'
 import { getCurrentWorkspaceService, getWorkspaceMembersService, inviteUserService, 
          getInvitesService, acceptInviteService, getUserWorkspacesService,
          declineInviteService, setCurrentWorkplaceService, removeMemberService,
-         updateWorkspaceService, leaveWorkspaceService, createWorkspaceService
-        } from './workspace.service'
+         updateWorkspaceService, leaveWorkspaceService, createWorkspaceService,
+         changeMemberRoleService } from './workspace.service'
 import { ApiError } from '../../utils/ApiError'
 import { MemberBody, WorkspaceBody, WorkspaceUpdateBody,
-         WorkspaceNameBody
+         WorkspaceNameBody, WorkspaceRoleBody
  } from './workspace.validation'
 
 export const getCurrentWorkspace = async ( 
@@ -309,3 +309,38 @@ export const createWorkspace = async (
     },
   });
 }
+
+export const changeMemberRole = async (
+    req: Request, 
+    res: Response
+) => {
+    
+  const membershipId = req.params.id as string;
+  const { body } = res.locals.validated as {
+    body: WorkspaceRoleBody
+  };
+
+  const { role } = body;
+
+  const updated = await changeMemberRoleService(
+    req.workspace!._id,
+    membershipId,
+    role,
+    req.user!._id
+  );
+
+  res.status(200).json({
+    status: "success",
+    message: "Member role updated",
+    data: {
+      id: updated._id,
+      role: updated.role,
+      status: updated.status,
+      user: {
+        id: updated.user._id,
+        name: updated.user.name,
+        email: updated.user.email,
+      },
+    },
+  });
+};
