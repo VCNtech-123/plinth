@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { useWorkspaceStore } from "../../../../store/workspace.store";
 import { getWorkspaceMembers, inviteUser, removeMember } from "../../../../api/workspace.api";
 import type { WorkspaceMemberRow, WorkspaceRole } from "../../../../types/workspace.types";
+import { changeMemberRole } from "../../../../api/workspace.api";
 
 export const useWorkspaceMembers = () => {
   const workspaceVersion = useWorkspaceStore((s) => s.version);
@@ -48,5 +49,15 @@ export const useWorkspaceMembers = () => {
     }
   };
 
-  return { members, loading, myRole, invite, remove, refetch: fetchMembers };
+  const updateRole = async (membershipId: string, role: "admin" | "member" | "viewer") => {
+    try {
+      await changeMemberRole(membershipId, role); 
+      toast.success("Role updated");
+      await fetchMembers();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Failed to update role");
+    }
+  };
+
+  return { members, loading, myRole, invite, remove, refetch: fetchMembers, updateRole };
 };

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import clsx from "clsx";
 
 interface ModalProps {
@@ -14,20 +15,24 @@ const Modal = ({ open, onClose, children }: ModalProps) => {
       if (e.key === "Escape") onClose();
     };
 
-    if (open) {
-      document.addEventListener("keydown", handleKey);
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleKey);
-    };
+    if (open) document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
@@ -45,7 +50,8 @@ const Modal = ({ open, onClose, children }: ModalProps) => {
       >
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

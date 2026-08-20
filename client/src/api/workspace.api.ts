@@ -64,3 +64,16 @@ export const declineInvite = async (membershipId: string) => {
   const response = await api.patch(`/workspaces/me/invites/${membershipId}/decline`);
   return response.data;
 };
+
+export const changeMemberRole = async (
+  membershipId: string,
+  role: "admin" | "member" | "viewer"
+) => {
+  const response = await api.patch(`/workspaces/me/members/${membershipId}/role`, { role });
+  return response.data;
+};
+
+export const createWorkspace = async (name: string) => {
+  const res = await api.post("/workspaces", { name });
+  return res.data;
+};

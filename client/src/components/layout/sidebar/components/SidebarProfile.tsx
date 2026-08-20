@@ -125,7 +125,7 @@ const SidebarProfile = () => {
                 handleLogout();
                 setOpen(false);
               }}
-              className="w-full text-left px-4 py-2 text-sm text-(--color-danger) hover:bg-app transition-colors flex items-center gap-2"
+              className="w-full text-left px-4 py-2 text-sm text-danger hover:bg-app transition-colors flex items-center gap-2"
             >
               <LogOut size={16} />
               Logout
