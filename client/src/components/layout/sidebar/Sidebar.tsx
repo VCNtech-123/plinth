@@ -26,7 +26,6 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           bg-card border-r border-app
           transform transition-transform duration-300 ease-out
           flex flex-col
-          overflow-hidden
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0
           md:static
@@ -44,7 +43,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           <SidebarNav onClose={onClose} />
         </div>
 
-        <div className="flex-1 overflow-hidden" />
+        <div className="flex-1" />
 
         <div className="shrink-0 border-t border-app">
           <SidebarProfile />
