@@ -1,8 +1,10 @@
-
 import { Project } from '../project/project.model';
 import { Task } from '../task/task.model';
 import mongoose from 'mongoose';
 import { DashboardResponse } from '../../types/dashboard.types';
+import redis from '../../utils/redis';
+
+const CACHE_TTL = parseInt(process.env.REDIS_TTL || '300');
 
 const getSummaryStats = async (workspaceId: mongoose.Types.ObjectId) => {
   const startOfToday = new Date();
@@ -222,6 +224,19 @@ const getRecentActivity = async (workspaceId: mongoose.Types.ObjectId) => {
 export const getDashboardService = async (
   workspaceId: mongoose.Types.ObjectId
 ): Promise<DashboardResponse> => {
+  const cacheKey = `dashboard:${workspaceId.toString()}`;
+
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log(`Cache hit for dashboard: ${workspaceId.toString()}`);
+      return JSON.parse(cached);
+    }
+    console.log(`Cache miss for dashboard: ${workspaceId.toString()}`);
+  } catch (error) {
+    console.error('Redis cache error:', error);
+  }
+
   const [summary, trends, atRiskProjects, recentActivity] = await Promise.all([
     getSummaryStats(workspaceId),
     get7DayTrends(workspaceId),
@@ -229,10 +244,24 @@ export const getDashboardService = async (
     getRecentActivity(workspaceId),
   ]);
 
-  return {
+  const dashboardData: DashboardResponse = {
     summary,
     trends,
     atRiskProjects,
     recentActivity,
   };
+
+  try {
+    await redis.set(
+      cacheKey,
+      JSON.stringify(dashboardData),
+      'EX',
+      CACHE_TTL
+    );
+    console.log(`Cached dashboard data for: ${workspaceId.toString()}`);
+  } catch (error) {
+    console.error('Redis cache set error:', error);
+  }
+
+  return dashboardData;
 };

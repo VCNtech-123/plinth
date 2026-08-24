@@ -7,6 +7,7 @@ import { ProjectDetailsResult, PopulatedProject, ProjectsFilter } from '../../ty
 import { getClientByIdService } from '../client/client.service';
 import mongoose from 'mongoose';
 import { GetProjectsQuery, UpdateProjectData } from './project.validation'
+import { invalidateProjectCache } from '../../utils/cache';
 
 
 export const createProjectService = async (
@@ -176,6 +177,8 @@ export const updateProjectService = async (
     if (!client) {
       return null
     }
+
+    await invalidateProjectCache(workspaceId);
   }
 
   const updatedProject = await Project.findOneAndUpdate(
@@ -192,6 +195,7 @@ export const updateProjectService = async (
     return null
   }
 
+  await invalidateProjectCache(workspaceId);
   return updatedProject;
 }
 
@@ -253,5 +257,6 @@ export const restoreProjectService = async (
     return null
   }
 
+  await invalidateProjectCache(workspaceId);
   return restoredProject;
 }

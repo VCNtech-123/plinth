@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { Project } from '../project/project.model'
 import { Task } from "../task/task.model";
 import { GetClientsQuery, GetClientsFilter, GetClientByIdResponse } from '../../types/clients.types'
+import { invalidateClientCache } from '../../utils/cache';
 
 export const createClientService = async (
   data: Partial<IClient>,
@@ -173,6 +174,7 @@ export const updateClientService = async (
       { new: true }
     );
 
+    await invalidateClientCache(workspaceId);
     return updatedClient;
 };
 
@@ -194,6 +196,7 @@ export const deleteClientService = async (
     }
   );
 
+  await invalidateClientCache(workspaceId);
   return deletedClient;
 }
 
@@ -218,5 +221,6 @@ export const restoreClientService = async (
     return null
   }
 
+  await invalidateClientCache(workspaceId);
   return restoredClient;
 }
