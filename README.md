@@ -1,8 +1,8 @@
 # Plinth
 
-A multi-tenant SaaS platform for managing clients, projects, and tasks across team workspaces, with role-based access control and a metrics dashboard.
+A multi-tenant SaaS platform for managing clients, projects, and tasks across team workspaces, with role based access control and a metrics dashboard.
 
-React 19 · TypeScript · Node.js/Express 5 · MongoDB · Zod · Jest
+React 19, TypeScript, Node.js/Express 5, MongoDB, Redis, Zod, Jest, Docker
 
 ---
 
@@ -12,12 +12,15 @@ React 19 · TypeScript · Node.js/Express 5 · MongoDB · Zod · Jest
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
 - [Core Features](#core-features)
-- [Workspaces & Access Control](#workspaces--access-control)
+- [Workspaces and Access Control](#workspaces-and-access-control)
 - [Validation Layer](#validation-layer)
+- [Caching](#caching)
 - [Testing](#testing)
 - [Data Models](#data-models)
 - [API Reference](#api-reference)
 - [Getting Started](#getting-started)
+- [Running with Docker](#running-with-docker)
+- [CI/CD](#cicd)
 - [Environment Variables](#environment-variables)
 - [Project Structure](#project-structure)
 - [Design Decisions](#design-decisions)
@@ -28,45 +31,50 @@ React 19 · TypeScript · Node.js/Express 5 · MongoDB · Zod · Jest
 
 ## Overview
 
-Plinth is a full-stack portfolio project modeling a multi-tenant SaaS product: a workspace with team members manages Clients → Projects → Tasks, with comments and a metrics dashboard. It started as a single-owner CRUD app and was later migrated to workspace-based multi-user tenancy — every record is scoped to a workspace, not a single user, and access within a workspace is governed by role.
+Plinth is a full stack portfolio project modeling a multi-tenant SaaS product. A workspace with team members manages Clients, Projects, and Tasks, with comments and a metrics dashboard. It started as a single-owner CRUD app and was later migrated to workspace based multi-user tenancy. Every record is scoped to a workspace instead of a single user, and access within a workspace is governed by role.
 
-- **Workspace-scoped tenant isolation**, enforced at the database query level and covered by integration tests.
-- **Role-based access control** (owner/admin/member/viewer) on every mutating endpoint.
-- **Schema-validated input** on every route via Zod.
-- **Lifecycle-aware data** — soft delete and restore, with cascade rules between projects and tasks.
-- **A dashboard** built on parallelized MongoDB aggregations (summary stats, trends, at-risk projects, recent activity).
-- **A typed contract** between frontend and backend, with dedicated request/response types on both sides.
+- Workspace scoped tenant isolation, enforced at the database query level and covered by integration tests.
+- Role based access control (owner, admin, member, viewer) on every mutating endpoint.
+- Schema validated input on every route via Zod.
+- Lifecycle aware data. Soft delete and restore, with cascade rules between projects and tasks.
+- A dashboard built on parallelized MongoDB aggregations and cached in Redis.
+- A typed contract between frontend and backend, with dedicated request and response types on both sides.
+- A Dockerized dev and prod setup with a CI pipeline that runs the test suite and builds both apps.
 
 ## Tech Stack
 
 **Frontend**
-- React 19 + TypeScript, built with Vite
-- React Router 7, with protected-route guards
+- React 19 with TypeScript, built with Vite
+- React Router 7, with protected route guards
 - Zustand for auth and workspace state
-- Axios (`withCredentials`) with a global 401 interceptor
-- Tailwind CSS 4 with a token-based light/dark theme
-- `@hello-pangea/dnd` for the drag-and-drop task board
+- Axios with `withCredentials` and a global 401 interceptor
+- Tailwind CSS 4 with a token based light and dark theme
+- `@hello-pangea/dnd` for the drag and drop task board
 - Recharts for dashboard trend visualization
 - Sonner for toast notifications, lucide-react for icons
 
 **Backend**
-- Node.js + Express 5, TypeScript
-- MongoDB + Mongoose 9 (ODM)
+- Node.js with Express 5, TypeScript
+- MongoDB with Mongoose 9
+- Redis for dashboard response caching
 - Zod for request validation on every route
-- JWT authentication delivered via an `httpOnly` cookie
+- JWT authentication delivered via an httpOnly cookie
 - bcrypt for password hashing
 - Helmet for secure HTTP headers
 - express-rate-limit for global rate limiting
 
 **Testing**
-- Jest + ts-jest + Supertest, run against a real MongoDB instance
-- Integration tests organized by domain, covering tenant isolation and soft-delete lifecycle
+- Jest with ts-jest and Supertest, run against a real MongoDB instance
+- Integration tests organized by domain, covering tenant isolation and soft delete lifecycle
 
-**Deployment target:** the client ships a `vercel.json` SPA rewrite config for static hosting; the API is a standard Node/Express service deployable to any Node host.
+**Infrastructure**
+- Dockerfiles for both `client` and `server`
+- `docker-compose.yml` for a full stack run (MongoDB, Redis, backend, frontend)
+- GitHub Actions workflow that installs dependencies, builds, and runs the backend test suite on every push and pull request
 
 ## Architecture
 
-Plinth is a monorepo with two independently deployable apps:
+Plinth is a monorepo with two independently deployable apps.
 
 ```text
 plinth/
@@ -74,101 +82,110 @@ plinth/
 └── server/     Express REST API
 ```
 
-### Backend — layered, modular-by-domain
+### Backend, layered and modular by domain
 
 ```text
 server/src/
 ├── modules/
-│   ├── auth/         # register, login, logout, session
-│   ├── user/          # user model + service
-│   ├── client/         # client CRUD, workspace-scoped
-│   ├── project/         # project CRUD + soft delete/restore
-│   ├── task/              # task CRUD + soft delete/restore + assignee
-│   ├── comment/             # task comments + soft delete/restore
-│   ├── workspace/             # workspaces, membership, invites, roles
-│   └── dashboard/                # aggregated analytics
-├── middleware/                     # auth, workspace attach, authorize, validate, security, rate limiting
-├── utils/                            # ApiError, JWT signing, ObjectId schema, pagination
-├── types/                              # shared request/response types
-├── tests/                                # Jest + Supertest suite, grouped by domain
-└── config/                                 # environment loading
+│   ├── auth/         register, login, logout, session
+│   ├── user/          user model and service
+│   ├── client/          client CRUD, workspace scoped
+│   ├── project/          project CRUD with soft delete and restore
+│   ├── task/               task CRUD with soft delete, restore, and assignee
+│   ├── comment/              task comments with soft delete and restore
+│   ├── workspace/              workspaces, membership, invites, roles
+│   └── dashboard/                aggregated analytics, cached in Redis
+├── middleware/                     auth, workspace attach, authorize, validate, security, rate limiting
+├── utils/                            ApiError, JWT signing, ObjectId schema, pagination, redis client, cache helpers
+├── types/                              shared request and response types
+├── tests/                                Jest and Supertest suite, grouped by domain
+└── config/                                 environment loading
 ```
 
-Every domain module follows the same layering, and business logic never lives in a controller:
+Every domain module follows the same layering, and business logic never lives in a controller.
 
 | Layer | Responsibility |
 |---|---|
-| **routes** | Wire up `protect` → `attachWorkspace` → `validate` → `authorize` (where relevant) → controller |
-| **controller** | Handle HTTP request/response shape only |
-| **service** | All business logic and database queries, always workspace-scoped |
-| **model** | Mongoose schema + TypeScript interface |
-| **validation** | Zod schemas for `body`/`params`/`query`, enforced before the controller runs |
+| routes | Wire up `protect`, then `attachWorkspace`, then `validate`, then `authorize` where relevant, then the controller |
+| controller | Handle the HTTP request and response shape only |
+| service | All business logic and database queries, always workspace scoped |
+| model | Mongoose schema and TypeScript interface |
+| validation | Zod schemas for body, params, and query, enforced before the controller runs |
 
-### Frontend — feature-folder React app
+### Frontend, feature folder React app
 
 ```text
 client/src/
-├── api/            # one file per domain, thin axios wrappers
-├── pages/           # auth, dashboard, clients, projects, tasks, workspaces
-│   └── <feature>/     components/, modals/, hooks/
-├── layouts/           # AuthLayout, DashboardLayout
-├── routes/             # router config + ProtectedRoute guard
-├── store/               # zustand: auth, workspace
-├── providers/            # SessionProvider (hydrates auth + workspace state on load)
-└── types/                 # types mirrored from the API contract
+├── api/            one file per domain, thin axios wrappers
+├── pages/           auth, dashboard, clients, projects, tasks, workspaces
+│   └── <feature>/     components, modals, hooks
+├── layouts/           AuthLayout, DashboardLayout
+├── routes/             router config and ProtectedRoute guard
+├── store/               zustand: auth, workspace
+├── providers/            SessionProvider, hydrates auth and workspace state on load
+└── types/                 types mirrored from the API contract
 ```
 
-The **Tasks** page is a drag-and-drop Kanban board (`Todo` / `In Progress` / `Done`) built with `@hello-pangea/dnd`, with a task drawer that includes assignee selection and a comment thread.
+The Tasks page is a drag and drop Kanban board built with `@hello-pangea/dnd`, with a task drawer that includes assignee selection and a comment thread.
 
 ## Core Features
 
-- **Auth** — register/login with a password policy (12+ characters, upper/lower/digit) enforced at the schema level, confirm-password check on registration, JWT issued as an `httpOnly` cookie, `/auth/me` session check, logout clears the cookie.
-- **Workspaces** — every user gets a default workspace on registration; users can create additional workspaces, switch between them, rename a workspace, and leave one.
-- **Members & invites** — invite a user by email into a workspace with a role, accept or decline an invite, list current members, change a member's role, remove a member.
-- **Clients** — CRUD, search by name, filter by status, and a client detail view returning recent projects plus rolled-up stats.
-- **Projects** — CRUD, filter by status, soft delete with restore; deleting a project cascades to soft-delete its tasks.
-- **Tasks** — CRUD, drag-and-drop Kanban board, assignee, soft delete with restore, independent of the parent project's lifecycle.
-- **Comments** — threaded comments on a task, with soft delete/restore.
-- **Dashboard** — a single `GET /api/dashboard` call returns, computed in parallel and scoped to the current workspace: summary counters, a 7-day created-vs-completed task trend, at-risk projects (ranked by overdue task count via an aggregation pipeline), and recent activity.
-- **Pagination & filtering** — list endpoints accept `page`/`limit`/`status`/`search`-style query params, validated and bounded server-side.
+- **Auth.** Register and login with a password policy enforced at the schema level (12 or more characters, upper and lower case, a digit), a confirm password check on registration, a JWT issued as an httpOnly cookie, a `/auth/me` session check, and logout that clears the cookie.
+- **Workspaces.** Every user gets a default workspace on registration. Users can create additional workspaces, switch between them, rename a workspace, and leave one.
+- **Members and invites.** Invite a user by email into a workspace with a role, accept or decline an invite, list current members, change a member's role, remove a member.
+- **Clients.** CRUD, search by name, filter by status, and a client detail view returning recent projects plus rolled up stats.
+- **Projects.** CRUD, filter by status, soft delete with restore. Deleting a project cascades to soft delete its tasks.
+- **Tasks.** CRUD, drag and drop Kanban board, assignee, soft delete with restore, independent of the parent project's lifecycle.
+- **Comments.** Threaded comments on a task, with soft delete and restore.
+- **Dashboard.** A single `GET /api/dashboard` call returns, computed in parallel and scoped to the current workspace, summary counters, a seven day created versus completed task trend, at risk projects ranked by overdue task count via an aggregation pipeline, and recent activity. Results are cached in Redis per workspace.
+- **Pagination and filtering.** List endpoints accept `page`, `limit`, `status`, and `search` style query params, validated and bounded server side.
 
-## Workspaces & Access Control
+## Workspaces and Access Control
 
-A user's identity (`req.user`, from the JWT cookie) is separate from their current workspace context (`req.workspace` / `req.membership`), which is resolved by the `attachWorkspace` middleware from `User.currentWorkspace`.
+A user's identity (`req.user`, from the JWT cookie) is separate from their current workspace context (`req.workspace` and `req.membership`), resolved by the `attachWorkspace` middleware from `User.currentWorkspace`.
 
-- **Switching workspaces** (`PATCH /workspaces/me/switch`) looks up an active `WorkspaceMember` for the requested workspace and the current user; if none exists, the switch is rejected. On success it updates `User.currentWorkspace`, so every subsequent request is scoped to the new workspace without any extra client-side state.
-- **Roles**: `owner`, `admin`, `member`, `viewer`. Enforced per-route with an `authorize(...roles)` middleware, e.g. deleting a project requires `owner`, inviting a member requires `owner` or `admin`, reading data requires only an active membership.
-- **Data isolation**: `Client`, `Project`, `Task`, and `Comment` all carry a `workspace` field, and every service-layer query is scoped by `workspace: req.workspace._id`. A user can't read or mutate a record in a workspace they don't belong to, regardless of the document ID.
+- **Switching workspaces**, `PATCH /workspaces/me/switch`, looks up an active `WorkspaceMember` for the requested workspace and the current user. If none exists, the switch is rejected. On success it updates `User.currentWorkspace`, so every request after that is scoped to the new workspace without extra client side state.
+- **Roles** are `owner`, `admin`, `member`, and `viewer`. Enforced per route with an `authorize(...roles)` middleware. Deleting a project requires `owner`. Inviting a member requires `owner` or `admin`. Reading data requires only an active membership.
+- **Data isolation.** `Client`, `Project`, `Task`, and `Comment` all carry a `workspace` field, and every service level query is scoped by `workspace: req.workspace._id`. A user cannot read or mutate a record in a workspace they do not belong to, regardless of the document ID.
 
 ## Validation Layer
 
-Every route across every module is wrapped in a `validate(schema)` middleware that runs a Zod schema against `{ body, params, query }` before the controller executes:
+Every route across every module runs through a `validate(schema)` middleware, which runs a Zod schema against `{ body, params, query }` before the controller executes.
 
 ```ts
 router.post("/", protect, validate(createProjectSchema), createProject);
 router.delete("/me/members/:id", validate(removeMemberSchema), authorize("owner"), removeMember);
 ```
 
-- **`.strict()` objects** reject unknown fields, closing off mass-assignment at the schema level.
-- **Shared `objectIdSchema`** validates Mongo ObjectIds by regex before they reach a query.
-- **Coerced, bounded query params** — `page`/`limit` on list endpoints are coerced to numbers and clamped server-side.
-- **Update schemas** are `createSchema.partial().strict()`, so an update can only ever touch fields the create schema already allows.
-- **Cross-field validation** — e.g. the registration schema's `.refine()` check that `password === confirmPassword`.
+- Object schemas use `.strict()`, which rejects unknown fields and closes off mass assignment at the schema level.
+- A shared `objectIdSchema` validates Mongo ObjectIds by regex before they reach a query.
+- Query params like `page` and `limit` are coerced to numbers and clamped server side.
+- Update schemas are `createSchema.partial().strict()`, so an update can only touch fields the create schema already allows.
+- Cross field validation is used where needed, for example the registration schema checks `password === confirmPassword`.
+
+## Caching
+
+The dashboard endpoint is the only cached route, since it is the most expensive to compute (four aggregation queries run in parallel per request) and the least sensitive to being a few minutes stale.
+
+- `getDashboardService` checks Redis for `dashboard:<workspaceId>` before running the aggregations. On a hit, it returns the cached JSON directly.
+- On a miss, it runs the aggregations, stores the result in Redis with a TTL (`REDIS_TTL`, 300 seconds by default), and returns the fresh data.
+- Cache invalidation is explicit rather than TTL only. Creating, updating, deleting, or restoring a Client, Project, or Task calls `invalidateClientCache`, `invalidateProjectCache`, or `invalidateTaskCache`, which all clear the same `dashboard:<workspaceId>` key. This keeps the dashboard consistent with recent changes instead of only expiring after the TTL window.
+- Redis failures do not break the request. Cache reads and writes are wrapped in try/catch, so if Redis is unreachable the service falls back to computing the dashboard directly.
 
 ## Testing
 
-The backend has a Jest + Supertest integration suite that runs against a real MongoDB instance, organized by domain under `server/src/tests/`:
+The backend has a Jest and Supertest integration suite that runs against a real MongoDB instance, organized by domain under `server/src/tests/`.
 
 | Area | Coverage |
 |---|---|
-| `auth/` | Registration (including password confirmation), login |
-| `client/` | Tenant isolation, soft delete/restore |
-| `project/` | Tenant isolation, soft delete/restore |
-| `task/` | Tenant isolation, soft delete/restore |
-| `comment/` | Tenant isolation, soft delete/restore |
-| `workspace/` | Registration flow (default workspace creation) |
+| auth | Registration, including password confirmation, and login |
+| client | Tenant isolation, soft delete and restore |
+| project | Tenant isolation, soft delete and restore |
+| task | Tenant isolation, soft delete and restore |
+| comment | Tenant isolation, soft delete and restore |
+| workspace | Registration flow, including default workspace creation |
 
-Shared setup lives in `tests/utils/` (per-domain helpers for creating an authenticated user, client, project, and task). Each collection is cleared between tests to keep the suite deterministic.
+Shared setup lives in `tests/utils/`, with per domain helpers for creating an authenticated user, client, project, and task. Each collection is cleared between tests to keep the suite deterministic.
 
 ```bash
 cd server
@@ -179,13 +196,13 @@ npm test
 
 | Model | Key fields |
 |---|---|
-| **User** | `name`, `email` (unique), `password` (hashed, `select: false`), `role`, `currentWorkspace` |
-| **Workspace** | `name`, `createdBy` |
-| **WorkspaceMember** | `workspace` (ref), `user` (ref), `role: owner \| admin \| member \| viewer`, `status: pending \| active` |
-| **Client** | `name`, `email`, `phone`, `company`, `notes`, `status: active \| inactive`, `workspace`, `isDeleted` |
-| **Project** | `name`, `description`, `status: active \| completed \| paused`, `deadline`, `budget`, `client` (ref), `workspace`, `isDeleted` |
-| **Task** | `title`, `description`, `status: todo \| in-progress \| done`, `priority: low \| medium \| high`, `dueDate`, `assignee`, `project` (ref), `workspace`, `isDeleted` |
-| **Comment** | `content`, `task` (ref), `author` (ref), `workspace`, `isDeleted` |
+| User | `name`, `email` (unique), `password` (hashed, `select: false`), `role`, `currentWorkspace` |
+| Workspace | `name`, `createdBy` |
+| WorkspaceMember | `workspace` (ref), `user` (ref), `role: owner, admin, member, viewer`, `status: pending, active` |
+| Client | `name`, `email`, `phone`, `company`, `notes`, `status: active, inactive`, `workspace`, `isDeleted` |
+| Project | `name`, `description`, `status: active, completed, paused`, `deadline`, `budget`, `client` (ref), `workspace`, `isDeleted` |
+| Task | `title`, `description`, `status: todo, in-progress, done`, `priority: low, medium, high`, `dueDate`, `assignee`, `project` (ref), `workspace`, `isDeleted` |
+| Comment | `content`, `task` (ref), `author` (ref), `workspace`, `isDeleted` |
 
 ## API Reference
 
@@ -205,13 +222,13 @@ Base URL: `/api`. Every route except `auth/register` and `auth/login` requires a
 | GET | `/workspaces` | List workspaces the user belongs to |
 | POST | `/workspaces` | Create a new workspace |
 | PATCH | `/workspaces/me/switch` | Switch the user's current workspace |
-| GET | `/workspaces/me` | Get the current workspace + role |
-| PATCH | `/workspaces/me` | Rename the current workspace (owner/admin) |
+| GET | `/workspaces/me` | Get the current workspace and role |
+| PATCH | `/workspaces/me` | Rename the current workspace, owner or admin |
 | POST | `/workspaces/me/leave` | Leave the current workspace |
 | GET | `/workspaces/me/members` | List members of the current workspace |
-| POST | `/workspaces/me/members` | Invite a member by email (owner/admin) |
-| DELETE | `/workspaces/me/members/:id` | Remove a member (owner) |
-| PATCH | `/workspaces/me/members/:id/role` | Change a member's role (owner) |
+| POST | `/workspaces/me/members` | Invite a member by email, owner or admin |
+| DELETE | `/workspaces/me/members/:id` | Remove a member, owner only |
+| PATCH | `/workspaces/me/members/:id/role` | Change a member's role, owner only |
 | GET | `/workspaces/me/invites` | List the current user's pending invites |
 | PATCH | `/workspaces/me/invites/:id/accept` | Accept an invite |
 | PATCH | `/workspaces/me/invites/:id/decline` | Decline an invite |
@@ -221,10 +238,10 @@ Base URL: `/api`. Every route except `auth/register` and `auth/login` requires a
 |---|---|---|
 | POST | `/clients` | Create a client |
 | GET | `/clients` | List clients (`page`, `limit`, `status`, `search`) |
-| GET | `/clients/:id` | Get a client + recent projects + stats |
+| GET | `/clients/:id` | Get a client, its recent projects, and stats |
 | PUT | `/clients/:id` | Update a client |
-| DELETE | `/clients/:id` | Soft-delete a client |
-| PATCH | `/clients/:id/restore` | Restore a soft-deleted client |
+| DELETE | `/clients/:id` | Soft delete a client |
+| PATCH | `/clients/:id/restore` | Restore a soft deleted client |
 
 **Projects**
 | Method | Endpoint | Description |
@@ -233,8 +250,8 @@ Base URL: `/api`. Every route except `auth/register` and `auth/login` requires a
 | GET | `/projects` | List projects (`page`, `limit`, `status`) |
 | GET | `/projects/:id` | Get a project |
 | PUT | `/projects/:id` | Update a project |
-| DELETE | `/projects/:id` | Soft-delete a project (cascades to its tasks) |
-| PATCH | `/projects/:id/restore` | Restore a soft-deleted project |
+| DELETE | `/projects/:id` | Soft delete a project, cascades to its tasks |
+| PATCH | `/projects/:id/restore` | Restore a soft deleted project |
 
 **Tasks**
 | Method | Endpoint | Description |
@@ -243,27 +260,30 @@ Base URL: `/api`. Every route except `auth/register` and `auth/login` requires a
 | GET | `/tasks` | List tasks (`page`, `limit`, `priority`, `project`) |
 | GET | `/tasks/:id` | Get a task |
 | PUT | `/tasks/:id` | Update a task |
-| DELETE | `/tasks/:id` | Soft-delete a task |
-| PATCH | `/tasks/:id/restore` | Restore a soft-deleted task |
+| DELETE | `/tasks/:id` | Soft delete a task |
+| PATCH | `/tasks/:id/restore` | Restore a soft deleted task |
 
 **Comments**
 | Method | Endpoint | Description |
 |---|---|---|
 | POST | `/tasks/:taskId/comments` | Add a comment to a task |
 | GET | `/tasks/:taskId/comments` | List a task's comments |
-| DELETE | `/comments/:id` | Soft-delete a comment |
-| PATCH | `/comments/:id/restore` | Restore a soft-deleted comment |
+| DELETE | `/comments/:id` | Soft delete a comment |
+| PATCH | `/comments/:id/restore` | Restore a soft deleted comment |
 
 **Dashboard**
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/dashboard` | Summary stats, 7-day trends, at-risk projects, recent activity — scoped to the current workspace |
+| GET | `/dashboard` | Summary stats, seven day trends, at risk projects, and recent activity, scoped to the current workspace and cached in Redis |
 
 ## Getting Started
 
-### Prerequisites
-- Node.js 18+
-- A MongoDB instance (local or [MongoDB Atlas](https://www.mongodb.com/atlas)) — a second database is recommended for running the test suite
+You can run Plinth either directly with Node, or with Docker Compose. Docker is the faster path since it starts MongoDB and Redis for you. See [Running with Docker](#running-with-docker) below.
+
+### Prerequisites, for running without Docker
+- Node.js 18 or later
+- A MongoDB instance (local or [MongoDB Atlas](https://www.mongodb.com/atlas))
+- A Redis instance (local, or via Docker: `docker run -p 6379:6379 redis:7-alpine`)
 
 ### 1. Clone and install
 
@@ -277,21 +297,23 @@ cd ../client && npm install
 
 ### 2. Configure environment variables
 
-Create `server/.env` (see [Environment Variables](#environment-variables)).
+Copy the example files and fill in your own values.
 
-Create `client/.env`:
-```env
-VITE_API_URL=http://localhost:5000/api
+```bash
+cp server/.env.example server/.env
+cp client/.env.example client/.env
 ```
+
+See [Environment Variables](#environment-variables) for what each one does.
 
 ### 3. Run the apps
 
 ```bash
-# terminal 1 — API
+# terminal 1, the API
 cd server
-npm run dev        # runs on PORT from .env (defaults to 5000)
+npm run dev        # runs on PORT from .env, defaults to 5000
 
-# terminal 2 — frontend
+# terminal 2, the frontend
 cd client
 npm run dev         # Vite dev server, defaults to http://localhost:5173
 ```
@@ -300,7 +322,7 @@ npm run dev         # Vite dev server, defaults to http://localhost:5173
 
 ```bash
 cd server
-npm test            # Jest + Supertest, against MONGO_URI
+npm test            # Jest and Supertest, against MONGO_URI
 ```
 
 ### 5. Build for production
@@ -310,74 +332,108 @@ cd server && npm run build && npm start
 cd client && npm run build   # outputs client/dist, ready for static hosting
 ```
 
+## Running with Docker
+
+`docker-compose.yml` runs the full stack: MongoDB, Redis, the backend API, and the frontend, each in its own container on a shared network.
+
+```bash
+docker compose up --build
+```
+
+This starts:
+- `mongodb`, MongoDB 7, with a health check
+- `redis`, Redis 7, with a health check
+- `backend`, built from `server/Dockerfile`, waits for MongoDB and Redis to be healthy before starting
+- `frontend`, built from `client/Dockerfile`
+
+For local development with hot reload instead of built production images, use the dev compose file:
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+Each app also has its own `Dockerfile` and `.dockerignore`, so either service can be built and run on its own if you only need one of them.
+
+## CI/CD
+
+`.github/workflows/ci-cd.yml` runs on every push to `main` or `develop`, and on every pull request into `main`. It has two jobs:
+
+- **test-backend**: spins up a MongoDB service container, installs backend dependencies, builds the TypeScript, runs the Jest suite against the service container, and uploads the coverage output as a build artifact.
+- **test-frontend**: installs frontend dependencies and runs the Vite build, then uploads `client/dist` as a build artifact.
+
+Neither job deploys anywhere yet. This is a build and test gate, not a deployment pipeline. Wiring an actual deploy step (for example to Render, Fly.io, or a container registry) is on the roadmap below.
+
 ## Environment Variables
 
-**`server/.env`**
+**`server/.env`**, see `server/.env.example`
 
 | Variable | Description |
 |---|---|
-| `PORT` | Port the API listens on (default `5000`) |
+| `PORT` | Port the API listens on, default `5000` |
 | `MONGO_URI` | MongoDB connection string |
 | `JWT_SECRET` | Secret used to sign session JWTs |
-| `JWT_EXPIRES_IN` | JWT expiry (e.g. `1h`) |
+| `JWT_EXPIRES_IN` | JWT expiry, for example `7d` |
 | `CLIENT_URL` | Frontend origin, used for CORS |
-| `NODE_ENV` | `development`, `production`, or `test` — controls cookie `secure`/`sameSite` behavior and is set automatically by `npm test` |
+| `NODE_ENV` | `development`, `production`, or `test`. Controls cookie `secure` and `sameSite` behavior, and is set automatically by `npm test` |
+| `REDIS_HOST` | Redis host, `redis` in Docker, `localhost` otherwise |
+| `REDIS_PORT` | Redis port, default `6379` |
+| `REDIS_PASSWORD` | Redis password, optional, blank for local development |
+| `REDIS_TTL` | Dashboard cache TTL in seconds, default `300` |
 
-**`client/.env`**
+**`client/.env`**, see `client/.env.example`
 
 | Variable | Description |
 |---|---|
-| `VITE_API_URL` | Base URL of the API (e.g. `http://localhost:5000/api`) |
+| `VITE_API_URL` | Base URL of the API, for example `http://localhost:5000` |
 
 ## Project Structure
 
 ```text
 plinth/
+├── .github/
+│   └── workflows/         ci-cd.yml, test and build on push and pull request
 ├── client/
 │   ├── src/
-│   │   ├── api/            axios wrappers per domain (auth, client, project, task, comment, workspace, dashboard)
+│   │   ├── api/            axios wrappers per domain
 │   │   ├── pages/            auth, dashboard, clients, projects, tasks, workspaces
 │   │   ├── layouts/            AuthLayout, DashboardLayout
-│   │   ├── routes/               router + ProtectedRoute
+│   │   ├── routes/               router and ProtectedRoute
 │   │   ├── store/                  zustand: auth, workspace
 │   │   ├── providers/               SessionProvider
 │   │   └── types/                    shared frontend types
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   ├── .env.example
 │   └── vercel.json                     SPA rewrite config for static hosting
-└── server/
-    └── src/
-        ├── modules/          auth, user, client, project, task, comment, workspace, dashboard
-        ├── middleware/         auth, attachWorkspace, authorize, validate, error handling, security, rate limiting
-        ├── utils/                ApiError, JWT helper, ObjectId schema, pagination
-        ├── types/                  shared backend types
-        ├── tests/                    Jest + Supertest suite, grouped by domain
-        └── config/                     env loader
+├── server/
+│   ├── src/
+│   │   ├── modules/          auth, user, client, project, task, comment, workspace, dashboard
+│   │   ├── middleware/         auth, attachWorkspace, authorize, validate, security, rate limiting
+│   │   ├── utils/                ApiError, JWT helper, ObjectId schema, pagination, redis, cache
+│   │   ├── types/                  shared backend types
+│   │   ├── tests/                    Jest and Supertest suite, grouped by domain
+│   │   └── config/                     env loader
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   └── .env.example
+├── docker-compose.yml
+└── docker-compose.dev.yml
 ```
 
 ## Design Decisions
 
-- **Workspace-scoped tenancy over single-owner tenancy** — every record belongs to a workspace, not a user, so the same client/project/task model supports both solo use and multi-person teams without a schema change.
-- **Current workspace resolved server-side, not client-supplied** — `User.currentWorkspace` is set on switch and read by `attachWorkspace` on every request, rather than trusting a workspace ID sent by the client on each call. Switching workspaces validates active membership before updating it.
-- **Role checks as middleware, not scattered `if` statements** — `authorize(...roles)` is composed into the route definition, so the permission required for an action is visible at the route declaration rather than buried in a service function.
-- **Zod over hand-written validators** — schema-first validation lives in `*.validation.ts` files, colocated with the module it validates, and composes with TypeScript via `z.infer`.
-- **Soft delete over hard delete** — prioritizes recoverability and auditability; appropriate for business records a user might delete by mistake.
-- **`.strict()` schemas over manual field whitelisting** — closes off mass-assignment at the validation layer, before a payload reaches a service function.
-- **Correct HTTP semantics** — `DELETE` for removal, `PATCH` for restore/role-change/switch actions, rather than overloading `PUT`.
-- **Aggregation-heavy dashboard** — sub-sections run concurrently via `Promise.all`, and "at-risk projects" is computed server-side with a MongoDB aggregation pipeline instead of pulling raw documents into the app layer.
-- **Integration tests over unit tests for tenancy and cascade behavior** — these are tested by hitting the API with Supertest against a real database rather than mocking the DB layer.
+- **Workspace scoped tenancy over single owner tenancy.** Every record belongs to a workspace, not a user, so the same client, project, and task model supports both solo use and multi person teams without a schema change.
+- **Current workspace resolved server side, not client supplied.** `User.currentWorkspace` is set on switch and read by `attachWorkspace` on every request, rather than trusting a workspace ID sent by the client on each call. Switching workspaces validates active membership before updating it.
+- **Role checks as middleware, not scattered if statements.** `authorize(...roles)` is composed into the route definition, so the permission required for an action is visible at the route declaration rather than buried in a service function.
+- **Zod over hand written validators.** Schema first validation lives in `*.validation.ts` files, colocated with the module it validates, and composes with TypeScript through `z.infer`.
+- **Soft delete over hard delete.** This prioritizes recoverability and auditability, appropriate for business records a user might delete by mistake.
+- **`.strict()` schemas over manual field whitelisting.** This closes off mass assignment at the validation layer, before a payload reaches a service function.
+- **Correct HTTP semantics.** `DELETE` for removal, `PATCH` for restore, role change, and switch actions, rather than overloading `PUT`.
+- **Aggregation heavy dashboard, cached rather than recomputed on every request.** Sub sections run concurrently through `Promise.all`, at risk projects is computed with a MongoDB aggregation pipeline instead of pulling raw documents into the app layer, and the combined result is cached in Redis and invalidated explicitly on writes.
+- **Integration tests over unit tests for tenancy and cascade behavior.** These are tested by hitting the API with Supertest against a real database rather than mocking the database layer.
+- **CI as a quality gate before a deploy pipeline.** The current workflow proves the app builds and the tests pass on every change, which is a prerequisite for a deploy step, not a replacement for one.
 
-## Roadmap
-
-- [x] Zod-based request validation layer
-- [x] Jest + Supertest integration test suite
-- [x] Migrate from single-owner to workspace-based multi-user tenancy
-- [x] Member invites, roles, and workspace switching
-- [x] Comments on tasks
-- [ ] Dedicated cross-workspace isolation tests (current suite covers per-user isolation; a workspace-vs-workspace case with multiple members is not yet explicit)
-- [ ] Docker for both apps
-- [ ] CI/CD pipeline (run the Jest suite on every PR) + deployment
-- [ ] Redis caching for the dashboard endpoint
-- [ ] Migrate from Mongoose to Prisma
 
 ## License
 
-This project is available for portfolio and educational reference. Add a license of your choice (e.g. MIT) if you plan to open-source it.
+This project is available for portfolio and educational reference. Add a license of your choice, for example MIT, if you plan to open source it.
