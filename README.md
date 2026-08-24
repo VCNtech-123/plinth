@@ -1,6 +1,6 @@
 # Plinth
 
-A multi-tenant SaaS platform for managing clients, projects, and tasks, with a metrics dashboard.
+A multi-tenant SaaS platform for managing clients, projects, and tasks across team workspaces, with role-based access control and a metrics dashboard.
 
 React 19 · TypeScript · Node.js/Express 5 · MongoDB · Zod · Jest
 
@@ -12,7 +12,7 @@ React 19 · TypeScript · Node.js/Express 5 · MongoDB · Zod · Jest
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
 - [Core Features](#core-features)
-- [Multi-Tenancy & Security Model](#multi-tenancy--security-model)
+- [Workspaces & Access Control](#workspaces--access-control)
 - [Validation Layer](#validation-layer)
 - [Testing](#testing)
 - [Data Models](#data-models)
@@ -28,40 +28,41 @@ React 19 · TypeScript · Node.js/Express 5 · MongoDB · Zod · Jest
 
 ## Overview
 
-Plinth is a full-stack portfolio project modeling a multi-tenant SaaS product: an agency managing multiple clients, each with projects, each with tasks. Key aspects of the implementation:
+Plinth is a full-stack portfolio project modeling a multi-tenant SaaS product: a workspace with team members manages Clients → Projects → Tasks, with comments and a metrics dashboard. It started as a single-owner CRUD app and was later migrated to workspace-based multi-user tenancy — every record is scoped to a workspace, not a single user, and access within a workspace is governed by role.
 
-- **Tenant isolation** enforced at the database query level, covered by integration tests.
-- **Schema-validated input** on every endpoint via Zod.
+- **Workspace-scoped tenant isolation**, enforced at the database query level and covered by integration tests.
+- **Role-based access control** (owner/admin/member/viewer) on every mutating endpoint.
+- **Schema-validated input** on every route via Zod.
 - **Lifecycle-aware data** — soft delete and restore, with cascade rules between projects and tasks.
 - **A dashboard** built on parallelized MongoDB aggregations (summary stats, trends, at-risk projects, recent activity).
-- **A typed contract** between frontend and backend.
+- **A typed contract** between frontend and backend, with dedicated request/response types on both sides.
 
 ## Tech Stack
 
 **Frontend**
 - React 19 + TypeScript, built with Vite
-- React Router 7 for routing, with protected-route guards
-- Zustand for lightweight global auth state
-- Axios (`withCredentials`) for API communication + a global 401 interceptor
-- Tailwind CSS 4 for styling
+- React Router 7, with protected-route guards
+- Zustand for auth and workspace state
+- Axios (`withCredentials`) with a global 401 interceptor
+- Tailwind CSS 4 with a token-based light/dark theme
+- `@hello-pangea/dnd` for the drag-and-drop task board
 - Recharts for dashboard trend visualization
-- Sonner for toast notifications
-- lucide-react for icons
+- Sonner for toast notifications, lucide-react for icons
 
 **Backend**
 - Node.js + Express 5, TypeScript
 - MongoDB + Mongoose 9 (ODM)
-- **Zod** — request schema validation on every route (body/params/query)
-- JWT authentication delivered via `httpOnly` cookies
+- Zod for request validation on every route
+- JWT authentication delivered via an `httpOnly` cookie
 - bcrypt for password hashing
 - Helmet for secure HTTP headers
 - express-rate-limit for global rate limiting
 
 **Testing**
 - Jest + ts-jest + Supertest, run against a real MongoDB instance
-- Integration-level tests targeting tenant isolation and soft-delete lifecycle specifically (see [Testing](#testing))
+- Integration tests organized by domain, covering tenant isolation and soft-delete lifecycle
 
-**Deployment target:** the client ships a `vercel.json` SPA rewrite config for static hosting (e.g. Vercel); the API is a standard Node/Express service deployable to any Node host.
+**Deployment target:** the client ships a `vercel.json` SPA rewrite config for static hosting; the API is a standard Node/Express service deployable to any Node host.
 
 ## Architecture
 
@@ -79,102 +80,95 @@ plinth/
 server/src/
 ├── modules/
 │   ├── auth/         # register, login, logout, session
-│   ├── user/           # user model
-│   ├── client/          # client CRUD + relationship stats
-│   ├── project/          # project CRUD + soft delete/restore
-│   ├── task/               # task CRUD + soft delete/restore
-│   └── dashboard/            # aggregated analytics
-├── middleware/                # auth, validation, error handling, security, rate limiting
-├── utils/                       # ApiError, JWT signing, ObjectId schema, pagination
-├── types/                         # shared request/response types
-├── tests/                           # Jest + Supertest integration suite
-└── config/                            # environment loading
+│   ├── user/          # user model + service
+│   ├── client/         # client CRUD, workspace-scoped
+│   ├── project/         # project CRUD + soft delete/restore
+│   ├── task/              # task CRUD + soft delete/restore + assignee
+│   ├── comment/             # task comments + soft delete/restore
+│   ├── workspace/             # workspaces, membership, invites, roles
+│   └── dashboard/                # aggregated analytics
+├── middleware/                     # auth, workspace attach, authorize, validate, security, rate limiting
+├── utils/                            # ApiError, JWT signing, ObjectId schema, pagination
+├── types/                              # shared request/response types
+├── tests/                                # Jest + Supertest suite, grouped by domain
+└── config/                                 # environment loading
 ```
 
-Every domain module follows the same five-layer pattern, and business logic never lives in a controller:
+Every domain module follows the same layering, and business logic never lives in a controller:
 
 | Layer | Responsibility |
 |---|---|
-| **routes** | Wire up `protect` (auth) → `validate` (Zod schema) → controller |
+| **routes** | Wire up `protect` → `attachWorkspace` → `validate` → `authorize` (where relevant) → controller |
 | **controller** | Handle HTTP request/response shape only |
-| **service** | All business logic and database queries, always tenant-scoped |
+| **service** | All business logic and database queries, always workspace-scoped |
 | **model** | Mongoose schema + TypeScript interface |
-| **validation** | Zod schemas for `body`/`params`/`query`, enforced before the controller ever runs |
+| **validation** | Zod schemas for `body`/`params`/`query`, enforced before the controller runs |
 
 ### Frontend — feature-folder React app
 
 ```text
 client/src/
 ├── api/            # one file per domain, thin axios wrappers
-├── pages/           # feature folders: auth, dashboard, clients, projects, tasks
+├── pages/           # auth, dashboard, clients, projects, tasks, workspaces
+│   └── <feature>/     components/, modals/, hooks/
 ├── layouts/           # AuthLayout, DashboardLayout
 ├── routes/             # router config + ProtectedRoute guard
-├── store/               # zustand auth store
-├── providers/            # SessionProvider (hydrates auth state on load)
+├── store/               # zustand: auth, workspace
+├── providers/            # SessionProvider (hydrates auth + workspace state on load)
 └── types/                 # types mirrored from the API contract
 ```
 
-The **Tasks** page is a three-column Kanban board (`Todo` / `In Progress` / `Done`) driven by each task's `status` field, with modals for create/edit/delete and a drawer for task detail.
+The **Tasks** page is a drag-and-drop Kanban board (`Todo` / `In Progress` / `Done`) built with `@hello-pangea/dnd`, with a task drawer that includes assignee selection and a comment thread.
 
 ## Core Features
 
-- **Auth** — register/login with hashed passwords, JWT issued as an `httpOnly` cookie (never exposed to JS), `/auth/me` session check, logout clears the cookie. Registration enforces a strong-password policy (12+ characters, mixed case, digit) at the schema level.
-- **Clients** — CRUD, search by name, filter by status, and a client detail view that returns the client's recent projects plus rolled-up stats (total/active projects, total/overdue tasks) via parallel queries.
-- **Projects** — CRUD, filter by status, soft delete with an explicit restore endpoint; deleting a project **cascades** to its tasks (verified by an integration test).
-- **Tasks** — CRUD, filter by priority or by project, Kanban board UI, soft delete with restore — independent of its parent project's lifecycle.
-- **Dashboard** — a single `GET /api/dashboard` call returns, all computed in parallel:
-  - summary counters (total/active projects, total/overdue tasks, tasks due today, weekly completion rate)
-  - 7-day created vs. completed task trend (for the Recharts view)
-  - **at-risk projects** — active projects ranked by overdue task count, via an aggregation pipeline (`$match` → `$group` → `$lookup`)
-  - recent activity — last 5 completed and last 5 created tasks, each with populated project name
-- **Pagination & filtering** — all list endpoints accept `page`/`limit`/`status`/`search`-style query params, backed by a shared `getPagination` utility and validated with Zod (`page`/`limit` coerced and bounded server-side).
+- **Auth** — register/login with a password policy (12+ characters, upper/lower/digit) enforced at the schema level, confirm-password check on registration, JWT issued as an `httpOnly` cookie, `/auth/me` session check, logout clears the cookie.
+- **Workspaces** — every user gets a default workspace on registration; users can create additional workspaces, switch between them, rename a workspace, and leave one.
+- **Members & invites** — invite a user by email into a workspace with a role, accept or decline an invite, list current members, change a member's role, remove a member.
+- **Clients** — CRUD, search by name, filter by status, and a client detail view returning recent projects plus rolled-up stats.
+- **Projects** — CRUD, filter by status, soft delete with restore; deleting a project cascades to soft-delete its tasks.
+- **Tasks** — CRUD, drag-and-drop Kanban board, assignee, soft delete with restore, independent of the parent project's lifecycle.
+- **Comments** — threaded comments on a task, with soft delete/restore.
+- **Dashboard** — a single `GET /api/dashboard` call returns, computed in parallel and scoped to the current workspace: summary counters, a 7-day created-vs-completed task trend, at-risk projects (ranked by overdue task count via an aggregation pipeline), and recent activity.
+- **Pagination & filtering** — list endpoints accept `page`/`limit`/`status`/`search`-style query params, validated and bounded server-side.
 
-## Multi-Tenancy & Security Model
+## Workspaces & Access Control
 
-Plinth uses **row-level tenant isolation**: every `Client`, `Project`, and `Task` document carries an `owner` field (the authenticated user's `_id`), duplicated on child documents as defense-in-depth — a `Task` stores its own `owner` rather than relying on a join through `Project`. Every query is scoped with `{ owner: req.user._id }` inside the service layer, so a user cannot read or mutate another tenant's data, even with a valid document ID for someone else's record. This is covered by integration tests — see [Testing](#testing).
+A user's identity (`req.user`, from the JWT cookie) is separate from their current workspace context (`req.workspace` / `req.membership`), which is resolved by the `attachWorkspace` middleware from `User.currentWorkspace`.
 
-Other security measures:
-
-- **JWT in an `httpOnly` cookie** (not `localStorage`), with `secure`/`sameSite` flags adjusted for dev vs. production.
-- **Zod validation on every endpoint** — malformed or unexpected fields are rejected with a 400 before they ever reach a controller (see [Validation Layer](#validation-layer)).
-- **Helmet** for standard secure HTTP headers.
-- **Global rate limiting** (100 requests / 15 minutes per IP).
-- **Explicit field whitelisting on updates** — Zod's `.strict().partial()` schemas define exactly which fields an update accepts; nothing is ever spread from `req.body` directly into a Mongoose update.
-- **No client-controlled ownership** — `owner` is always derived from `req.user`, never accepted from the request body (impossible to override — it isn't even part of the request schema).
-- **Soft deletes** (`isDeleted: boolean`) instead of hard deletes, so `DELETE` requests are reversible.
+- **Switching workspaces** (`PATCH /workspaces/me/switch`) looks up an active `WorkspaceMember` for the requested workspace and the current user; if none exists, the switch is rejected. On success it updates `User.currentWorkspace`, so every subsequent request is scoped to the new workspace without any extra client-side state.
+- **Roles**: `owner`, `admin`, `member`, `viewer`. Enforced per-route with an `authorize(...roles)` middleware, e.g. deleting a project requires `owner`, inviting a member requires `owner` or `admin`, reading data requires only an active membership.
+- **Data isolation**: `Client`, `Project`, `Task`, and `Comment` all carry a `workspace` field, and every service-layer query is scoped by `workspace: req.workspace._id`. A user can't read or mutate a record in a workspace they don't belong to, regardless of the document ID.
 
 ## Validation Layer
 
-Every route in every module — `auth`, `client`, `project`, `task` — is wrapped in a `validate(schema)` middleware that runs a Zod schema against `{ body, params, query }` before the controller executes:
+Every route across every module is wrapped in a `validate(schema)` middleware that runs a Zod schema against `{ body, params, query }` before the controller executes:
 
 ```ts
 router.post("/", protect, validate(createProjectSchema), createProject);
-router.patch("/:id/restore", protect, validate(restoreProjectSchema), restoreProject);
+router.delete("/me/members/:id", validate(removeMemberSchema), authorize("owner"), removeMember);
 ```
 
-Highlights of the schema design:
-
-- **`.strict()` objects** reject unknown fields outright, closing off mass-assignment at the schema level rather than relying on manual field-copying in the service.
-- **Shared `objectIdSchema`** validates Mongo ObjectIds by regex before they ever hit a query, turning malformed-ID bugs into clean 400s instead of Mongoose cast errors.
-- **Coerced, bounded query params** — e.g. `page`/`limit` on list endpoints are coerced to numbers and clamped (`limit` max 100) directly in the schema.
-- **Password policy enforced declaratively** — length and character-class rules for registration live in the Zod schema, not scattered `if` checks in the controller.
-- **Update schemas are `createSchema.partial().strict()`** — guaranteeing an update can only ever touch fields the create schema already allows.
+- **`.strict()` objects** reject unknown fields, closing off mass-assignment at the schema level.
+- **Shared `objectIdSchema`** validates Mongo ObjectIds by regex before they reach a query.
+- **Coerced, bounded query params** — `page`/`limit` on list endpoints are coerced to numbers and clamped server-side.
+- **Update schemas** are `createSchema.partial().strict()`, so an update can only ever touch fields the create schema already allows.
+- **Cross-field validation** — e.g. the registration schema's `.refine()` check that `password === confirmPassword`.
 
 ## Testing
 
-The backend has a Jest + Supertest integration suite that runs against a real MongoDB instance, focused on tenant isolation and soft-delete behavior:
+The backend has a Jest + Supertest integration suite that runs against a real MongoDB instance, organized by domain under `server/src/tests/`:
 
-| Test file | What it proves |
+| Area | Coverage |
 |---|---|
-| `auth.test.ts` | Registration and login work end-to-end, including cookie issuance |
-| `client.isolation.test.ts` | A user cannot fetch another user's client by ID |
-| `project.isolation.test.ts` | A user cannot fetch another user's project by ID |
-| `task.tenancy.test.ts` | A user cannot fetch another user's task by ID |
-| `client.softdelete.test.ts` | A soft-deleted client can be correctly restored |
-| `project.softdelete.test.ts` | Deleting a project **cascades** to soft-delete its tasks |
-| `task.softdelete.test.ts` | A task can be soft-deleted and restored independently of its project |
+| `auth/` | Registration (including password confirmation), login |
+| `client/` | Tenant isolation, soft delete/restore |
+| `project/` | Tenant isolation, soft delete/restore |
+| `task/` | Tenant isolation, soft delete/restore |
+| `comment/` | Tenant isolation, soft delete/restore |
+| `workspace/` | Registration flow (default workspace creation) |
 
-Each collection is wiped between tests (`afterEach`) to keep the suite deterministic, and the connection is torn down cleanly in `afterAll`.
+Shared setup lives in `tests/utils/` (per-domain helpers for creating an authenticated user, client, project, and task). Each collection is cleared between tests to keep the suite deterministic.
 
 ```bash
 cd server
@@ -185,24 +179,42 @@ npm test
 
 | Model | Key fields |
 |---|---|
-| **User** | `name`, `email` (unique), `password` (hashed, `select: false`), `role` |
-| **Client** | `name`, `email`, `phone`, `company`, `notes`, `status: active \| inactive`, `owner`, `isDeleted` |
-| **Project** | `name`, `description`, `status: active \| completed \| paused`, `deadline`, `budget`, `client` (ref), `owner`, `isDeleted` |
-| **Task** | `title`, `description`, `status: todo \| in-progress \| done`, `priority: low \| medium \| high`, `dueDate`, `project` (ref), `owner`, `isDeleted` |
-
-All four collections index `owner` (and `isDeleted`, plus their relevant foreign keys) to keep tenant-scoped list queries fast as data grows.
+| **User** | `name`, `email` (unique), `password` (hashed, `select: false`), `role`, `currentWorkspace` |
+| **Workspace** | `name`, `createdBy` |
+| **WorkspaceMember** | `workspace` (ref), `user` (ref), `role: owner \| admin \| member \| viewer`, `status: pending \| active` |
+| **Client** | `name`, `email`, `phone`, `company`, `notes`, `status: active \| inactive`, `workspace`, `isDeleted` |
+| **Project** | `name`, `description`, `status: active \| completed \| paused`, `deadline`, `budget`, `client` (ref), `workspace`, `isDeleted` |
+| **Task** | `title`, `description`, `status: todo \| in-progress \| done`, `priority: low \| medium \| high`, `dueDate`, `assignee`, `project` (ref), `workspace`, `isDeleted` |
+| **Comment** | `content`, `task` (ref), `author` (ref), `workspace`, `isDeleted` |
 
 ## API Reference
 
-Base URL: `/api`. All routes except `auth/register` and `auth/login` require a valid session cookie (`protect` middleware), and every route validates its input with a Zod schema before reaching the controller.
+Base URL: `/api`. Every route except `auth/register` and `auth/login` requires a valid session cookie, and every route validates its input with a Zod schema before reaching the controller.
 
 **Auth**
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/auth/register` | Create a new user (enforces password policy) |
+| POST | `/auth/register` | Create a user and a default workspace |
 | POST | `/auth/login` | Authenticate, sets session cookie |
 | POST | `/auth/logout` | Clear session cookie |
 | GET | `/auth/me` | Get the current authenticated user |
+
+**Workspaces**
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/workspaces` | List workspaces the user belongs to |
+| POST | `/workspaces` | Create a new workspace |
+| PATCH | `/workspaces/me/switch` | Switch the user's current workspace |
+| GET | `/workspaces/me` | Get the current workspace + role |
+| PATCH | `/workspaces/me` | Rename the current workspace (owner/admin) |
+| POST | `/workspaces/me/leave` | Leave the current workspace |
+| GET | `/workspaces/me/members` | List members of the current workspace |
+| POST | `/workspaces/me/members` | Invite a member by email (owner/admin) |
+| DELETE | `/workspaces/me/members/:id` | Remove a member (owner) |
+| PATCH | `/workspaces/me/members/:id/role` | Change a member's role (owner) |
+| GET | `/workspaces/me/invites` | List the current user's pending invites |
+| PATCH | `/workspaces/me/invites/:id/accept` | Accept an invite |
+| PATCH | `/workspaces/me/invites/:id/decline` | Decline an invite |
 
 **Clients**
 | Method | Endpoint | Description |
@@ -212,6 +224,7 @@ Base URL: `/api`. All routes except `auth/register` and `auth/login` require a v
 | GET | `/clients/:id` | Get a client + recent projects + stats |
 | PUT | `/clients/:id` | Update a client |
 | DELETE | `/clients/:id` | Soft-delete a client |
+| PATCH | `/clients/:id/restore` | Restore a soft-deleted client |
 
 **Projects**
 | Method | Endpoint | Description |
@@ -233,16 +246,24 @@ Base URL: `/api`. All routes except `auth/register` and `auth/login` require a v
 | DELETE | `/tasks/:id` | Soft-delete a task |
 | PATCH | `/tasks/:id/restore` | Restore a soft-deleted task |
 
+**Comments**
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/tasks/:taskId/comments` | Add a comment to a task |
+| GET | `/tasks/:taskId/comments` | List a task's comments |
+| DELETE | `/comments/:id` | Soft-delete a comment |
+| PATCH | `/comments/:id/restore` | Restore a soft-deleted comment |
+
 **Dashboard**
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/dashboard` | Summary stats, 7-day trends, at-risk projects, recent activity |
+| GET | `/dashboard` | Summary stats, 7-day trends, at-risk projects, recent activity — scoped to the current workspace |
 
 ## Getting Started
 
 ### Prerequisites
 - Node.js 18+
-- A MongoDB instance (local or [MongoDB Atlas](https://www.mongodb.com/atlas)) — a second instance/database is recommended for running the test suite
+- A MongoDB instance (local or [MongoDB Atlas](https://www.mongodb.com/atlas)) — a second database is recommended for running the test suite
 
 ### 1. Clone and install
 
@@ -250,16 +271,13 @@ Base URL: `/api`. All routes except `auth/register` and `auth/login` require a v
 git clone <your-repo-url>
 cd plinth
 
-# install backend deps
 cd server && npm install
-
-# install frontend deps
 cd ../client && npm install
 ```
 
 ### 2. Configure environment variables
 
-Create `server/.env` (see [Environment Variables](#environment-variables) below).
+Create `server/.env` (see [Environment Variables](#environment-variables)).
 
 Create `client/.env`:
 ```env
@@ -317,43 +335,48 @@ cd client && npm run build   # outputs client/dist, ready for static hosting
 plinth/
 ├── client/
 │   ├── src/
-│   │   ├── api/            axios wrappers per domain
-│   │   ├── pages/            auth, dashboard, clients, projects, tasks
+│   │   ├── api/            axios wrappers per domain (auth, client, project, task, comment, workspace, dashboard)
+│   │   ├── pages/            auth, dashboard, clients, projects, tasks, workspaces
 │   │   ├── layouts/            AuthLayout, DashboardLayout
 │   │   ├── routes/               router + ProtectedRoute
-│   │   ├── store/                  zustand auth store
+│   │   ├── store/                  zustand: auth, workspace
 │   │   ├── providers/               SessionProvider
 │   │   └── types/                    shared frontend types
 │   └── vercel.json                     SPA rewrite config for static hosting
 └── server/
     └── src/
-        ├── modules/          auth, user, client, project, task, dashboard
-        ├── middleware/         auth, validate, error handling, security, rate limiting
+        ├── modules/          auth, user, client, project, task, comment, workspace, dashboard
+        ├── middleware/         auth, attachWorkspace, authorize, validate, error handling, security, rate limiting
         ├── utils/                ApiError, JWT helper, ObjectId schema, pagination
         ├── types/                  shared backend types
-        ├── tests/                    Jest + Supertest integration suite
+        ├── tests/                    Jest + Supertest suite, grouped by domain
         └── config/                     env loader
 ```
 
 ## Design Decisions
 
-- **Zod over hand-written validators** — schema-first validation lives entirely in `*.validation.ts` files, colocated with the module it validates, and composes naturally with TypeScript via `z.infer`.
-- **Soft delete over hard delete** — prioritizes recoverability and auditability over storage savings; appropriate for business records a user might delete by mistake.
-- **Owner duplicated on child entities** — a `Task` stores `owner` directly rather than requiring a join through `Project` to check tenant ownership, trading a small amount of denormalization for simpler, faster, and more defensible authorization checks.
-- **`.strict()` schemas over manual field whitelisting** — closes off mass-assignment as an attack vector at the validation layer, before a payload ever reaches a service function.
-- **Correct HTTP semantics** — `DELETE` for removal, `PATCH` for the restore action, rather than overloading `PUT`.
-- **Aggregation-heavy dashboard** — dashboard sub-sections run concurrently via `Promise.all`, and "at-risk projects" is computed server-side with a MongoDB aggregation pipeline instead of pulling raw documents into the app layer.
-- **Integration tests over unit tests for tenant isolation and cascade behavior** — these are tested by hitting the API with Supertest against a real database rather than mocking the DB layer.
+- **Workspace-scoped tenancy over single-owner tenancy** — every record belongs to a workspace, not a user, so the same client/project/task model supports both solo use and multi-person teams without a schema change.
+- **Current workspace resolved server-side, not client-supplied** — `User.currentWorkspace` is set on switch and read by `attachWorkspace` on every request, rather than trusting a workspace ID sent by the client on each call. Switching workspaces validates active membership before updating it.
+- **Role checks as middleware, not scattered `if` statements** — `authorize(...roles)` is composed into the route definition, so the permission required for an action is visible at the route declaration rather than buried in a service function.
+- **Zod over hand-written validators** — schema-first validation lives in `*.validation.ts` files, colocated with the module it validates, and composes with TypeScript via `z.infer`.
+- **Soft delete over hard delete** — prioritizes recoverability and auditability; appropriate for business records a user might delete by mistake.
+- **`.strict()` schemas over manual field whitelisting** — closes off mass-assignment at the validation layer, before a payload reaches a service function.
+- **Correct HTTP semantics** — `DELETE` for removal, `PATCH` for restore/role-change/switch actions, rather than overloading `PUT`.
+- **Aggregation-heavy dashboard** — sub-sections run concurrently via `Promise.all`, and "at-risk projects" is computed server-side with a MongoDB aggregation pipeline instead of pulling raw documents into the app layer.
+- **Integration tests over unit tests for tenancy and cascade behavior** — these are tested by hitting the API with Supertest against a real database rather than mocking the DB layer.
 
 ## Roadmap
 
 - [x] Zod-based request validation layer
-- [x] Jest + Supertest integration test suite (tenant isolation, soft-delete lifecycle)
+- [x] Jest + Supertest integration test suite
+- [x] Migrate from single-owner to workspace-based multi-user tenancy
+- [x] Member invites, roles, and workspace switching
+- [x] Comments on tasks
+- [ ] Dedicated cross-workspace isolation tests (current suite covers per-user isolation; a workspace-vs-workspace case with multiple members is not yet explicit)
+- [ ] Docker for both apps
+- [ ] CI/CD pipeline (run the Jest suite on every PR) + deployment
 - [ ] Redis caching for the dashboard endpoint
 - [ ] Migrate from Mongoose to Prisma
-- [ ] Workspace/team-based multi-user tenancy (beyond single-owner tenants)
-- [ ] Dockerize both apps
-- [ ] CI/CD pipeline (run the Jest suite on every PR) + deployment to AWS
 
 ## License
 
