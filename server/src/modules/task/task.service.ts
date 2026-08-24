@@ -4,6 +4,7 @@ import { getProjectByIdService } from "../project/project.service";
 import mongoose, { Types } from 'mongoose'
 import { GetTaskResponse, PopulatedTask, TaskFilter } from "../../types/task.types";
 import { TaskBody, GetTasksQuery } from './task.validation';
+import { invalidateTaskCache } from '../../utils/cache';
 
 export const createTaskService = async (
     data: TaskBody,
@@ -26,6 +27,8 @@ export const createTaskService = async (
         dueDate: data.dueDate,
         assignee: data.assignee ? new Types.ObjectId(data.assignee) : undefined
     })
+
+    await invalidateTaskCache(workspaceId);
 
     return task;
 }
@@ -130,6 +133,8 @@ export const updateTaskByIdService = async (
         return null
     }
 
+    await invalidateTaskCache(workspaceId);
+
     return updatedTask;
 }
 
@@ -154,6 +159,7 @@ export const deleteTaskService = async (
         return null
     }
 
+    await invalidateTaskCache(workspaceId);
     return deletedTask;
 }
 
