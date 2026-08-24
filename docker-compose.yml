@@ -1,13 +1,10 @@
 
-
-version: '3.8'
-
 services:
 
   mongodb:
     image: mongo:7
     container_name: plinth-mongodb
-    restart: always
+    rtestart: always
    
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
