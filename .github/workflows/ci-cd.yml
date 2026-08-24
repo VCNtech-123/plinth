@@ -13,7 +13,7 @@ env:
 jobs:
 
   test-backend:
-    name: 🔧 Test Backend
+    name: Test Backend
     runs-on: ubuntu-latest
     
     services:
@@ -25,75 +25,6 @@ jobs:
           MONGO_INITDB_ROOT_USERNAME: admin
           MONGO_INITDB_ROOT_PASSWORD: password
           MONGO_INITDB_DATABASE: plinth_test
-
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 🔧 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: server/package-lock.json
-
-      - name: 📦 Install dependencies
-        run: npm ci
-        working-directory: server
-
-      - name: 🏗️ Build TypeScript
-        run: npm run build
-        working-directory: server
-
-      - name: 🧪 Run tests
-        run: npm test
-        working-directory: server
-        env:
-          NODE_ENV: test
-          MONGO_URI: mongodb://admin:password@localhost:27017/plinth_test?authSource=admin
-          JWT_SECRET: test-secret-key-for-ci
-
-      - name: 📊 Upload coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-coverage
-          path: server/coverage/
-
-  test-frontend:
-    name: 🔧 Test Frontend
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 🔧 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: client/package-lock.json
-
-      - name: 📦 Install dependencies
-        run: npm ci
-        working-directory: client
-
-      - name: 🏗️ Build frontend
-        run: npm run build
-        working-directory: client
-        env:
-          VITE_API_URL: http://localhost:5000/api
-
-      - name: Upload build
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-build
-          path: client/dist/
-
-  lint-backend:
-    name: 🔍 Lint Backend
-    runs-on: ubuntu-latest
-    needs: [test-backend]
 
     steps:
       - name: Checkout code
@@ -110,7 +41,76 @@ jobs:
         run: npm ci
         working-directory: server
 
-      - name: 🔍 Run linter
+      - name: Build TypeScript
+        run: npm run build
+        working-directory: server
+
+      - name: Run tests
+        run: npm test
+        working-directory: server
+        env:
+          NODE_ENV: test
+          MONGO_URI: mongodb://admin:password@localhost:27017/plinth_test?authSource=admin
+          JWT_SECRET: test-secret-key-for-ci
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: server/coverage/
+
+  test-frontend:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: client
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: client
+        env:
+          VITE_API_URL: http://localhost:5000/api
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: client/dist/
+
+  lint-backend:
+    name: Lint Backend
+    runs-on: ubuntu-latest
+    needs: [test-backend]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: server
+
+      - name: Run linter
         run: npm run lint || echo "No linter configured"
         working-directory: server
         continue-on-error: true
@@ -122,19 +122,19 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-      - name: 📥 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🔑 Login to Docker Hub
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: 🏗️ Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 📦 Build and push backend
+      - name: Build and push backend
         uses: docker/build-push-action@v5
         with:
           context: ./server
@@ -146,7 +146,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: 📦 Build and push frontend
+      - name: Build and push frontend
         uses: docker/build-push-action@v5
         with:
           context: ./client
@@ -159,58 +159,58 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-    name: 🚀 Deploy to Production
+    name: Deploy to Production
     runs-on: ubuntu-latest
     needs: build-docker
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: 📥 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🔑 Setup SSH
+      - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: 📝 Copy docker-compose.prod.yml
+      - name: Copy docker-compose.prod.yml
         run: |
           mkdir -p /tmp/deploy
           cp docker/docker-compose.prod.yml /tmp/deploy/docker-compose.yml
 
-      - name: 🚀 Deploy to server
+      - name: Deploy to server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             set -e
-            echo "📦 Pulling latest images..."
+            echo  Pulling latest images..."
             docker pull ${{ secrets.DOCKER_USERNAME }}/plinth-backend:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/plinth-frontend:latest
             
-            echo "🔄 Restarting containers..."
+            echo  Restarting containers..."
             cd /app/plinth
             docker compose down
             docker compose up -d
             
-            echo "🧹 Cleaning up..."
+            echo  Cleaning up..."
             docker system prune -f
             docker image prune -f --filter "until=24h"
             
-            echo "✅ Deployment complete!"
+            echo  Deployment complete!"
             docker compose ps
           EOF
 
   notify:
-    name: 📢 Notify
+    name: Notify
     runs-on: ubuntu-latest
     needs: deploy
     if: always() && github.ref == 'refs/heads/main'
 
     steps:
-      - name: 📢 Send status
+      - name: Send status
         run: |
           if [ "${{ needs.deploy.result }}" == "success" ]; then
             echo "✅ Deployment successful!"
           else
-            echo "❌ Deployment failed!"
+            echo " Deployment failed!"
             exit 1
           fi
