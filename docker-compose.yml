@@ -1,0 +1,85 @@
+
+
+version: '3.8'
+
+services:
+
+  mongodb:
+    image: mongo:7
+    container_name: plinth-mongodb
+    restart: always
+   
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: plinth
+ 
+    volumes:
+      - mongodb_data:/data/db
+
+    ports:
+      - "27017:27017"
+
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - plinth-network
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: plinth-backend
+    restart: always
+
+    env_file:
+      - ./server/.env
+  
+    environment:
+      - MONGO_URI=mongodb://admin:password@mongodb:27017/plinth?authSource=admin
+      - NODE_ENV=development
+      - PORT=5000
+      - CLIENT_URL=http://localhost:5173
+
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+   
+    volumes:
+      - ./server:/app
+      - /app/node_modules  
+    networks:
+      - plinth-network
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: plinth-frontend
+    restart: always
+    env_file:
+      - ./client/.env
+    environment:
+      - VITE_API_URL=http://localhost:5000/api
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    networks:
+      - plinth-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  plinth-network:
+    driver: bridge
