@@ -1,22 +1,16 @@
-
 services:
-
   mongodb:
     image: mongo:7
     container_name: plinth-mongodb
     restart: always
-   
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_INITDB_DATABASE: plinth
- 
     volumes:
       - mongodb_data:/data/db
-
     ports:
       - "27017:27017"
-
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -26,56 +20,40 @@ services:
     networks:
       - plinth-network
 
-  backend:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    container_name: plinth-backend
+  redis:
+    image: redis:7-alpine
+    container_name: plinth-redis
     restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - plinth-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-    env_file:
-      - ./server/.env
-  
+  backend:
+
     environment:
       - MONGO_URI=mongodb://admin:password@mongodb:27017/plinth?authSource=admin
+      - REDIS_HOST=redis  
+      - REDIS_PORT=6379   
       - NODE_ENV=development
       - PORT=5000
       - CLIENT_URL=http://localhost:5173
-
     depends_on:
       mongodb:
         condition: service_healthy
-    ports:
-      - "5000:5000"
-   
-    volumes:
-      - ./server:/app
-      - /app/node_modules  
-    networks:
-      - plinth-network
-
-  frontend:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: plinth-frontend
-    restart: always
-    env_file:
-      - ./client/.env
-    environment:
-      - VITE_API_URL=http://localhost:5000/api
-    depends_on:
-      - backend
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./client:/app
-      - /app/node_modules
-    networks:
-      - plinth-network
+      redis:           
+        condition: service_healthy
 
 volumes:
   mongodb_data:
+  redis_data:  
 
 networks:
   plinth-network:
