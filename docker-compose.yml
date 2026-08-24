@@ -4,7 +4,7 @@ services:
   mongodb:
     image: mongo:7
     container_name: plinth-mongodb
-    rtestart: always
+    restart: always
    
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
