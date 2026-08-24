@@ -22,14 +22,11 @@ const TaskBoard = ({
   const inProgress = tasks.filter((t) => t.status === "in-progress");
   const done = tasks.filter((t) => t.status === "done");
 
-  // Handle drag end
   const handleDragEnd = (result: DropResult) => {
     const { source, destination, draggableId } = result;
 
-    // Dropped outside a valid droppable
     if (!destination) return;
 
-    // Dropped in same position
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
@@ -48,7 +45,6 @@ const TaskBoard = ({
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-160px)]">
 
-        {/* Todo Column */}
         <Droppable droppableId="todo">
           {(provided, snapshot) => (
             <div

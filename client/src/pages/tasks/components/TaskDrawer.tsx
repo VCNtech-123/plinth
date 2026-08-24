@@ -9,6 +9,8 @@ import { useAuthStore } from "../../../store/auth.store";
 import AssigneeSection from "./AssigneeSection";
 import CommentSection from "./CommentSection";
 import type { Task } from "../../../types/task.types";
+import { getWorkspaceMembers } from "../../../api/workspace.api";
+import { useWorkspaceStore } from "../../../store/workspace.store"; 
 
 interface TaskDrawerProps {
   taskId: string | null;
@@ -22,6 +24,9 @@ const TaskDrawer = ({ taskId, open, onClose, onUpdate }: TaskDrawerProps) => {
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(false);
   const [assignLoading, setAssignLoading] = useState(false);
+  const role = useWorkspaceStore((s) => s.current.role);
+  const canAssign = role === "owner" || role === "admin";
+  const [members, setMembers] = useState<{ id: string; name: string; email: string }[]>([]);
 
   useEffect(() => {
     if (!taskId) return;
@@ -38,6 +43,28 @@ const TaskDrawer = ({ taskId, open, onClose, onUpdate }: TaskDrawerProps) => {
 
     fetchTask();
   }, [taskId]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const fetchMembers = async () => {
+      try {
+        const res = await getWorkspaceMembers();
+        const list = (res.data ?? []).filter((m: any) => m.status === "active");
+
+        setMembers(
+          list.map((m: any) => ({
+            id: m.user.id ?? m.user._id,
+            name: m.user.name,
+            email: m.user.email,
+          }))
+        );
+      } catch {
+      }
+    };
+
+    fetchMembers();
+  }, [open]);
 
   const handleAssign = async (assigneeId: string | null) => {
     if (!task) return;
@@ -173,7 +200,9 @@ const TaskDrawer = ({ taskId, open, onClose, onUpdate }: TaskDrawerProps) => {
                   task={task}
                   onAssign={handleAssign}
                   currentUserId={user._id}
+                  members={members}
                   loading={assignLoading}
+                  canAssign={canAssign}
                 />
               )}
               <CommentSection taskId={task.id} />
