@@ -6,8 +6,8 @@ const redis = new Redis({
   password: process.env.REDIS_PASSWORD || undefined,
   retryStrategy: (times: number) => {
     if (times > 3) {
-      console.log(`Redis connection failed after ${times} retries`);
-      return null; 
+      console.log('Redis connection failed - continuing without cache');
+      return null;
     }
     return Math.min(times * 100, 2000);
   },
@@ -19,7 +19,7 @@ redis.on('connect', () => {
 });
 
 redis.on('error', (error) => {
-  console.error('🔴 Redis error:', error);
+  console.error('🔴 Redis error:', error.message);
 });
 
 export default redis;
